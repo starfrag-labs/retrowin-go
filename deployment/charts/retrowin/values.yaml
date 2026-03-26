@@ -1,0 +1,194 @@
+# Default values for retrowin.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/starfrag-lab/retrowin-server
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1001
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: retrowin.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Server configuration
+config:
+  # Application settings
+  app:
+    name: retrowin
+    version: 0.0.1
+    env: production
+
+  # HTTP server settings
+  http:
+    host: "0.0.0.0"
+    port: 8080
+
+  # Database settings
+  database:
+    driver: postgres
+    host: ""
+    port: 5432
+    name: retrowin
+    user: retrowin
+    sslmode: disable
+
+  # Cache settings (Valkey)
+  cache:
+    provider: valkey
+    valkey:
+      mode: standalone
+      addr: "valkey:6379"
+      db: 0
+      poolSize: 10
+      password: ""
+
+  # Storage settings
+  storage:
+    provider: s3
+    region: us-east-1
+    endpoint: ""
+    bucket: retrowin
+    useSSL: false
+
+  # Authentication settings
+  auth:
+    gatewaySecret: ""
+    keycloak:
+      baseURL: ""
+      realm: retrowin
+      clientID: retrowin-app
+    session:
+      ttl: 86400        # 24 hours in seconds
+      secure: true
+      stateTTL: 300     # 5 minutes
+      redisKey: retrowin
+
+  # CORS settings
+  cors:
+    enabled: true
+    allowedOrigins:
+      - "*"
+    allowedMethods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowedHeaders:
+      - Content-Type
+      - Authorization
+      - X-Requested-With
+    exposedHeaders:
+      - Content-Length
+      - Content-Type
+    maxAge: 86400
+
+# Secrets (passed as environment variables)
+secrets:
+  database:
+    password: ""
+    existingSecret: ""
+    existingSecretKey: database-password
+  cache:
+    valkey:
+      password: ""
+      existingSecret: ""
+      existingSecretKey: valkey-password
+  storage:
+    accessKey: ""
+    secretKey: ""
+    existingSecret: ""
+  keycloak:
+    clientSecret: ""
+    existingSecret: ""
+    existingSecretKey: keycloak-client-secret
+
+# Additional environment variables
+extraEnv: []
+
+# Additional environment variables from ConfigMap or Secret
+extraEnvFrom: []
+
+# Migration job settings (ArgoCD PreSync hook)
+migration:
+  enabled: true

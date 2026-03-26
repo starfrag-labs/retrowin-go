@@ -1,0 +1,23 @@
+apiVersion: v2
+name: retrowin
+description: A Helm chart for Retrowin
+
+type: application
+
+version: 0.1.0
+
+appVersion: "0.1.0"
+
+keywords:
+  - retrowin
+  - api
+  - server
+  - file-storage
+
+maintainers:
+  - name: sauce
+    email: sauce@starfrag-lab.com
+
+home: https://github.com/starfrag-lab/retrowin-go
+sources:
+  - https://github.com/starfrag-lab/retrowin-go
