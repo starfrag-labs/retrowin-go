@@ -25,9 +25,9 @@ type AppConfig struct {
 
 // HTTPConfig holds HTTP server configuration.
 type HTTPConfig struct {
-	Host         string `mapstructure:"host"`
-	Port         int    `mapstructure:"port"`
-	OpenAPIPath  string `mapstructure:"openapi_path"`
+	Host        string `mapstructure:"host"`
+	Port        int    `mapstructure:"port"`
+	OpenAPIPath string `mapstructure:"openapi_path"`
 }
 
 // DatabaseConfig holds database connection configuration.
@@ -51,7 +51,7 @@ func (c DatabaseConfig) DSN() string {
 
 // CacheConfig holds cache configuration.
 type CacheConfig struct {
-	Provider string      `mapstructure:"provider"`
+	Provider string       `mapstructure:"provider"`
 	Valkey   ValkeyConfig `mapstructure:"valkey"`
 }
 
@@ -91,10 +91,10 @@ type KeycloakConfig struct {
 
 // SessionConfig holds session configuration.
 type SessionConfig struct {
-	TTL        int  `mapstructure:"ttl"`         // Session TTL in seconds
-	Secure     bool `mapstructure:"secure"`      // Set Secure flag on cookie
-	StateTTL   int  `mapstructure:"state_ttl"`   // OAuth state TTL in seconds
-	RedisKey   string `mapstructure:"redis_key"` // Redis key prefix
+	TTL      int    `mapstructure:"ttl"`       // Session TTL in seconds
+	Secure   bool   `mapstructure:"secure"`    // Set Secure flag on cookie
+	StateTTL int    `mapstructure:"state_ttl"` // OAuth state TTL in seconds
+	RedisKey string `mapstructure:"redis_key"` // Redis key prefix
 }
 
 // OIDCRedirectURI returns the OIDC redirect URI.
@@ -142,9 +142,9 @@ func loadConfig(v *viper.Viper) (*Config, error) {
 	v.SetDefault("storage.provider", "s3")
 	v.SetDefault("storage.region", "us-east-1")
 	v.SetDefault("storage.use_ssl", false)
-	v.SetDefault("auth.session.ttl", 86400)         // 24 hours
+	v.SetDefault("auth.session.ttl", 86400) // 24 hours
 	v.SetDefault("auth.session.secure", false)
-	v.SetDefault("auth.session.state_ttl", 300)     // 5 minutes
+	v.SetDefault("auth.session.state_ttl", 300) // 5 minutes
 	v.SetDefault("auth.session.redis_key", "retrowin")
 
 	// Read environment variables

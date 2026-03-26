@@ -13,8 +13,8 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	httpSwagger "github.com/swaggo/http-swagger"
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
@@ -220,7 +220,6 @@ func ProvideAuthHandler(oidcSvc auth.Service, sessionSvc auth.SessionService, cf
 
 // Server represents the HTTP server.
 type Server struct {
-	httpServer  *http.Server
 	ogenServer  *apiv1.Server
 	authHandler *handler.AuthHandler
 	config      *config.Config

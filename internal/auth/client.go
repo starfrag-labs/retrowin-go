@@ -10,9 +10,9 @@ import (
 
 // Client wraps OIDC/OAuth2 operations for Keycloak.
 type Client struct {
-	keycloak      *Keycloak
-	oidcProvider  *oidc.Provider
-	oauth2Config  *oauth2.Config
+	keycloak     *Keycloak
+	oidcProvider *oidc.Provider
+	oauth2Config *oauth2.Config
 }
 
 // NewClient creates a new OIDC client for Keycloak.
@@ -31,9 +31,9 @@ func NewClient(ctx context.Context, keycloak *Keycloak) (*Client, error) {
 	}
 
 	return &Client{
-		keycloak:      keycloak,
-		oidcProvider:  oidcProvider,
-		oauth2Config:  oauth2Config,
+		keycloak:     keycloak,
+		oidcProvider: oidcProvider,
+		oauth2Config: oauth2Config,
 	}, nil
 }
 

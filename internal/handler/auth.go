@@ -42,7 +42,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // Callback handles the OIDC callback.
@@ -72,7 +72,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // Logout handles user logout.
@@ -109,7 +109,7 @@ func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"userId":    sess.UserID(),
 		"expiresAt": sess.ExpiresAt(),
 	})
@@ -118,7 +118,7 @@ func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 func writeAuthError(w http.ResponseWriter, err *errors.Error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(err.StatusCode)
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"code":    err.Code,
 		"message": err.Message,
 	})

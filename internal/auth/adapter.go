@@ -8,8 +8,8 @@ import (
 
 // UserAdapter adapts user.Service to auth.UserService interface.
 type UserAdapter struct {
-	userSvc   user.Service
-	provider  string
+	userSvc  user.Service
+	provider string
 }
 
 // NewUserAdapter creates a new user adapter.

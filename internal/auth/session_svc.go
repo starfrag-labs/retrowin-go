@@ -86,6 +86,9 @@ func (s *sessionService) DeleteByUserID(ctx context.Context, userID int64) error
 // generateSessionID generates a random session ID.
 func generateSessionID() string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		// Fall back to timestamp-based ID if crypto/rand fails
+		return hex.EncodeToString([]byte(time.Now().String()))[:32]
+	}
 	return hex.EncodeToString(b)
 }

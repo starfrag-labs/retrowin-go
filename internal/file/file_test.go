@@ -48,8 +48,8 @@ func TestFile_Struct(t *testing.T) {
 
 func TestFileInfo_Struct(t *testing.T) {
 	info := FileInfo{
-		FileID:     1,
-		ByteSize:   2048,
+		FileID:   1,
+		ByteSize: 2048,
 	}
 
 	assert.Equal(t, int64(1), info.FileID)

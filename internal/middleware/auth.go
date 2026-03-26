@@ -32,5 +32,5 @@ func SetUserID(ctx context.Context, id int64) context.Context {
 func WriteError(w http.ResponseWriter, err *errors.Error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(err.StatusCode)
-	w.Write([]byte(`{"code":"` + err.Code + `","message":"` + err.Message + `"}`))
+	_, _ = w.Write([]byte(`{"code":"` + err.Code + `","message":"` + err.Message + `"}`))
 }
