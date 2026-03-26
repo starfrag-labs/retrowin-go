@@ -100,7 +100,7 @@ jobs:
       # Charts to test (REQUIRED)
       charts: |
         [
-          {"dir": "serengeti"}
+          {"dir": "retrowin"}
         ]
       # Multiple charts example:
       # charts: |
