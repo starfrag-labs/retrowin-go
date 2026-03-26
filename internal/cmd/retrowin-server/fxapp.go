@@ -13,6 +13,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
+	httpSwagger "github.com/swaggo/http-swagger"
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 	"github.com/valkey-io/valkey-go"
 
@@ -263,6 +264,16 @@ func ProvideHTTPServer(
 	mux.HandleFunc("/auth/callback", srv.authHandler.Callback)
 	mux.HandleFunc("/auth/logout", srv.authHandler.Logout)
 	mux.HandleFunc("/auth/me", srv.authHandler.GetMe)
+
+	// Serve OpenAPI spec
+	mux.HandleFunc("/v1/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, cfg.HTTP.OpenAPIPath)
+	})
+
+	// Serve Swagger UI
+	mux.Handle("/v1/swagger/", httpSwagger.Handler(
+		httpSwagger.URL("/v1/openapi.yaml"),
+	))
 
 	// Mount API routes
 	mux.Handle("/", srv.ogenServer)

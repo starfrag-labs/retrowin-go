@@ -25,8 +25,9 @@ type AppConfig struct {
 
 // HTTPConfig holds HTTP server configuration.
 type HTTPConfig struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
+	Host         string `mapstructure:"host"`
+	Port         int    `mapstructure:"port"`
+	OpenAPIPath  string `mapstructure:"openapi_path"`
 }
 
 // DatabaseConfig holds database connection configuration.
@@ -130,6 +131,7 @@ func loadConfig(v *viper.Viper) (*Config, error) {
 	v.SetDefault("app.env", "development")
 	v.SetDefault("http.host", "0.0.0.0")
 	v.SetDefault("http.port", 8080)
+	v.SetDefault("http.openapi_path", "api/openapi.yaml")
 	v.SetDefault("database.driver", "postgres")
 	v.SetDefault("database.sslmode", "disable")
 	v.SetDefault("cache.provider", "valkey")
