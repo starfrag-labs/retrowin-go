@@ -27,7 +27,7 @@ permissions:
 jobs:
   docker-build:
     name: Build and Push Docker Images
-    uses: mandacode-lab/workflows/.gitea/workflows/docker-build.yml@main
+    uses: mandacode-labs/workflows/.gitea/workflows/docker-build.yml@main
     with:
       # Images to build (REQUIRED)
       images: |
