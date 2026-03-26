@@ -8,7 +8,6 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/starfrag-lab/retrowin-go/internal/auth/session"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -20,8 +19,8 @@ type UserService interface {
 
 // Service defines the authentication service interface.
 type Service interface {
-	// GetProvider returns the OIDC provider.
-	GetProvider() *Provider
+	// GetKeycloak returns the Keycloak provider.
+	GetKeycloak() *Keycloak
 
 	// GetClient returns the OIDC client.
 	GetClient() *Client
@@ -37,43 +36,43 @@ type Service interface {
 }
 
 type authService struct {
-	provider    *Provider
-	client      *Client
-	sessionSvc  session.Service
-	userSvc     UserService
-	redis       *redis.Client
-	redisPrefix string
-	stateTTL    time.Duration
+	keycloak     *Keycloak
+	client       *Client
+	sessionSvc   SessionService
+	userSvc      UserService
+	valkey       *redis.Client
+	valkeyPrefix string
+	stateTTL     time.Duration
 }
 
 // NewService creates a new authentication service.
 func NewService(
-	provider *Provider,
-	sessionSvc session.Service,
+	keycloak *Keycloak,
+	sessionSvc SessionService,
 	userSvc UserService,
-	redis *redis.Client,
-	redisPrefix string,
+	valkey *redis.Client,
+	valkeyPrefix string,
 	stateTTL time.Duration,
 ) (Service, error) {
-	client, err := NewClient(context.Background(), provider)
+	client, err := NewClient(context.Background(), keycloak)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OIDC client: %w", err)
 	}
 
 	return &authService{
-		provider:    provider,
-		client:      client,
-		sessionSvc:  sessionSvc,
-		userSvc:     userSvc,
-		redis:       redis,
-		redisPrefix: redisPrefix,
-		stateTTL:    stateTTL,
+		keycloak:     keycloak,
+		client:       client,
+		sessionSvc:   sessionSvc,
+		userSvc:      userSvc,
+		valkey:       valkey,
+		valkeyPrefix: valkeyPrefix,
+		stateTTL:     stateTTL,
 	}, nil
 }
 
-// GetProvider returns the OIDC provider.
-func (s *authService) GetProvider() *Provider {
-	return s.provider
+// GetKeycloak returns the Keycloak provider.
+func (s *authService) GetKeycloak() *Keycloak {
+	return s.keycloak
 }
 
 // GetClient returns the OIDC client.
@@ -97,10 +96,9 @@ func (s *authService) InitiateLogin(ctx context.Context) (*LoginResponse, error)
 		return nil, fmt.Errorf("failed to generate state: %w", err)
 	}
 
-	// Store login request in Redis
+	// Store login request in Valkey
 	loginReq := &LoginRequest{
-		ProviderID:   s.provider.ID(),
-		RedirectURI:  s.provider.RedirectURI(),
+		RedirectURI:  s.keycloak.RedirectURI(),
 		State:        state,
 		CodeVerifier: codeVerifier,
 	}
@@ -177,20 +175,20 @@ func (s *authService) ValidateState(ctx context.Context, state string) (*LoginRe
 	return loginReq, nil
 }
 
-// storeLoginRequest stores the login request in Redis.
+// storeLoginRequest stores the login request in Valkey.
 func (s *authService) storeLoginRequest(ctx context.Context, req *LoginRequest) error {
 	key := s.getStateKey(req.State)
 	data, err := json.Marshal(req)
 	if err != nil {
 		return err
 	}
-	return s.redis.Set(ctx, key, data, s.stateTTL).Err()
+	return s.valkey.Set(ctx, key, data, s.stateTTL).Err()
 }
 
-// getLoginRequest retrieves the login request from Redis.
+// getLoginRequest retrieves the login request from Valkey.
 func (s *authService) getLoginRequest(ctx context.Context, state string) (*LoginRequest, error) {
 	key := s.getStateKey(state)
-	data, err := s.redis.Get(ctx, key).Bytes()
+	data, err := s.valkey.Get(ctx, key).Bytes()
 	if err == redis.Nil {
 		return nil, errors.NotFound("login request not found")
 	}
@@ -206,12 +204,12 @@ func (s *authService) getLoginRequest(ctx context.Context, state string) (*Login
 	return &req, nil
 }
 
-// deleteLoginRequest deletes the login request from Redis.
+// deleteLoginRequest deletes the login request from Valkey.
 func (s *authService) deleteLoginRequest(ctx context.Context, state string) {
 	key := s.getStateKey(state)
-	s.redis.Del(ctx, key)
+	s.valkey.Del(ctx, key)
 }
 
 func (s *authService) getStateKey(state string) string {
-	return fmt.Sprintf("%s:auth:state:%s", s.redisPrefix, state)
+	return fmt.Sprintf("%s:auth:state:%s", s.valkeyPrefix, state)
 }

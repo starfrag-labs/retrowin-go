@@ -63,7 +63,7 @@ type FilePathRepository interface {
 	// Create creates a file path for a file.
 	Create(ctx context.Context, fileID int64, path []int64) error
 
-	// GetByFileID retrieves file path by file ID.
+	// GetByFileID retrieves the file path by file ID.
 	GetByFileID(ctx context.Context, fileID int64) ([]int64, error)
 
 	// Update updates file path.

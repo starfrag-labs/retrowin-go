@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/starfrag-lab/retrowin-go/internal/auth/session"
+	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -15,13 +15,13 @@ const (
 
 // SessionAuth holds session authentication configuration.
 type SessionAuth struct {
-	sessionSvc session.Service
+	sessionSvc auth.SessionService
 	secure     bool
 }
 
 // SessionAuthConfig holds session authentication configuration.
 type SessionAuthConfig struct {
-	SessionService session.Service
+	SessionService auth.SessionService
 	Secure         bool
 }
 
@@ -42,7 +42,7 @@ func (a *SessionAuth) RequireSession(next http.Handler) http.Handler {
 			return
 		}
 
-		sess, err := a.sessionSvc.Validate(r.Context(), session.ID(cookie.Value))
+		sess, err := a.sessionSvc.Validate(r.Context(), auth.SessionID(cookie.Value))
 		if err != nil {
 			WriteError(w, errors.Unauthorized("invalid or expired session"))
 			return

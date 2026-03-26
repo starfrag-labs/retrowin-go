@@ -8,32 +8,32 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Client wraps OIDC/OAuth2 operations.
+// Client wraps OIDC/OAuth2 operations for Keycloak.
 type Client struct {
-	provider     *Provider
-	oidcProvider *oidc.Provider
-	oauth2Config *oauth2.Config
+	keycloak      *Keycloak
+	oidcProvider  *oidc.Provider
+	oauth2Config  *oauth2.Config
 }
 
-// NewClient creates a new OIDC client.
-func NewClient(ctx context.Context, provider *Provider) (*Client, error) {
-	oidcProvider, err := oidc.NewProvider(ctx, provider.Issuer())
+// NewClient creates a new OIDC client for Keycloak.
+func NewClient(ctx context.Context, keycloak *Keycloak) (*Client, error) {
+	oidcProvider, err := oidc.NewProvider(ctx, keycloak.Issuer())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OIDC provider: %w", err)
 	}
 
 	oauth2Config := &oauth2.Config{
-		ClientID:     provider.ClientID(),
-		ClientSecret: provider.ClientSecret(),
-		RedirectURL:  provider.RedirectURI(),
+		ClientID:     keycloak.ClientID(),
+		ClientSecret: keycloak.ClientSecret(),
+		RedirectURL:  keycloak.RedirectURI(),
 		Endpoint:     oidcProvider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
 	return &Client{
-		provider:     provider,
-		oidcProvider: oidcProvider,
-		oauth2Config: oauth2Config,
+		keycloak:      keycloak,
+		oidcProvider:  oidcProvider,
+		oauth2Config:  oauth2Config,
 	}, nil
 }
 
@@ -89,5 +89,5 @@ func (c *Client) GetUserInfo(ctx context.Context, token *oauth2.Token) (*UserInf
 
 // VerifyToken verifies an ID token.
 func (c *Client) VerifyToken(ctx context.Context, rawIDToken string) (*oidc.IDToken, error) {
-	return c.oidcProvider.Verifier(&oidc.Config{ClientID: c.provider.ClientID()}).Verify(ctx, rawIDToken)
+	return c.oidcProvider.Verifier(&oidc.Config{ClientID: c.keycloak.ClientID()}).Verify(ctx, rawIDToken)
 }

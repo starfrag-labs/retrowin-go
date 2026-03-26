@@ -10,17 +10,14 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
-	"github.com/starfrag-lab/retrowin-go/internal/auth/session"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
 	"github.com/starfrag-lab/retrowin-go/internal/file"
-	filerepo "github.com/starfrag-lab/retrowin-go/internal/file/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/handler"
 	"github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/storage"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/storage/s3"
 	"github.com/starfrag-lab/retrowin-go/internal/upload"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
-	"github.com/starfrag-lab/retrowin-go/internal/user/repository"
 )
 
 // Module provides the fx module for the retrowin server.
@@ -28,10 +25,11 @@ var Module = fx.Module("retrowin",
 	fx.Provide(
 		NewLogger,
 		NewConfig,
-		NewRedisClient,
+		NewValkeyClient,
 		NewSecurityHandler,
+		NewSessionRepository,
 		NewSessionService,
-		NewOIDCProvider,
+		NewKeycloak,
 		NewOIDCUserService,
 		NewOIDCService,
 		NewAuthHandler,
@@ -48,8 +46,6 @@ var Module = fx.Module("retrowin",
 		NewFileInfoRepository,
 		NewFilePathRepository,
 		NewFileRoleRepository,
-		// Session Repository
-		NewSessionRepository,
 	),
 	fx.Invoke(func(*Server) {}),
 )
@@ -67,34 +63,34 @@ func NewConfig() (*config.Config, error) {
 }
 
 // NewSecurityHandler creates the security handler for ogen.
-func NewSecurityHandler(sessionSvc session.Service) *v1.SecurityHandler {
+func NewSecurityHandler(sessionSvc auth.SessionService) *v1.SecurityHandler {
 	return v1.NewSecurityHandler(sessionSvc)
 }
 
 // Repository constructors using Ent
 
 func NewUserRepository(client *ent.Client) user.Repository {
-	return repository.NewEntRepository(client)
+	return user.NewEntRepository(client)
 }
 
 func NewServiceStatusRepository(client *ent.Client) user.ServiceStatusRepository {
-	return repository.NewEntServiceStatusRepository(client)
+	return user.NewEntServiceStatusRepository(client)
 }
 
 func NewFileRepository(client *ent.Client) file.Repository {
-	return filerepo.NewEntRepository(client)
+	return file.NewEntRepository(client)
 }
 
 func NewFileInfoRepository(client *ent.Client) file.FileInfoRepository {
-	return filerepo.NewEntFileInfoRepository(client)
+	return file.NewEntFileInfoRepository(client)
 }
 
 func NewFilePathRepository(client *ent.Client) file.FilePathRepository {
-	return filerepo.NewEntFilePathRepository(client)
+	return file.NewEntFilePathRepository(client)
 }
 
 func NewFileRoleRepository(client *ent.Client) file.FileRoleRepository {
-	return filerepo.NewEntFileRoleRepository(client)
+	return file.NewEntFileRoleRepository(client)
 }
 
 // Service constructors
@@ -129,9 +125,9 @@ func NewHandler(
 	return v1.NewHandler(userSvc, fileSvc, uploadSvc, cfg)
 }
 
-// Redis constructor
+// Valkey constructor
 
-func NewRedisClient(cfg *config.Config) *redis.Client {
+func NewValkeyClient(cfg *config.Config) *redis.Client {
 	return redis.NewClient(&redis.Options{
 		Addr:     cfg.Cache.Redis.Addr,
 		DB:       cfg.Cache.Redis.DB,
@@ -141,27 +137,25 @@ func NewRedisClient(cfg *config.Config) *redis.Client {
 
 // Session constructors
 
-func NewSessionRepository(redisClient *redis.Client, cfg *config.Config) session.Repository {
-	return session.NewRedisRepository(redisClient, cfg.Auth.Session.RedisKey)
+func NewSessionRepository(valkeyClient *redis.Client, cfg *config.Config) auth.SessionRepository {
+	return auth.NewValkeySessionRepository(valkeyClient, cfg.Auth.Session.RedisKey)
 }
 
-func NewSessionService(repo session.Repository, cfg *config.Config) session.Service {
+func NewSessionService(repo auth.SessionRepository, cfg *config.Config) auth.SessionService {
 	ttl := time.Duration(cfg.Auth.Session.TTL) * time.Second
-	return session.NewService(repo, ttl)
+	return auth.NewSessionService(repo, ttl)
 }
 
-// OIDC constructors
+// Keycloak constructor
 
-func NewOIDCProvider(cfg *config.Config) *auth.Provider {
+func NewKeycloak(cfg *config.Config) *auth.Keycloak {
 	// Construct issuer URL from Keycloak config
 	issuerURL := cfg.Auth.Keycloak.BaseURL + "/realms/" + cfg.Auth.Keycloak.Realm
 
 	// Construct redirect URI from HTTP config
 	redirectURI := "http://localhost:8080/auth/callback" // TODO: Make configurable
 
-	return auth.NewProvider(auth.ProviderConfig{
-		ID:           "keycloak",
-		Name:         "Keycloak",
+	return auth.NewKeycloak(auth.KeycloakConfig{
 		Issuer:       issuerURL,
 		ClientID:     cfg.Auth.Keycloak.ClientID,
 		ClientSecret: cfg.Auth.Keycloak.ClientSecret,
@@ -174,17 +168,17 @@ func NewOIDCUserService(userSvc user.Service) auth.UserService {
 }
 
 func NewOIDCService(
-	provider *auth.Provider,
-	sessionSvc session.Service,
+	keycloak *auth.Keycloak,
+	sessionSvc auth.SessionService,
 	userSvc auth.UserService,
-	redisClient *redis.Client,
+	valkeyClient *redis.Client,
 	cfg *config.Config,
 ) (auth.Service, error) {
 	stateTTL := time.Duration(cfg.Auth.Session.StateTTL) * time.Second
-	return auth.NewService(provider, sessionSvc, userSvc, redisClient, cfg.Auth.Session.RedisKey, stateTTL)
+	return auth.NewService(keycloak, sessionSvc, userSvc, valkeyClient, cfg.Auth.Session.RedisKey, stateTTL)
 }
 
-func NewAuthHandler(oidcSvc auth.Service, sessionSvc session.Service, cfg *config.Config) *handler.AuthHandler {
+func NewAuthHandler(oidcSvc auth.Service, sessionSvc auth.SessionService, cfg *config.Config) *handler.AuthHandler {
 	return handler.NewAuthHandler(&handler.AuthHandlerConfig{
 		AuthService:    oidcSvc,
 		SessionService: sessionSvc,

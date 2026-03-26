@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
-	"github.com/starfrag-lab/retrowin-go/internal/auth/session"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/middleware"
 )
@@ -13,14 +12,14 @@ import (
 // AuthHandler handles authentication HTTP requests.
 type AuthHandler struct {
 	authSvc    auth.Service
-	sessionSvc session.Service
+	sessionSvc auth.SessionService
 	secure     bool
 }
 
 // AuthHandlerConfig holds configuration for the auth handler.
 type AuthHandlerConfig struct {
 	AuthService    auth.Service
-	SessionService session.Service
+	SessionService auth.SessionService
 	Secure         bool
 }
 
@@ -86,7 +85,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete session from storage
-	_ = h.sessionSvc.Delete(r.Context(), session.ID(cookie.Value))
+	_ = h.sessionSvc.Delete(r.Context(), auth.SessionID(cookie.Value))
 
 	// Clear session cookie
 	middleware.ClearSessionCookie(w, h.secure)
@@ -103,7 +102,7 @@ func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess, err := h.sessionSvc.Validate(r.Context(), session.ID(cookie.Value))
+	sess, err := h.sessionSvc.Validate(r.Context(), auth.SessionID(cookie.Value))
 	if err != nil {
 		writeAuthError(w, errors.Unauthorized("invalid or expired session"))
 		return
