@@ -1,0 +1,46 @@
+app:
+  name: retrowin
+  version: 0.1.0
+  env: development
+
+http:
+  host: 0.0.0.0
+  port: 8080
+
+database:
+  driver: postgres
+  host: localhost
+  port: 5432
+  name: retrowin
+  user: postgres
+  password: postgres
+  sslmode: disable
+
+cache:
+  provider: redis
+  redis:
+    addr: localhost:6379
+    db: 0
+    pool_size: 10
+
+storage:
+  provider: s3
+  region: us-east-1
+  endpoint: ""  # Leave empty for AWS S3, or set for MinIO (e.g., http://localhost:9000)
+  access_key: ""
+  secret_key: ""
+  bucket: retrowin-files
+  use_ssl: false
+
+auth:
+  gateway_secret: your-secret-key
+  keycloak:
+    base_url: http://localhost:8081
+    realm: retrowin
+    client_id: retrowin-api
+    client_secret: ""
+  session:
+    ttl: 86400          # Session TTL in seconds (24 hours)
+    secure: false       # Set Secure flag on cookie (true for production)
+    state_ttl: 300      # OAuth state TTL in seconds (5 minutes)
+    redis_key: retrowin # Redis key prefix

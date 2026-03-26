@@ -1,0 +1,201 @@
+components:
+  schemas:
+    FileType:
+      type: string
+      enum:
+        - container
+        - file
+      description: Type of file (container or file)
+
+    File:
+      type: object
+      required:
+        - id
+        - fileKey
+        - type
+        - fileName
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: File ID
+        fileKey:
+          type: string
+          format: uuid
+          description: File UUID key
+        type:
+          $ref: '#/components/schemas/FileType'
+        fileName:
+          type: string
+          description: File name
+        ownerId:
+          type: integer
+          format: int64
+          description: Owner member ID
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+          description: Parent file ID
+        byteSize:
+          type: integer
+          format: int64
+          description: File size in bytes
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+        updatedAt:
+          $ref: '#/components/schemas/Timestamp'
+        path:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: Path from root to this file
+        roles:
+          type: array
+          items:
+            type: string
+          description: Current user's roles for this file
+
+    FileInfo:
+      type: object
+      required:
+        - fileId
+      properties:
+        fileId:
+          type: integer
+          format: int64
+          description: File ID
+        createDate:
+          $ref: '#/components/schemas/Timestamp'
+        updateDate:
+          $ref: '#/components/schemas/Timestamp'
+        byteSize:
+          type: integer
+          format: int64
+          description: File size in bytes
+
+    CreateFileRequest:
+      type: object
+      required:
+        - type
+        - fileName
+      properties:
+        type:
+          $ref: '#/components/schemas/FileType'
+        fileName:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: File name
+        parentKey:
+          type: string
+          format: uuid
+          nullable: true
+          description: Parent file key (container)
+
+    UpdateFileRequest:
+      type: object
+      properties:
+        fileName:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: New file name
+
+    FileResponse:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          $ref: '#/components/schemas/File'
+
+    FileListResponse:
+      type: object
+      required:
+        - files
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+
+    UploadToken:
+      type: object
+      required:
+        - token
+        - uploadUrl
+        - expiresAt
+      properties:
+        token:
+          type: string
+          description: Upload token for tracking
+        uploadUrl:
+          type: string
+          format: uri
+          description: Presigned S3 upload URL
+        expiresAt:
+          $ref: '#/components/schemas/Timestamp'
+
+    UploadTokenResponse:
+      type: object
+      required:
+        - uploadToken
+      properties:
+        uploadToken:
+          $ref: '#/components/schemas/UploadToken'
+
+    StreamToken:
+      type: object
+      required:
+        - token
+        - downloadUrl
+        - expiresAt
+      properties:
+        token:
+          type: string
+          description: Stream token
+        downloadUrl:
+          type: string
+          format: uri
+          description: Presigned S3 download URL
+        expiresAt:
+          $ref: '#/components/schemas/Timestamp'
+
+    StreamTokenResponse:
+      type: object
+      required:
+        - streamToken
+      properties:
+        streamToken:
+          $ref: '#/components/schemas/StreamToken'
+
+    CompleteUploadRequest:
+      type: object
+      properties:
+        byteSize:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Final file size in bytes
+
+    MoveFileRequest:
+      type: object
+      required:
+        - targetKey
+      properties:
+        targetKey:
+          type: string
+          format: uuid
+          description: Target container file key
+
+    CopyFileRequest:
+      type: object
+      required:
+        - targetKey
+      properties:
+        targetKey:
+          type: string
+          format: uuid
+          description: Target container file key
