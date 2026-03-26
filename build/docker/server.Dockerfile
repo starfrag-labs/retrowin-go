@@ -34,8 +34,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
     go build -a \
     -ldflags="-w -s \
-              -X main.Version=${VERSION} -X main.GitCommit=${GIT_COMMIT}" \
-    -o server ./cmd/retrowin-server
+              -X main.version=${VERSION}" \
+    -o retrowin-server ./cmd/retrowin-server
 
 ############################
 # 2. Runtime Stage
@@ -59,7 +59,7 @@ RUN adduser -D -u 1001 retrowin
 WORKDIR /app
 
 # Copy binary from builder
-COPY --from=builder /build/server /app/server
+COPY --from=builder /build/retrowin-server /app/retrowin-server
 
 # Create config directory
 RUN mkdir -p /app/config && chown -R retrowin:retrowin /app
@@ -78,4 +78,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 ENV PORT=8080
 
 # Run
-ENTRYPOINT ["/app/server"]
+ENTRYPOINT ["/app/retrowin-server", "serve"]
