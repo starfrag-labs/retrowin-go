@@ -36,7 +36,7 @@ jobs:
   # Go CI - Build, Test, Lint, Security Scan
   go-ci:
     name: Go CI
-    uses: mandacode-labs/workflows/.gitea/workflows/go-ci.yml@main
+    uses: mandacode-labs/workflows/.github/workflows/go-ci.yml@main
     with:
       # Go version - use go.mod or specify directly
       go-version: "1.26.1"
@@ -63,7 +63,7 @@ jobs:
   docker-test:
     name: Docker Test
     needs: go-ci
-    uses: mandacode-labs/workflows/.gitea/workflows/docker-test.yml@main
+    uses: mandacode-labs/workflows/.github/workflows/docker-test.yml@main
     with:
       # Images to test (REQUIRED)
       images: |
@@ -95,7 +95,7 @@ jobs:
   # Delete this job if you don't use Helm charts
   helm-test:
     name: Helm Test
-    uses: mandacode-labs/workflows/.gitea/workflows/helm-test.yml@main
+    uses: mandacode-labs/workflows/.github/workflows/helm-test.yml@main
     with:
       # Charts to test (REQUIRED)
       charts: |

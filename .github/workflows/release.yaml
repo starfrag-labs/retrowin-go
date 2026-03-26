@@ -27,7 +27,7 @@ permissions:
 jobs:
   docker-build:
     name: Build and Push Docker Images
-    uses: mandacode-labs/workflows/.gitea/workflows/docker-build.yml@main
+    uses: mandacode-labs/workflows/.github/workflows/docker-build.yml@main
     with:
       # Images to build (REQUIRED)
       images: |
@@ -89,4 +89,4 @@ jobs:
           version: "~> v2"
           args: release --clean
         env:
-          GITEA_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
