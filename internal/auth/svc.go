@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
@@ -40,7 +40,7 @@ type authService struct {
 	client       *Client
 	sessionSvc   SessionService
 	userSvc      UserService
-	valkey       *redis.Client
+	valkey       valkey.Client
 	valkeyPrefix string
 	stateTTL     time.Duration
 }
@@ -50,7 +50,7 @@ func NewService(
 	keycloak *Keycloak,
 	sessionSvc SessionService,
 	userSvc UserService,
-	valkey *redis.Client,
+	valkey valkey.Client,
 	valkeyPrefix string,
 	stateTTL time.Duration,
 ) (Service, error) {
@@ -182,22 +182,28 @@ func (s *authService) storeLoginRequest(ctx context.Context, req *LoginRequest) 
 	if err != nil {
 		return err
 	}
-	return s.valkey.Set(ctx, key, data, s.stateTTL).Err()
+	return s.valkey.Do(ctx, s.valkey.B().Set().
+		Key(key).
+		Value(string(data)).
+		ExSeconds(int64(s.stateTTL.Seconds())).
+		Build()).Error()
 }
 
 // getLoginRequest retrieves the login request from Valkey.
 func (s *authService) getLoginRequest(ctx context.Context, state string) (*LoginRequest, error) {
 	key := s.getStateKey(state)
-	data, err := s.valkey.Get(ctx, key).Bytes()
-	if err == redis.Nil {
+	result := s.valkey.Do(ctx, s.valkey.B().Get().Key(key).Build())
+	if result.Error() != nil {
 		return nil, errors.NotFound("login request not found")
 	}
+
+	data, err := result.ToString()
 	if err != nil {
-		return nil, err
+		return nil, errors.NotFound("login request not found")
 	}
 
 	var req LoginRequest
-	if err := json.Unmarshal(data, &req); err != nil {
+	if err := json.Unmarshal([]byte(data), &req); err != nil {
 		return nil, err
 	}
 
@@ -207,7 +213,7 @@ func (s *authService) getLoginRequest(ctx context.Context, state string) (*Login
 // deleteLoginRequest deletes the login request from Valkey.
 func (s *authService) deleteLoginRequest(ctx context.Context, state string) {
 	key := s.getStateKey(state)
-	s.valkey.Del(ctx, key)
+	_ = s.valkey.Do(ctx, s.valkey.B().Del().Key(key).Build()).Error()
 }
 
 func (s *authService) getStateKey(state string) string {

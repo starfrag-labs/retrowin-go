@@ -50,15 +50,16 @@ func (c DatabaseConfig) DSN() string {
 
 // CacheConfig holds cache configuration.
 type CacheConfig struct {
-	Provider string    `mapstructure:"provider"`
-	Redis    RedisConfig `mapstructure:"redis"`
+	Provider string      `mapstructure:"provider"`
+	Valkey   ValkeyConfig `mapstructure:"valkey"`
 }
 
-// RedisConfig holds Redis connection configuration.
-type RedisConfig struct {
+// ValkeyConfig holds Valkey connection configuration.
+type ValkeyConfig struct {
 	Addr     string `mapstructure:"addr"`
 	DB       int    `mapstructure:"db"`
 	PoolSize int    `mapstructure:"pool_size"`
+	Password string `mapstructure:"password"`
 }
 
 // StorageConfig holds storage backend configuration.
@@ -115,10 +116,11 @@ func Load(configPath string) (*Config, error) {
 	v.SetDefault("http.port", 8080)
 	v.SetDefault("database.driver", "postgres")
 	v.SetDefault("database.sslmode", "disable")
-	v.SetDefault("cache.provider", "redis")
-	v.SetDefault("cache.redis.addr", "localhost:6379")
-	v.SetDefault("cache.redis.db", 0)
-	v.SetDefault("cache.redis.pool_size", 10)
+	v.SetDefault("cache.provider", "valkey")
+	v.SetDefault("cache.valkey.addr", "localhost:6379")
+	v.SetDefault("cache.valkey.db", 0)
+	v.SetDefault("cache.valkey.pool_size", 10)
+	v.SetDefault("cache.valkey.password", "")
 	v.SetDefault("storage.provider", "s3")
 	v.SetDefault("storage.region", "us-east-1")
 	v.SetDefault("storage.use_ssl", false)

@@ -6,7 +6,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
@@ -127,18 +127,18 @@ func NewHandler(
 
 // Valkey constructor
 
-func NewValkeyClient(cfg *config.Config) *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:     cfg.Cache.Redis.Addr,
-		DB:       cfg.Cache.Redis.DB,
-		PoolSize: cfg.Cache.Redis.PoolSize,
+func NewValkeyClient(cfg *config.Config) (valkey.Client, error) {
+	return valkey.NewClient(valkey.ClientOption{
+		InitAddress: []string{cfg.Cache.Valkey.Addr},
+		SelectDB:    cfg.Cache.Valkey.DB,
+		Password:    cfg.Cache.Valkey.Password,
 	})
 }
 
 // Session constructors
 
-func NewSessionRepository(valkeyClient *redis.Client, cfg *config.Config) auth.SessionRepository {
-	return auth.NewValkeySessionRepository(valkeyClient, cfg.Auth.Session.RedisKey)
+func NewSessionRepository(client valkey.Client, cfg *config.Config) auth.SessionRepository {
+	return auth.NewValkeySessionRepository(client, cfg.Auth.Session.RedisKey)
 }
 
 func NewSessionService(repo auth.SessionRepository, cfg *config.Config) auth.SessionService {
@@ -171,11 +171,11 @@ func NewOIDCService(
 	keycloak *auth.Keycloak,
 	sessionSvc auth.SessionService,
 	userSvc auth.UserService,
-	valkeyClient *redis.Client,
+	client valkey.Client,
 	cfg *config.Config,
 ) (auth.Service, error) {
 	stateTTL := time.Duration(cfg.Auth.Session.StateTTL) * time.Second
-	return auth.NewService(keycloak, sessionSvc, userSvc, valkeyClient, cfg.Auth.Session.RedisKey, stateTTL)
+	return auth.NewService(keycloak, sessionSvc, userSvc, client, cfg.Auth.Session.RedisKey, stateTTL)
 }
 
 func NewAuthHandler(oidcSvc auth.Service, sessionSvc auth.SessionService, cfg *config.Config) *handler.AuthHandler {
