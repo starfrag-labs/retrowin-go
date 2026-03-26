@@ -101,12 +101,28 @@ func (c *KeycloakConfig) OIDCRedirectURI(baseURL string) string {
 	return baseURL + "/auth/callback"
 }
 
+// DSN returns the database connection string.
+func (c *Config) DSN() string {
+	return c.Database.DSN()
+}
+
 // Load reads configuration from file and environment variables.
 func Load(configPath string) (*Config, error) {
 	v := viper.New()
 
 	v.SetConfigFile(configPath)
 	v.SetConfigType("yaml")
+
+	return loadConfig(v)
+}
+
+// LoadFromPath reads configuration from a specific path.
+func LoadFromPath(configPath string) (*Config, error) {
+	return Load(configPath)
+}
+
+// loadConfig handles the common config loading logic.
+func loadConfig(v *viper.Viper) (*Config, error) {
 
 	// Set defaults
 	v.SetDefault("app.name", "retrowin")

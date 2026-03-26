@@ -1,19 +1,17 @@
 package main
 
 import (
-	"go.uber.org/fx"
+	"os"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
 	retrowinserver "github.com/starfrag-lab/retrowin-go/internal/cmd/retrowin-server"
-	"github.com/starfrag-lab/retrowin-go/internal/database"
 )
 
-func main() {
-	app := fx.New(
-		database.Module,
-		fx.Provide(func(client *ent.Client) *ent.Client { return client }),
-		retrowinserver.Module,
-	)
+var version = "dev"
 
-	app.Run()
+func main() {
+	cmd := retrowinserver.NewCmd()
+	cmd.Version = version
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
