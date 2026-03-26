@@ -7,7 +7,7 @@ ARG GIT_COMMIT=unknown
 ############################
 # 1. Build Stage
 ############################
-FROM golang:1.24-alpine3.21 AS builder
+FROM golang:1.26-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git gcc musl-dev
