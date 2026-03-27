@@ -3,6 +3,7 @@
 !.github
 !.gitea
 !.mockery.yaml
+!.goreleaser.yaml
 cover*.out
 
 /bin
