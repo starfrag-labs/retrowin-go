@@ -3,6 +3,8 @@ package retrowinserver
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/starfrag-lab/retrowin-go/internal/config"
 )
 
 // NewCmd creates a new cobra command for retrowin-server
@@ -59,7 +61,20 @@ func newMigrateApplyCmd() *cobra.Command {
 		Use:   "apply",
 		Short: "Apply database migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return ApplyMigrations(cfgFile)
+			// Load config
+			var cfg *config.Config
+			var err error
+
+			if cfgFile != "" {
+				cfg, err = config.LoadFromPath(cfgFile)
+			} else {
+				cfg, err = config.Load("config.yaml")
+			}
+			if err != nil {
+				return err
+			}
+
+			return ApplyMigrations(cfg)
 		},
 	}
 
