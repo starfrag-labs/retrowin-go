@@ -185,13 +185,12 @@ func ProvideSessionService(repo auth.SessionRepository, cfg *config.Config) auth
 // Keycloak constructor
 func ProvideKeycloak(cfg *config.Config) *auth.Keycloak {
 	issuerURL := cfg.Auth.Keycloak.BaseURL + "/realms/" + cfg.Auth.Keycloak.Realm
-	redirectURI := "http://localhost:8080/auth/callback" // TODO: Make configurable
 
 	return auth.NewKeycloak(auth.KeycloakConfig{
 		Issuer:       issuerURL,
 		ClientID:     cfg.Auth.Keycloak.ClientID,
 		ClientSecret: cfg.Auth.Keycloak.ClientSecret,
-		RedirectURI:  redirectURI,
+		RedirectURI:  cfg.Auth.Keycloak.RedirectURI,
 	})
 }
 

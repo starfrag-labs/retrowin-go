@@ -38,6 +38,7 @@ auth:
     realm: retrowin
     client_id: retrowin-api
     client_secret: ""
+    redirect_uri: http://localhost:8080/auth/callback
   session:
     ttl: 86400          # Session TTL in seconds (24 hours)
     secure: false       # Set Secure flag on cookie (true for production)

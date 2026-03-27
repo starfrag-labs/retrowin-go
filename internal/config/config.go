@@ -86,6 +86,7 @@ type KeycloakConfig struct {
 	Realm        string `mapstructure:"realm"`
 	ClientID     string `mapstructure:"client_id"`
 	ClientSecret string `mapstructure:"client_secret"`
+	RedirectURI  string `mapstructure:"redirect_uri"`
 }
 
 // SessionConfig holds session configuration.
@@ -145,6 +146,7 @@ func loadConfig(v *viper.Viper) (*Config, error) {
 	v.SetDefault("auth.session.secure", false)
 	v.SetDefault("auth.session.state_ttl", 300) // 5 minutes
 	v.SetDefault("auth.session.redis_key", "retrowin")
+	v.SetDefault("auth.keycloak.redirect_uri", "http://localhost:8080/auth/callback")
 
 	// Read environment variables
 	v.AutomaticEnv()

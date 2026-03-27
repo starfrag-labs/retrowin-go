@@ -136,6 +136,7 @@ config:
       baseURL: ""
       realm: retrowin
       clientID: retrowin-app
+      redirectURI: https://retrowin-api.starfrag.co/auth/callback
     session:
       ttl: 86400        # 24 hours in seconds
       secure: true
