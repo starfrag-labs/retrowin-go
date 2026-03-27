@@ -7,9 +7,9 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
+	_ "github.com/lib/pq"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	_ "github.com/lib/pq"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
