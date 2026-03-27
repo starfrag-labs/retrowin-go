@@ -7,7 +7,6 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	_ "github.com/lib/pq"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 

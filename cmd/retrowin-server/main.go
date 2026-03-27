@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 
+	_ "github.com/lib/pq" // postgres driver
+
 	retrowinserver "github.com/starfrag-lab/retrowin-go/internal/cmd/retrowin-server"
 )
 
