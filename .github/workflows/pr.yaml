@@ -56,7 +56,7 @@ jobs:
       # enable-codecov: false
 
       # Linting
-      lint-version: "v2.11.1"
+      lint-version: "v2.11.4"
       # lint-args: "./..."
 
       # Security
