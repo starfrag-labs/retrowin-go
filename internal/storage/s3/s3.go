@@ -29,15 +29,18 @@ func New(cfg *appconfig.StorageConfig) (storage.Storage, error) {
 		return nil, fmt.Errorf("storage config is required")
 	}
 
-	// Load AWS configuration
-	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
+	// Load AWS configuration with optional static credentials
+	// If AccessKey/SecretKey are empty, SDK will use default credential chain (IRSA, EC2 IAM role, etc.)
+	opts := []func(*awsconfig.LoadOptions) error{
 		awsconfig.WithRegion(cfg.Region),
-		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			cfg.AccessKey,
-			cfg.SecretKey,
-			"",
-		)),
-	)
+	}
+	if cfg.AccessKey != "" && cfg.SecretKey != "" {
+		opts = append(opts, awsconfig.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, ""),
+		))
+	}
+
+	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(), opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
