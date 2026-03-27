@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -107,14 +108,40 @@ func (c *Config) DSN() string {
 	return c.Database.DSN()
 }
 
+// IsDevelopment returns true if running in development mode.
+func (c *Config) IsDevelopment() bool {
+	return strings.ToLower(c.App.Env) == "development"
+}
+
+// IsProduction returns true if running in production mode.
+func (c *Config) IsProduction() bool {
+	return strings.ToLower(c.App.Env) == "production"
+}
+
 // Load reads configuration from file and environment variables.
 func Load(configPath string) (*Config, error) {
 	v := viper.New()
 
+	setDefaults(v)
+	bindEnvVars(v)
+
 	v.SetConfigFile(configPath)
 	v.SetConfigType("yaml")
 
-	return loadConfig(v)
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	var cfg Config
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("config validation failed: %w", err)
+	}
+
+	return &cfg, nil
 }
 
 // LoadFromPath reads configuration from a specific path.
@@ -122,10 +149,7 @@ func LoadFromPath(configPath string) (*Config, error) {
 	return Load(configPath)
 }
 
-// loadConfig handles the common config loading logic.
-func loadConfig(v *viper.Viper) (*Config, error) {
-
-	// Set defaults
+func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.name", "retrowin")
 	v.SetDefault("app.version", "0.1.0")
 	v.SetDefault("app.env", "development")
@@ -147,18 +171,17 @@ func loadConfig(v *viper.Viper) (*Config, error) {
 	v.SetDefault("auth.session.state_ttl", 300) // 5 minutes
 	v.SetDefault("auth.session.redis_key", "retrowin")
 	v.SetDefault("auth.keycloak.redirect_uri", "http://localhost:8080/auth/callback")
+}
 
-	// Read environment variables
+func bindEnvVars(v *viper.Viper) {
+	// Support nested env vars like DATABASE_PASSWORD, CACHE_VALKEY_PASSWORD
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
-	}
-
-	var cfg Config
-	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
-	return &cfg, nil
+	// Explicitly bind common secrets
+	_ = v.BindEnv("database.password", "DATABASE_PASSWORD")
+	_ = v.BindEnv("cache.valkey.password", "CACHE_VALKEY_PASSWORD")
+	_ = v.BindEnv("storage.access_key", "STORAGE_ACCESS_KEY")
+	_ = v.BindEnv("storage.secret_key", "STORAGE_SECRET_KEY")
+	_ = v.BindEnv("auth.keycloak.client_secret", "AUTH_KEYCLOAK_CLIENT_SECRET")
 }
