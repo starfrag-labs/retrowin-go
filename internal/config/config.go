@@ -76,9 +76,8 @@ type StorageConfig struct {
 
 // AuthConfig holds authentication configuration.
 type AuthConfig struct {
-	GatewaySecret string         `mapstructure:"gateway_secret"`
-	Keycloak      KeycloakConfig `mapstructure:"keycloak"`
-	Session       SessionConfig  `mapstructure:"session"`
+	Keycloak KeycloakConfig `mapstructure:"keycloak"`
+	Session  SessionConfig  `mapstructure:"session"`
 }
 
 // KeycloakConfig holds Keycloak configuration.

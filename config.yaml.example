@@ -33,7 +33,6 @@ storage:
   use_ssl: false        # For MinIO/LocalStack: true = HTTPS, false = HTTP
 
 auth:
-  gateway_secret: your-secret-key
   keycloak:
     base_url: http://localhost:8081
     realm: retrowin

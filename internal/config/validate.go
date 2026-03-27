@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -22,10 +20,6 @@ func (c *Config) Validate() error {
 
 	if c.Storage.Bucket == "" {
 		return errors.BadRequest("storage bucket is required")
-	}
-
-	if c.Auth.GatewaySecret == "" {
-		return fmt.Errorf("gateway secret is required")
 	}
 
 	return nil

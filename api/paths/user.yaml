@@ -7,7 +7,7 @@ paths:
       tags:
         - User
       security:
-        - userAuth: []
+        - sessionAuth: []
       responses:
         '200':
           description: User found
@@ -35,7 +35,7 @@ paths:
       tags:
         - User
       security:
-        - gatewayAuth: []
+        - sessionAuth: []
       requestBody:
         required: true
         content:
@@ -69,7 +69,7 @@ paths:
       tags:
         - User
       security:
-        - userAuth: []
+        - sessionAuth: []
       responses:
         '204':
           description: User deleted
@@ -94,7 +94,7 @@ paths:
       tags:
         - User
       security:
-        - userAuth: []
+        - sessionAuth: []
       responses:
         '200':
           description: Service status
