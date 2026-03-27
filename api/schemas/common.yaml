@@ -1,0 +1,41 @@
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+
+    UUID:
+      type: string
+      format: uuid
+      description: UUID format string
+
+    Timestamp:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp
+
+    HealthStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Health status
+        version:
+          type: string
+          description: Application version

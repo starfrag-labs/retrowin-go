@@ -1,0 +1,81 @@
+#syntax=docker/dockerfile:1.4
+
+# Build arguments
+ARG VERSION=0.0.1
+ARG GIT_COMMIT=unknown
+
+############################
+# 1. Build Stage
+############################
+FROM golang:1.26-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git gcc musl-dev
+
+WORKDIR /build
+
+# Copy go mod files first for better caching
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download && go mod verify
+
+# Copy source code
+COPY . .
+
+# Accept build args from buildx for multi-platform builds
+ARG TARGETOS
+ARG TARGETARCH
+ARG VERSION
+ARG GIT_COMMIT
+
+# Build the binary
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
+    go build -a \
+    -ldflags="-w -s \
+              -X main.version=${VERSION}" \
+    -o retrowin-server ./cmd/retrowin-server
+
+############################
+# 2. Runtime Stage
+############################
+FROM alpine:3.21 AS runtime
+
+ARG VERSION
+
+# OCI labels
+LABEL org.opencontainers.image.title="Retrowin Server" \
+      org.opencontainers.image.description="Retrowin API Server" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.source="https://github.com/starfrag-lab/retrowin-go"
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata
+
+# Create non-root user
+RUN adduser -D -u 1001 retrowin
+
+WORKDIR /app
+
+# Copy binary from builder
+COPY --from=builder /build/retrowin-server /app/retrowin-server
+
+# Create config directory
+RUN mkdir -p /app/config && chown -R retrowin:retrowin /app
+
+# Switch to non-root user
+USER retrowin
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+
+# Set default environment
+ENV PORT=8080
+
+# Run
+ENTRYPOINT ["/app/retrowin-server", "serve"]

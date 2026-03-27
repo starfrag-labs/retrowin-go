@@ -1,0 +1,46 @@
+app:
+  name: retrowin
+  version: 0.1.0
+  env: development
+
+http:
+  host: 0.0.0.0
+  port: 8080
+
+database:
+  driver: postgres
+  host: localhost
+  port: 5432
+  name: retrowin
+  user: postgres
+  password: postgres
+  sslmode: disable
+
+cache:
+  provider: redis
+  redis:
+    addr: localhost:6379
+    db: 0
+    pool_size: 10
+
+storage:
+  provider: s3          # s3, minio, localstack
+  region: us-east-1
+  endpoint: ""          # Leave empty for auto-detection based on provider
+  access_key: ""        # Leave empty for IRSA/IAM role authentication
+  secret_key: ""        # Leave empty for IRSA/IAM role authentication
+  bucket: retrowin-files
+  use_ssl: false        # For MinIO/LocalStack: true = HTTPS, false = HTTP
+
+auth:
+  keycloak:
+    base_url: http://localhost:8081
+    realm: retrowin
+    client_id: retrowin-api
+    client_secret: ""
+    redirect_uri: http://localhost:8080/auth/callback
+  session:
+    ttl: 86400          # Session TTL in seconds (24 hours)
+    secure: false       # Set Secure flag on cookie (true for production)
+    state_ttl: 300      # OAuth state TTL in seconds (5 minutes)
+    redis_key: retrowin # Redis key prefix

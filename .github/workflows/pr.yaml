@@ -1,0 +1,124 @@
+# Template: Go Project - Pull Request
+#
+# Complete PR validation workflow for Go projects with Docker and Helm
+# Includes: Go CI (build, test, lint, security), Docker testing, Helm chart testing
+#
+# Usage:
+#   1. Copy this file to your project's .gitea/workflows/pr.yml
+#   2. Modify the options below as needed
+#   3. Remove jobs you don't need (e.g., helm-test if no charts)
+
+name: Pull Request
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - develop
+    # Uncomment to trigger only on specific file changes:
+    # paths:
+    #   - '**.go'
+    #   - 'go.mod'
+    #   - 'Dockerfile*'
+    #   - 'charts/**'
+  workflow_dispatch:
+
+concurrency:
+  group: pr-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
+
+jobs:
+  # Go CI - Build, Test, Lint, Security Scan
+  go-ci:
+    name: Go CI
+    uses: mandacode-labs/workflows/.github/workflows/go-ci.yml@main
+    with:
+      # Go version - use go.mod or specify directly
+      go-version: "1.26.1"
+      # go-version-file: "go.mod"
+
+      # Build and test
+      # build-path: "./..."
+      # test-paths: "./..."
+      # test-flags: "-v -race"
+
+      # Coverage (set threshold to 0 to disable enforcement)
+      enable-coverage: true
+      coverage-threshold: 0
+      # enable-codecov: false
+
+      # Linting
+      lint-version: "v2.11.4"
+      # lint-args: "./..."
+
+      # Security
+      enable-security-scan: true
+
+  # Docker Test - Lint, Security Scan, Build Verification
+  docker-test:
+    name: Docker Test
+    needs: go-ci
+    uses: mandacode-labs/workflows/.github/workflows/docker-test.yml@main
+    with:
+      # Images to test (REQUIRED)
+      images: |
+        [
+          {"dockerfile": "server.Dockerfile"}
+        ]
+      # Multiple images example:
+      # images: |
+      #   [
+      #     {"dockerfile": "Dockerfile"},
+      #     {"dockerfile": "Dockerfile.alpine"},
+      #     {"dockerfile": "services/worker/Dockerfile"}
+      #   ]
+
+      base-path: "build/docker"
+      # build-context: "."
+      # platforms: "linux/amd64"
+      # test-build-only: true
+
+      # Linting
+      enable-hadolint: true
+      # hadolint-version: "v2.14.0"
+
+      # Security scanning
+      enable-trivy: true
+      trivy-severity: "HIGH,CRITICAL"
+
+  # Helm Test - Lint, Validate, Install Test
+  # Delete this job if you don't use Helm charts
+  helm-test:
+    name: Helm Test
+    uses: mandacode-labs/workflows/.github/workflows/helm-test.yml@main
+    with:
+      # Charts to test (REQUIRED)
+      charts: |
+        [
+          {"dir": "retrowin"}
+        ]
+      # Multiple charts example:
+      # charts: |
+      #   [
+      #     {"dir": "charts/api"},
+      #     {"dir": "charts/worker"}
+      #   ]
+
+      base-path: "deployment/charts"
+      # helm-version: "v4.0.4"
+      # kubernetes-version: "v1.34.0"
+
+      # Validation
+      enable-kubeconform: true
+      # kubeconform-version: "0.7.0"
+
+      # Install test (uses Kind cluster)
+      enable-install-test: false

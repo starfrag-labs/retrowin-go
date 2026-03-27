@@ -1,0 +1,92 @@
+# Template: Release (GitHub Container Registry)
+#
+# Complete release workflow to GitHub Container Registry (ghcr.io)
+# Includes: Docker build/push and Helm chart packaging
+#
+# Usage:
+#   1. Copy this file to your project's .github/workflows/release.yml
+#   2. Configure GITHUB_TOKEN permissions (packages:write)
+#   3. Images will be pushed to ghcr.io/<owner>/<image>
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  docker-build:
+    name: Build and Push Docker Images
+    uses: mandacode-labs/workflows/.github/workflows/docker-build.yml@main
+    with:
+      # Images to build (REQUIRED)
+      images: |
+        [
+          {"name": "server", "dockerfile": "server.Dockerfile"}
+        ]
+      # Multiple images example:
+      # images: |
+      #   [
+      #     {"name": "api", "dockerfile": "Dockerfile"},
+      #     {"name": "worker", "dockerfile": "services/worker/Dockerfile"}
+      #   ]
+
+      # Registry configuration (REQUIRED for GitHub)
+      registry: ${{ vars.REGISTRY }}
+      repository: ${{ vars.REPOSITORY }}
+
+      # Tagging
+      tag: ${{ github.ref_name }}
+      tag-prefix: "v"
+      # additional-tags: "latest,stable"
+
+      # Build options
+      base-path: "build/docker"
+      # build-context: "."
+      platforms: "linux/amd64"
+      # platforms: "linux/amd64,linux/arm64"
+
+      # Build arguments
+      # build-args: |
+      #   VERSION=${{ github.ref_name }}
+      #   GIT_COMMIT=${{ github.sha }}
+
+      # Security attestations
+      enable-provenance: false
+      enable-sbom: false
+
+    secrets:
+      registry-username: ${{ secrets.REGISTRY_USERNAME }}
+      registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+
+  goreleaser:
+    name: Release CLI and Server Binaries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.1"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
