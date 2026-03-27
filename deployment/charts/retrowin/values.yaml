@@ -122,12 +122,13 @@ config:
       password: ""
 
   # Storage settings
+  # For AWS S3 with IRSA: leave endpoint, accessKey, secretKey empty
+  # For MinIO: set endpoint to "http://minio:9000"
   storage:
     provider: s3
     region: us-east-1
-    endpoint: ""
+    endpoint: ""          # Empty for AWS S3, or "http://minio:9000" for MinIO
     bucket: retrowin
-    useSSL: false
 
   # Authentication settings
   auth:
@@ -174,12 +175,14 @@ secrets:
       password: ""
       existingSecret: ""
       existingSecretKey: valkey-password
+  # Storage secrets (optional when using IRSA/IAM roles)
   storage:
-    accessKey: ""
-    secretKey: ""
+    accessKey: ""         # Leave empty for IRSA
+    secretKey: ""         # Leave empty for IRSA
     existingSecret: ""
+  # Keycloak secrets (clientSecret optional when using PKCE)
   keycloak:
-    clientSecret: ""
+    clientSecret: ""      # Optional when using PKCE (public client)
     existingSecret: ""
     existingSecretKey: keycloak-client-secret
 

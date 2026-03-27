@@ -46,8 +46,9 @@ func New(cfg *appconfig.StorageConfig) (storage.Storage, error) {
 	}
 
 	// Create S3 client with custom endpoint if provided
+	// Empty endpoint = AWS S3 (SDK handles automatically)
+	// Set endpoint for MinIO, LocalStack, etc.
 	client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
-		// For MinIO or local S3-compatible services
 		if cfg.Endpoint != "" {
 			o.BaseEndpoint = aws.String(cfg.Endpoint)
 			o.UsePathStyle = true

@@ -23,11 +23,14 @@ func NewClient(ctx context.Context, keycloak *Keycloak) (*Client, error) {
 	}
 
 	oauth2Config := &oauth2.Config{
-		ClientID:     keycloak.ClientID(),
-		ClientSecret: keycloak.ClientSecret(),
-		RedirectURL:  keycloak.RedirectURI(),
-		Endpoint:     oidcProvider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+		ClientID:    keycloak.ClientID(),
+		RedirectURL: keycloak.RedirectURI(),
+		Endpoint:    oidcProvider.Endpoint(),
+		Scopes:      []string{oidc.ScopeOpenID, "profile", "email"},
+	}
+	// ClientSecret is optional when using PKCE (public clients)
+	if keycloak.ClientSecret() != "" {
+		oauth2Config.ClientSecret = keycloak.ClientSecret()
 	}
 
 	return &Client{

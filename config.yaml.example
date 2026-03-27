@@ -24,13 +24,13 @@ cache:
     pool_size: 10
 
 storage:
-  provider: s3
+  provider: s3          # s3, minio, localstack
   region: us-east-1
-  endpoint: ""  # Leave empty for AWS S3, or set for MinIO (e.g., http://localhost:9000)
-  access_key: ""
-  secret_key: ""
+  endpoint: ""          # Leave empty for auto-detection based on provider
+  access_key: ""        # Leave empty for IRSA/IAM role authentication
+  secret_key: ""        # Leave empty for IRSA/IAM role authentication
   bucket: retrowin-files
-  use_ssl: false
+  use_ssl: false        # For MinIO/LocalStack: true = HTTPS, false = HTTP
 
 auth:
   gateway_secret: your-secret-key
