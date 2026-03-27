@@ -45,6 +45,13 @@ spec:
                   name: {{ .Values.secrets.database.existingSecret | default (include "retrowin.fullname" .) }}
                   key: {{ .Values.secrets.database.existingSecretKey | default "database-password" }}
             {{- end }}
+            {{- if or .Values.secrets.cache.valkey.password .Values.secrets.cache.valkey.existingSecret }}
+            - name: CACHE_VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.cache.valkey.existingSecret | default (include "retrowin.fullname" .) }}
+                  key: {{ .Values.secrets.cache.valkey.existingSecretKey | default "valkey-password" }}
+            {{- end }}
           volumeMounts:
             - name: config
               mountPath: /app/config
