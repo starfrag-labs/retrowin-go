@@ -51,7 +51,7 @@ spec:
             {{- end }}
             # Valkey password override (from secret)
             {{- if or .Values.secrets.cache.valkey.password .Values.secrets.cache.valkey.existingSecret }}
-            - name: VALKEY_PASSWORD
+            - name: CACHE_VALKEY_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.cache.valkey.existingSecret | default (include "retrowin.fullname" .) }}
