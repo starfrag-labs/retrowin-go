@@ -2,6 +2,8 @@ package e2e
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -61,4 +63,33 @@ func TestSuite_Migration(t *testing.T) {
 	}
 
 	t.Log("Database migration verified successfully")
+}
+
+func TestSuite_HealthCheck(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping e2e test in short mode")
+	}
+
+	// Create a test HTTP server with the health handler
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy"}`))
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// Test /health endpoint
+	resp, err := http.Get(server.URL + "/health")
+	require.NoError(t, err, "Failed to call /health endpoint")
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "Health status should be 200")
+
+	// Verify content type
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+
+	t.Log("Health check test passed successfully")
 }

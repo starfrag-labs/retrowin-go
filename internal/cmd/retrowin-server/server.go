@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -20,6 +21,7 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
+	"github.com/starfrag-lab/retrowin-go/internal/database"
 	"github.com/starfrag-lab/retrowin-go/internal/file"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/storage"
@@ -50,13 +52,10 @@ func ProvideConfig(cfgFile string, port int) (*config.Config, error) {
 	return cfg, nil
 }
 
-// ProvideEntClient provides the ent database client.
-func ProvideEntClient(cfg *config.Config) (*ent.Client, error) {
-	client, err := ent.Open(cfg.Database.Driver, cfg.DSN())
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-	return client, nil
+// ProvideLogger creates a new zap logger.
+func ProvideLogger() *zap.Logger {
+	logger, _ := zap.NewProduction()
+	return logger
 }
 
 // ProvideValkeyClient provides the Valkey client.
@@ -140,6 +139,15 @@ func ProvideHTTPMux(
 	cfg *config.Config,
 ) *http.ServeMux {
 	mux := http.NewServeMux()
+
+	// Health check endpoint (direct access, no /v1 prefix)
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy"}`))
+	})
+
+	// API routes with /v1 prefix
 	mux.Handle("/v1/", http.StripPrefix("/v1", ogenServer))
 
 	// Serve OpenAPI spec and Swagger UI
@@ -248,9 +256,10 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 		fx.Supply(fx.Annotate(port, fx.ResultTags(`name:"port"`))),
 
 		// Core providers
+		database.Module, // fx.Module must be passed directly, not inside fx.Provide
 		fx.Provide(
 			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`)),
-			ProvideEntClient,
+			ProvideLogger,
 			ProvideValkeyClient,
 			ProvideRepositories,
 			ProvideSessionTTL,
