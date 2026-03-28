@@ -42,7 +42,7 @@ func (UnimplementedHandler) CreateFile(ctx context.Context, req *CreateFileReque
 
 // CreateUser implements createUser operation.
 //
-// Create a new user with the given UUID.
+// Create a new user.
 //
 // POST /user
 func (UnimplementedHandler) CreateUser(ctx context.Context, req *CreateUserRequest) (r CreateUserRes, _ error) {
@@ -60,7 +60,7 @@ func (UnimplementedHandler) DeleteFile(ctx context.Context, params DeleteFilePar
 
 // DeleteUser implements deleteUser operation.
 //
-// Delete the current user and all associated data.
+// Delete the current user.
 //
 // DELETE /user
 func (UnimplementedHandler) DeleteUser(ctx context.Context) (r DeleteUserRes, _ error) {
@@ -150,7 +150,7 @@ func (UnimplementedHandler) GetUploadToken(ctx context.Context, params GetUpload
 
 // GetUser implements getUser operation.
 //
-// Get the current user information based on x-uuid header.
+// Get the current user information.
 //
 // GET /user
 func (UnimplementedHandler) GetUser(ctx context.Context) (r GetUserRes, _ error) {
@@ -173,4 +173,12 @@ func (UnimplementedHandler) MoveFile(ctx context.Context, req *MoveFileRequest, 
 // PATCH /file/{fileKey}
 func (UnimplementedHandler) UpdateFile(ctx context.Context, req *UpdateFileRequest, params UpdateFileParams) (r UpdateFileRes, _ error) {
 	return r, ht.ErrNotImplemented
+}
+
+// NewError creates *ErrorStatusCode from error returned by handler.
+//
+// Used for common default response.
+func (UnimplementedHandler) NewError(ctx context.Context, err error) (r *ErrorStatusCode) {
+	r = new(ErrorStatusCode)
+	return r
 }

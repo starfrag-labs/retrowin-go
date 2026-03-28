@@ -3,13 +3,17 @@
 package apiv1
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/go-faster/errors"
-	"github.com/go-faster/jx"
 	"github.com/google/uuid"
 )
+
+func (s *ErrorStatusCode) Error() string {
+	return fmt.Sprintf("code %d: %+v", s.StatusCode, s.Response)
+}
 
 type CompleteUploadBadRequest Error
 
@@ -197,54 +201,70 @@ func (*DeleteUserUnauthorized) deleteUserRes() {}
 
 // Ref: #/components/schemas/Error
 type Error struct {
-	// Error code.
-	Code string `json:"code"`
-	// Error message.
-	Message string `json:"message"`
-	// Additional error details.
-	Details OptErrorDetails `json:"details"`
+	Error ErrorError `json:"error"`
 }
 
-// GetCode returns the value of Code.
-func (s *Error) GetCode() string {
-	return s.Code
+// GetError returns the value of Error.
+func (s *Error) GetError() ErrorError {
+	return s.Error
+}
+
+// SetError sets the value of Error.
+func (s *Error) SetError(val ErrorError) {
+	s.Error = val
+}
+
+type ErrorError struct {
+	// Error type.
+	Type string `json:"type"`
+	// Error message.
+	Message string `json:"message"`
+}
+
+// GetType returns the value of Type.
+func (s *ErrorError) GetType() string {
+	return s.Type
 }
 
 // GetMessage returns the value of Message.
-func (s *Error) GetMessage() string {
+func (s *ErrorError) GetMessage() string {
 	return s.Message
 }
 
-// GetDetails returns the value of Details.
-func (s *Error) GetDetails() OptErrorDetails {
-	return s.Details
-}
-
-// SetCode sets the value of Code.
-func (s *Error) SetCode(val string) {
-	s.Code = val
+// SetType sets the value of Type.
+func (s *ErrorError) SetType(val string) {
+	s.Type = val
 }
 
 // SetMessage sets the value of Message.
-func (s *Error) SetMessage(val string) {
+func (s *ErrorError) SetMessage(val string) {
 	s.Message = val
 }
 
-// SetDetails sets the value of Details.
-func (s *Error) SetDetails(val OptErrorDetails) {
-	s.Details = val
+// ErrorStatusCode wraps Error with StatusCode.
+type ErrorStatusCode struct {
+	StatusCode int
+	Response   Error
 }
 
-// Additional error details.
-type ErrorDetails map[string]jx.Raw
+// GetStatusCode returns the value of StatusCode.
+func (s *ErrorStatusCode) GetStatusCode() int {
+	return s.StatusCode
+}
 
-func (s *ErrorDetails) init() ErrorDetails {
-	m := *s
-	if m == nil {
-		m = map[string]jx.Raw{}
-		*s = m
-	}
-	return m
+// GetResponse returns the value of Response.
+func (s *ErrorStatusCode) GetResponse() Error {
+	return s.Response
+}
+
+// SetStatusCode sets the value of StatusCode.
+func (s *ErrorStatusCode) SetStatusCode(val int) {
+	s.StatusCode = val
+}
+
+// SetResponse sets the value of Response.
+func (s *ErrorStatusCode) SetResponse(val Error) {
+	s.Response = val
 }
 
 // Ref: #/components/schemas/File
@@ -741,52 +761,6 @@ func (o OptCompleteUploadRequest) Get() (v CompleteUploadRequest, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptCompleteUploadRequest) Or(d CompleteUploadRequest) CompleteUploadRequest {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptErrorDetails returns new OptErrorDetails with value set to v.
-func NewOptErrorDetails(v ErrorDetails) OptErrorDetails {
-	return OptErrorDetails{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptErrorDetails is optional ErrorDetails.
-type OptErrorDetails struct {
-	Value ErrorDetails
-	Set   bool
-}
-
-// IsSet returns true if OptErrorDetails was set.
-func (o OptErrorDetails) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptErrorDetails) Reset() {
-	var v ErrorDetails
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptErrorDetails) SetTo(v ErrorDetails) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptErrorDetails) Get() (v ErrorDetails, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptErrorDetails) Or(d ErrorDetails) ErrorDetails {
 	if v, ok := o.Get(); ok {
 		return v
 	}

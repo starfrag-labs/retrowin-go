@@ -1,141 +1,160 @@
-paths:
-  /file/upload/write-token/{fileKey}:
-    get:
-      operationId: getUploadToken
-      summary: Get upload write token
-      description: Get a presigned URL and token for uploading file content
-      tags:
-        - Upload
-      security:
-        - memberAuth: []
-      parameters:
-        - name: fileKey
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: File key (UUID)
-      responses:
-        '200':
-          description: Upload token generated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UploadTokenResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: File not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /file/upload/complete/{fileKey}:
-    patch:
-      operationId: completeUpload
-      summary: Complete file upload
-      description: Mark file upload as complete and update metadata
-      tags:
-        - Upload
-      security:
-        - memberAuth: []
-      parameters:
-        - name: fileKey
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: File key (UUID)
-      requestBody:
-        required: false
+# Upload endpoints
+/file/upload/write-token/{fileKey}:
+  get:
+    operationId: getUploadToken
+    summary: Get upload write token
+    description: Get a presigned URL and token for uploading file content
+    tags:
+      - Upload
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: fileKey
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: File key (UUID)
+    responses:
+      '200':
+        description: Upload token generated
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CompleteUploadRequest'
-      responses:
-        '200':
-          description: Upload completed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FileResponse'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: File not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+              $ref: "../schemas/file.yaml#/UploadTokenResponse"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '403':
+        description: Access denied
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '404':
+        description: File not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
 
-  /file/stream/read-token/{fileKey}:
-    get:
-      operationId: getStreamToken
-      summary: Get stream read token
-      description: Get a presigned URL for downloading/streaming file content
-      tags:
-        - Stream
-      security:
-        - memberAuth: []
-      parameters:
-        - name: fileKey
-          in: path
-          required: true
+/file/upload/complete/{fileKey}:
+  patch:
+    operationId: completeUpload
+    summary: Complete file upload
+    description: Mark file upload as complete and update metadata
+    tags:
+      - Upload
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: fileKey
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: File key (UUID)
+    requestBody:
+      required: false
+      content:
+        application/json:
           schema:
-            type: string
-            format: uuid
-          description: File key (UUID)
-      responses:
-        '200':
-          description: Stream token generated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StreamTokenResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: File not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+            $ref: "../schemas/file.yaml#/CompleteUploadRequest"
+    responses:
+      '200':
+        description: Upload completed
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/file.yaml#/FileResponse"
+      '400':
+        description: Invalid request
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '403':
+        description: Access denied
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '404':
+        description: File not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+
+# Stream endpoints
+/file/stream/read-token/{fileKey}:
+  get:
+    operationId: getStreamToken
+    summary: Get stream read token
+    description: Get a presigned URL for downloading/streaming file content
+    tags:
+      - Stream
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: fileKey
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: File key (UUID)
+    responses:
+      '200':
+        description: Stream token generated
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/file.yaml#/StreamTokenResponse"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '403':
+        description: Access denied
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '404':
+        description: File not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"

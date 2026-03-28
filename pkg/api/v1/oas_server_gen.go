@@ -28,7 +28,7 @@ type Handler interface {
 	CreateFile(ctx context.Context, req *CreateFileRequest) (CreateFileRes, error)
 	// CreateUser implements createUser operation.
 	//
-	// Create a new user with the given UUID.
+	// Create a new user.
 	//
 	// POST /user
 	CreateUser(ctx context.Context, req *CreateUserRequest) (CreateUserRes, error)
@@ -40,7 +40,7 @@ type Handler interface {
 	DeleteFile(ctx context.Context, params DeleteFileParams) (DeleteFileRes, error)
 	// DeleteUser implements deleteUser operation.
 	//
-	// Delete the current user and all associated data.
+	// Delete the current user.
 	//
 	// DELETE /user
 	DeleteUser(ctx context.Context) (DeleteUserRes, error)
@@ -100,7 +100,7 @@ type Handler interface {
 	GetUploadToken(ctx context.Context, params GetUploadTokenParams) (GetUploadTokenRes, error)
 	// GetUser implements getUser operation.
 	//
-	// Get the current user information based on x-uuid header.
+	// Get the current user information.
 	//
 	// GET /user
 	GetUser(ctx context.Context) (GetUserRes, error)
@@ -116,6 +116,10 @@ type Handler interface {
 	//
 	// PATCH /file/{fileKey}
 	UpdateFile(ctx context.Context, req *UpdateFileRequest, params UpdateFileParams) (UpdateFileRes, error)
+	// NewError creates *ErrorStatusCode from error returned by handler.
+	//
+	// Used for common default response.
+	NewError(ctx context.Context, err error) *ErrorStatusCode
 }
 
 // Server implements http server based on OpenAPI v3 specification and

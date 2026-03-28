@@ -48,7 +48,7 @@ type Invoker interface {
 	CreateFile(ctx context.Context, request *CreateFileRequest) (CreateFileRes, error)
 	// CreateUser invokes createUser operation.
 	//
-	// Create a new user with the given UUID.
+	// Create a new user.
 	//
 	// POST /user
 	CreateUser(ctx context.Context, request *CreateUserRequest) (CreateUserRes, error)
@@ -60,7 +60,7 @@ type Invoker interface {
 	DeleteFile(ctx context.Context, params DeleteFileParams) (DeleteFileRes, error)
 	// DeleteUser invokes deleteUser operation.
 	//
-	// Delete the current user and all associated data.
+	// Delete the current user.
 	//
 	// DELETE /user
 	DeleteUser(ctx context.Context) (DeleteUserRes, error)
@@ -120,7 +120,7 @@ type Invoker interface {
 	GetUploadToken(ctx context.Context, params GetUploadTokenParams) (GetUploadTokenRes, error)
 	// GetUser invokes getUser operation.
 	//
-	// Get the current user information based on x-uuid header.
+	// Get the current user information.
 	//
 	// GET /user
 	GetUser(ctx context.Context) (GetUserRes, error)
@@ -573,7 +573,7 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 
 // CreateUser invokes createUser operation.
 //
-// Create a new user with the given UUID.
+// Create a new user.
 //
 // POST /user
 func (c *Client) CreateUser(ctx context.Context, request *CreateUserRequest) (CreateUserRes, error) {
@@ -838,7 +838,7 @@ func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (r
 
 // DeleteUser invokes deleteUser operation.
 //
-// Delete the current user and all associated data.
+// Delete the current user.
 //
 // DELETE /user
 func (c *Client) DeleteUser(ctx context.Context) (DeleteUserRes, error) {
@@ -1248,39 +1248,6 @@ func (c *Client) sendGetHealth(ctx context.Context) (res *HealthStatus, err erro
 	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetHealthOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"SessionAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"
@@ -1980,7 +1947,7 @@ func (c *Client) sendGetUploadToken(ctx context.Context, params GetUploadTokenPa
 
 // GetUser invokes getUser operation.
 //
-// Get the current user information based on x-uuid header.
+// Get the current user information.
 //
 // GET /user
 func (c *Client) GetUser(ctx context.Context) (GetUserRes, error) {
