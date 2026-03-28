@@ -3,6 +3,7 @@ package retrowinserver
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
@@ -21,7 +24,6 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
-	"github.com/starfrag-lab/retrowin-go/internal/database"
 	"github.com/starfrag-lab/retrowin-go/internal/file"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/storage"
@@ -56,6 +58,56 @@ func ProvideConfig(cfgFile string, port int) (*config.Config, error) {
 func ProvideLogger() *zap.Logger {
 	logger, _ := zap.NewProduction()
 	return logger
+}
+
+// NewEntClient creates a new Ent client.
+func NewEntClient(lc fx.Lifecycle, cfg *config.Config, logger *zap.Logger) (*ent.Client, error) {
+	// Open database connection
+	db, err := sql.Open("postgres", cfg.Database.DSN())
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+
+	// Configure connection pool
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+
+	// Create Ent driver
+	drv := entsql.OpenDB(dialect.Postgres, db)
+
+	// Create Ent client
+	client := ent.NewClient(ent.Driver(drv))
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			// Test connection
+			if err := db.PingContext(ctx); err != nil {
+				return fmt.Errorf("failed to ping database: %w", err)
+			}
+			logger.Info("connected to database",
+				zap.String("host", cfg.Database.Host),
+				zap.String("database", cfg.Database.Name),
+			)
+
+			// Auto migrate in development
+			if cfg.App.Env == "development" {
+				if err := client.Schema.Create(ctx); err != nil {
+					logger.Warn("failed to auto-migrate schema", zap.Error(err))
+				}
+			}
+
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			logger.Info("closing database connection")
+			if err := client.Close(); err != nil {
+				return fmt.Errorf("failed to close ent client: %w", err)
+			}
+			return db.Close()
+		},
+	})
+
+	return client, nil
 }
 
 // ProvideValkeyClient provides the Valkey client.
@@ -259,7 +311,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 		fx.Provide(
 			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`)),
 			ProvideLogger,
-			database.NewEntClient,
+			NewEntClient,
 			ProvideValkeyClient,
 			ProvideRepositories,
 			ProvideSessionTTL,
