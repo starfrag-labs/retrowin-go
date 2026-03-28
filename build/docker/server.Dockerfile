@@ -78,4 +78,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 ENV PORT=8080
 
 # Run
-ENTRYPOINT ["/app/retrowin-server", "serve"]
+ENTRYPOINT ["/app/retrowin-server"]
+CMD ["serve"]
