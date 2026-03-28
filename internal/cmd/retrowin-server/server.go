@@ -256,10 +256,10 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 		fx.Supply(fx.Annotate(port, fx.ResultTags(`name:"port"`))),
 
 		// Core providers
-		database.Module, // fx.Module must be passed directly, not inside fx.Provide
 		fx.Provide(
 			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`)),
 			ProvideLogger,
+			database.NewEntClient,
 			ProvideValkeyClient,
 			ProvideRepositories,
 			ProvideSessionTTL,
