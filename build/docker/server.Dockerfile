@@ -7,10 +7,10 @@ ARG GIT_COMMIT=unknown
 ############################
 # 1. Build Stage
 ############################
-FROM golang:1.26-alpine AS builder
+FROM golang:1.26.1-alpine3.23 AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git gcc musl-dev
+# Install build dependencies (nodejs for openapi bundling)
+RUN apk add --no-cache git gcc musl-dev nodejs npm
 
 WORKDIR /build
 
@@ -21,6 +21,9 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 # Copy source code
 COPY . .
+
+# Bundle OpenAPI spec to JSON
+RUN npx @apidevtools/swagger-cli bundle api/openapi.yaml --outfile api/openapi.bundled.json --type json
 
 # Accept build args from buildx for multi-platform builds
 ARG TARGETOS
@@ -40,7 +43,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 ############################
 # 2. Runtime Stage
 ############################
-FROM alpine:3.21 AS runtime
+FROM alpine:3.23.0 AS runtime
 
 ARG VERSION
 
@@ -61,6 +64,9 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /build/retrowin-server /app/retrowin-server
 
+# Copy bundled openapi spec
+COPY --from=builder /build/api/openapi.bundled.json /app/api/openapi.bundled.json
+
 # Create config directory
 RUN mkdir -p /app/config && chown -R retrowin:retrowin /app
 
@@ -75,7 +81,10 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Set default environment
-ENV PORT=8080
+ENV PORT=8080 \
+    HTTP_OPENAPI_PATH=/app/api/openapi.bundled.json \
+    GIN_MODE=release
 
 # Run
-ENTRYPOINT ["/app/retrowin-server", "serve"]
+ENTRYPOINT ["/app/retrowin-server"]
+CMD ["serve"]
