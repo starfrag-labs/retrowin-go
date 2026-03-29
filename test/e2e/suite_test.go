@@ -186,6 +186,10 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	suite.Config.Database.Host = pgHost
 	suite.Config.Database.Port = pgPort.Int()
 
+	// Disable services that require external dependencies for e2e testing
+	suite.Config.Storage.Provider = "memory"
+	suite.Config.Auth.Keycloak.BaseURL = "http://localhost:9999" // Invalid URL to prevent actual OIDC calls
+
 	// Write config to temp file as YAML
 	cfgData, err := yaml.Marshal(suite.Config)
 	require.NoError(t, err, "Failed to marshal config")
@@ -196,7 +200,7 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	t.Logf("Database: %s:%d", suite.Config.Database.Host, suite.Config.Database.Port)
 
 	// Start the actual fx app with test config
-	// This test verifies that all providers execute correctly
+	// This test verifies that the real server starts and responds to health checks
 	app := retrowinserver.NewFXApp(cfgFile, suite.Config.HTTP.Port)
 
 	// Start app in background
@@ -209,28 +213,33 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	// Wait for app to start
 	time.Sleep(2 * time.Second)
 
-	// Test /health endpoint (should be served by real server)
-	resp, err := http.Get("http://127.0.0.1:8080/health")
-	if err != nil {
-		t.Logf("Warning: Could not connect to /health endpoint: %v", err)
-		t.Skip("Server not ready - possibly due to missing dependencies (S3, Keycloak)")
-		return
+	// Verify app is still running (hasn't exited)
+	select {
+	case <-appDone:
+		t.Fatal("FX app exited unexpectedly during startup")
+	default:
+		// App is still running, proceed with tests
 	}
+
+	// Test /health endpoint - this MUST succeed for the test to pass
+	resp, err := http.Get("http://127.0.0.1:8080/health")
+	require.NoError(t, err, "HTTP server must be reachable on /health endpoint")
 	defer resp.Body.Close()
 
-	// If we got here, the server started successfully!
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "Health check should return 200")
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err, "Failed to read response")
 	assert.Contains(t, string(body), "healthy", "Response should contain 'healthy'")
 
-	t.Log("Full fx server startup test passed - all providers executed successfully")
+	t.Log("Full fx server startup test passed - server is running and responding")
 
 	// Shutdown the app
 	app.Stop(context.Background())
 	select {
 	case <-appDone:
-	case <-time.After(5 * time.Second):
+	case <-time.After(10 * time.Second):
+		// Don't fail the test if shutdown takes longer, just log it
+		t.Log("App shutdown took longer than expected (this is OK for test cleanup)")
 	}
 }
