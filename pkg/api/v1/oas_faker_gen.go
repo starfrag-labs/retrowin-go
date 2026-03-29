@@ -5,8 +5,6 @@ package apiv1
 import (
 	"net/url"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // SetFake set fake values.
@@ -33,6 +31,11 @@ func (s *CallbackResponse) SetFake() {
 	{
 		{
 			s.UserId = int64(0)
+		}
+	}
+	{
+		{
+			s.UserUid = "string"
 		}
 	}
 	{
@@ -118,7 +121,12 @@ func (s *CopyFileNotFound) SetFake() {
 func (s *CopyFileRequest) SetFake() {
 	{
 		{
-			s.TargetKey = uuid.New()
+			s.TargetId = int64(0)
+		}
+	}
+	{
+		{
+			s.NewName = "string"
 		}
 	}
 }
@@ -133,6 +141,43 @@ func (s *CopyFileUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *CreateDirectoryEntryBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateDirectoryEntryBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateDirectoryEntryRequest) SetFake() {
+	{
+		{
+			s.ParentId = int64(0)
+		}
+	}
+	{
+		{
+			s.Name = "string"
+		}
+	}
+	{
+		{
+			s.ChildId = int64(0)
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *CreateDirectoryEntryUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateDirectoryEntryUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *CreateFileBadRequest) SetFake() {
 	var unwrapped Error
 	{
@@ -142,12 +187,40 @@ func (s *CreateFileBadRequest) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *CreateFileForbidden) SetFake() {
+func (s *CreateFileDataBadRequest) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = CreateFileForbidden(unwrapped)
+	*s = CreateFileDataBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateFileDataRequest) SetFake() {
+	{
+		{
+			s.StorageType.SetFake()
+		}
+	}
+	{
+		{
+			s.Location = "string"
+		}
+	}
+	{
+		{
+			s.Checksum.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *CreateFileDataUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateFileDataUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
@@ -168,12 +241,32 @@ func (s *CreateFileRequest) SetFake() {
 	}
 	{
 		{
-			s.FileName = "string"
+			s.Name = "string"
 		}
 	}
 	{
 		{
-			s.ParentKey.SetFake()
+			s.ParentId.SetFake()
+		}
+	}
+	{
+		{
+			s.PermOwner.SetFake()
+		}
+	}
+	{
+		{
+			s.PermGroup.SetFake()
+		}
+	}
+	{
+		{
+			s.PermOthers.SetFake()
+		}
+	}
+	{
+		{
+			s.TargetPath.SetFake()
 		}
 	}
 }
@@ -185,6 +278,179 @@ func (s *CreateFileUnauthorized) SetFake() {
 		unwrapped.SetFake()
 	}
 	*s = CreateFileUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateGroupBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateGroupBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateGroupRequest) SetFake() {
+	{
+		{
+			s.SystemId = int64(0)
+		}
+	}
+	{
+		{
+			s.Gid = "string"
+		}
+	}
+	{
+		{
+			s.Groupname = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *CreateGroupUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateGroupUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateInodeBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateInodeBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateInodeRequest) SetFake() {
+	{
+		{
+			s.SystemId.SetFake()
+		}
+	}
+	{
+		{
+			s.FileType.SetFake()
+		}
+	}
+	{
+		{
+			s.OwnerUid = "string"
+		}
+	}
+	{
+		{
+			s.OwnerGid = "string"
+		}
+	}
+	{
+		{
+			s.PermOwner = "string"
+		}
+	}
+	{
+		{
+			s.PermGroup = "string"
+		}
+	}
+	{
+		{
+			s.PermOthers = "string"
+		}
+	}
+	{
+		{
+			s.IsSystem.SetFake()
+		}
+	}
+	{
+		{
+			s.SystemType.SetFake()
+		}
+	}
+	{
+		{
+			s.TargetPath.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *CreateInodeUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateInodeUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateSymlinkBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateSymlinkBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateSymlinkRequest) SetFake() {
+	{
+		{
+			s.TargetPath = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *CreateSymlinkUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateSymlinkUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateSystemBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateSystemBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *CreateSystemRequest) SetFake() {
+	{
+		{
+			s.Name = "string"
+		}
+	}
+	{
+		{
+			s.Description.SetFake()
+		}
+	}
+	{
+		{
+			s.Status.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *CreateSystemUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = CreateSystemUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
@@ -220,6 +486,42 @@ func (s *CreateUserRequest) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *DeleteDirectoryEntryNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteDirectoryEntryNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteDirectoryEntryUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteDirectoryEntryUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteFileDataNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteFileDataNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteFileDataUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteFileDataUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *DeleteFileForbidden) SetFake() {
 	var unwrapped Error
 	{
@@ -247,6 +549,96 @@ func (s *DeleteFileUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *DeleteGroupNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteGroupNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteGroupUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteGroupUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteInodeNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteInodeNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteInodeUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteInodeUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteSessionNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSessionNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteSessionUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSessionUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteSymlinkNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSymlinkNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteSymlinkUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSymlinkUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteSystemNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSystemNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteSystemUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSystemUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *DeleteUserNotFound) SetFake() {
 	var unwrapped Error
 	{
@@ -262,6 +654,55 @@ func (s *DeleteUserUnauthorized) SetFake() {
 		unwrapped.SetFake()
 	}
 	*s = DeleteUserUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DirectoryEntry) SetFake() {
+	{
+		{
+			s.ID = int64(0)
+		}
+	}
+	{
+		{
+			s.ParentId = int64(0)
+		}
+	}
+	{
+		{
+			s.Name = "string"
+		}
+	}
+	{
+		{
+			s.ChildId = int64(0)
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *DirectoryEntryListResponse) SetFake() {
+	{
+		{
+			s.Entries = nil
+			for i := 0; i < 0; i++ {
+				var elem DirectoryEntry
+				{
+					elem.SetFake()
+				}
+				s.Entries = append(s.Entries, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *DirectoryEntryResponse) SetFake() {
+	{
+		{
+			s.Entry.SetFake()
+		}
+	}
 }
 
 // SetFake set fake values.
@@ -296,22 +737,22 @@ func (s *File) SetFake() {
 	}
 	{
 		{
-			s.FileKey = uuid.New()
-		}
-	}
-	{
-		{
 			s.Type.SetFake()
 		}
 	}
 	{
 		{
-			s.FileName = "string"
+			s.Name = "string"
 		}
 	}
 	{
 		{
-			s.OwnerId.SetFake()
+			s.OwnerUid.SetFake()
+		}
+	}
+	{
+		{
+			s.OwnerGid.SetFake()
 		}
 	}
 	{
@@ -326,6 +767,41 @@ func (s *File) SetFake() {
 	}
 	{
 		{
+			s.PermOwner.SetFake()
+		}
+	}
+	{
+		{
+			s.PermGroup.SetFake()
+		}
+	}
+	{
+		{
+			s.PermOthers.SetFake()
+		}
+	}
+	{
+		{
+			s.LinkCount.SetFake()
+		}
+	}
+	{
+		{
+			s.IsSystem.SetFake()
+		}
+	}
+	{
+		{
+			s.SystemType.SetFake()
+		}
+	}
+	{
+		{
+			s.Path.SetFake()
+		}
+	}
+	{
+		{
 			s.CreatedAt.SetFake()
 		}
 	}
@@ -334,28 +810,37 @@ func (s *File) SetFake() {
 			s.UpdatedAt.SetFake()
 		}
 	}
+}
+
+// SetFake set fake values.
+func (s *FileData) SetFake() {
 	{
 		{
-			s.Path = nil
-			for i := 0; i < 0; i++ {
-				var elem int64
-				{
-					elem = int64(0)
-				}
-				s.Path = append(s.Path, elem)
-			}
+			s.InodeId = int64(0)
 		}
 	}
 	{
 		{
-			s.Roles = nil
-			for i := 0; i < 0; i++ {
-				var elem string
-				{
-					elem = "string"
-				}
-				s.Roles = append(s.Roles, elem)
-			}
+			s.StorageType.SetFake()
+		}
+	}
+	{
+		{
+			s.Location = "string"
+		}
+	}
+	{
+		{
+			s.Checksum.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *FileDataResponse) SetFake() {
+	{
+		{
+			s.FileData.SetFake()
 		}
 	}
 }
@@ -387,7 +872,25 @@ func (s *FileResponse) SetFake() {
 
 // SetFake set fake values.
 func (s *FileType) SetFake() {
-	*s = FileTypeContainer
+	*s = FileTypeRegular
+}
+
+// SetFake set fake values.
+func (s *GetDirectoryEntryNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetDirectoryEntryNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetDirectoryEntryUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetDirectoryEntryUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
@@ -418,30 +921,57 @@ func (s *GetFileChildrenUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *GetFileInfoForbidden) SetFake() {
+func (s *GetFileDataNotFound) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = GetFileInfoForbidden(unwrapped)
+	*s = GetFileDataNotFound(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *GetFileInfoNotFound) SetFake() {
+func (s *GetFileDataUnauthorized) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = GetFileInfoNotFound(unwrapped)
+	*s = GetFileDataUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *GetFileInfoUnauthorized) SetFake() {
+func (s *GetFileNotFound) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = GetFileInfoUnauthorized(unwrapped)
+	*s = GetFileNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetFileUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetFileUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetGroupNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetGroupNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetGroupUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetGroupUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
@@ -463,6 +993,24 @@ func (s *GetHomeContainerUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *GetInodeNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetInodeNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetInodeUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetInodeUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *GetRootContainerNotFound) SetFake() {
 	var unwrapped Error
 	{
@@ -478,6 +1026,24 @@ func (s *GetRootContainerUnauthorized) SetFake() {
 		unwrapped.SetFake()
 	}
 	*s = GetRootContainerUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetSessionNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetSessionNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetSessionUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetSessionUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
@@ -505,6 +1071,42 @@ func (s *GetStreamTokenUnauthorized) SetFake() {
 		unwrapped.SetFake()
 	}
 	*s = GetStreamTokenUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetSymlinkNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetSymlinkNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetSymlinkUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetSymlinkUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetSystemNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetSystemNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *GetSystemUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = GetSystemUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
@@ -571,6 +1173,65 @@ func (s *GetUserUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *Group) SetFake() {
+	{
+		{
+			s.ID = int64(0)
+		}
+	}
+	{
+		{
+			s.SystemId = int64(0)
+		}
+	}
+	{
+		{
+			s.Gid = "string"
+		}
+	}
+	{
+		{
+			s.Groupname = "string"
+		}
+	}
+	{
+		{
+			s.CreatedAt.SetFake()
+		}
+	}
+	{
+		{
+			s.UpdatedAt.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *GroupListResponse) SetFake() {
+	{
+		{
+			s.Groups = nil
+			for i := 0; i < 0; i++ {
+				var elem Group
+				{
+					elem.SetFake()
+				}
+				s.Groups = append(s.Groups, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *GroupResponse) SetFake() {
+	{
+		{
+			s.Group.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
 func (s *HandleCallbackBadRequest) SetFake() {
 	var unwrapped Error
 	{
@@ -605,6 +1266,110 @@ func (s *HealthStatus) SetFake() {
 // SetFake set fake values.
 func (s *HealthStatusStatus) SetFake() {
 	*s = HealthStatusStatusHealthy
+}
+
+// SetFake set fake values.
+func (s *Inode) SetFake() {
+	{
+		{
+			s.ID = int64(0)
+		}
+	}
+	{
+		{
+			s.SystemId.SetFake()
+		}
+	}
+	{
+		{
+			s.FileType.SetFake()
+		}
+	}
+	{
+		{
+			s.ByteSize = int64(0)
+		}
+	}
+	{
+		{
+			s.OwnerUid = "string"
+		}
+	}
+	{
+		{
+			s.OwnerGid = "string"
+		}
+	}
+	{
+		{
+			s.PermOwner = "string"
+		}
+	}
+	{
+		{
+			s.PermGroup = "string"
+		}
+	}
+	{
+		{
+			s.PermOthers = "string"
+		}
+	}
+	{
+		{
+			s.LinkCount = int16(0)
+		}
+	}
+	{
+		{
+			s.AccessedAt.SetFake()
+		}
+	}
+	{
+		{
+			s.IsSystem = true
+		}
+	}
+	{
+		{
+			s.SystemType.SetFake()
+		}
+	}
+	{
+		{
+			s.CreatedAt.SetFake()
+		}
+	}
+	{
+		{
+			s.UpdatedAt.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *InodeListResponse) SetFake() {
+	{
+		{
+			s.Inodes = nil
+			for i := 0; i < 0; i++ {
+				var elem Inode
+				{
+					elem.SetFake()
+				}
+				s.Inodes = append(s.Inodes, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *InodeResponse) SetFake() {
+	{
+		{
+			s.Inode.SetFake()
+		}
+	}
 }
 
 // SetFake set fake values.
@@ -652,7 +1417,12 @@ func (s *MoveFileNotFound) SetFake() {
 func (s *MoveFileRequest) SetFake() {
 	{
 		{
-			s.TargetKey = uuid.New()
+			s.TargetId = int64(0)
+		}
+	}
+	{
+		{
+			s.NewName = "string"
 		}
 	}
 }
@@ -667,10 +1437,37 @@ func (s *MoveFileUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *OptBool) SetFake() {
+	var elem bool
+	{
+		elem = true
+	}
+	s.SetTo(elem)
+}
+
+// SetFake set fake values.
 func (s *OptCompleteUploadRequest) SetFake() {
 	var elem CompleteUploadRequest
 	{
 		elem.SetFake()
+	}
+	s.SetTo(elem)
+}
+
+// SetFake set fake values.
+func (s *OptFileType) SetFake() {
+	var elem FileType
+	{
+		elem.SetFake()
+	}
+	s.SetTo(elem)
+}
+
+// SetFake set fake values.
+func (s *OptInt16) SetFake() {
+	var elem int16
+	{
+		elem = int16(0)
 	}
 	s.SetTo(elem)
 }
@@ -691,9 +1488,18 @@ func (s *OptNilInt64) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *OptNilUUID) SetFake() {
+func (s *OptNilSystemType) SetFake() {
 	s.Null = true
 	s.Set = true
+}
+
+// SetFake set fake values.
+func (s *OptStorageType) SetFake() {
+	var elem StorageType
+	{
+		elem.SetFake()
+	}
+	s.SetTo(elem)
 }
 
 // SetFake set fake values.
@@ -701,6 +1507,15 @@ func (s *OptString) SetFake() {
 	var elem string
 	{
 		elem = "string"
+	}
+	s.SetTo(elem)
+}
+
+// SetFake set fake values.
+func (s *OptSystemStatus) SetFake() {
+	var elem SystemStatus
+	{
+		elem.SetFake()
 	}
 	s.SetTo(elem)
 }
@@ -720,15 +1535,74 @@ func (s *Provider) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *StreamToken) SetFake() {
+func (s *Session) SetFake() {
 	{
 		{
-			s.Token = "string"
+			s.ID = "string"
 		}
 	}
 	{
 		{
+			s.UserId = int64(0)
+		}
+	}
+	{
+		{
+			s.UserUid = "string"
+		}
+	}
+	{
+		{
+			s.ExpiresAt.SetFake()
+		}
+	}
+	{
+		{
+			s.CreatedAt.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *SessionListResponse) SetFake() {
+	{
+		{
+			s.Sessions = nil
+			for i := 0; i < 0; i++ {
+				var elem Session
+				{
+					elem.SetFake()
+				}
+				s.Sessions = append(s.Sessions, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *SessionResponse) SetFake() {
+	{
+		{
+			s.Session.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *StorageType) SetFake() {
+	*s = StorageTypeS3
+}
+
+// SetFake set fake values.
+func (s *StreamToken) SetFake() {
+	{
+		{
 			s.DownloadUrl = url.URL{Scheme: "https", Host: "github.com", Path: "/ogen-go/ogen"}
+		}
+	}
+	{
+		{
+			s.Key.SetFake()
 		}
 	}
 	{
@@ -748,6 +1622,98 @@ func (s *StreamTokenResponse) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *Symlink) SetFake() {
+	{
+		{
+			s.InodeId = int64(0)
+		}
+	}
+	{
+		{
+			s.TargetPath = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *SymlinkResponse) SetFake() {
+	{
+		{
+			s.Symlink.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *System) SetFake() {
+	{
+		{
+			s.ID = int64(0)
+		}
+	}
+	{
+		{
+			s.Name = "string"
+		}
+	}
+	{
+		{
+			s.Description.SetFake()
+		}
+	}
+	{
+		{
+			s.Status.SetFake()
+		}
+	}
+	{
+		{
+			s.CreatedAt.SetFake()
+		}
+	}
+	{
+		{
+			s.UpdatedAt.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *SystemListResponse) SetFake() {
+	{
+		{
+			s.Systems = nil
+			for i := 0; i < 0; i++ {
+				var elem System
+				{
+					elem.SetFake()
+				}
+				s.Systems = append(s.Systems, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *SystemResponse) SetFake() {
+	{
+		{
+			s.System.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *SystemStatus) SetFake() {
+	*s = SystemStatusActive
+}
+
+// SetFake set fake values.
+func (s *SystemType) SetFake() {
+	*s = SystemTypeRoot
+}
+
+// SetFake set fake values.
 func (s *Timestamp) SetFake() {
 	var unwrapped time.Time
 	{
@@ -757,60 +1723,240 @@ func (s *Timestamp) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *UpdateFileBadRequest) SetFake() {
+func (s *UpdateFileDataBadRequest) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = UpdateFileBadRequest(unwrapped)
+	*s = UpdateFileDataBadRequest(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *UpdateFileForbidden) SetFake() {
+func (s *UpdateFileDataNotFound) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = UpdateFileForbidden(unwrapped)
+	*s = UpdateFileDataNotFound(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *UpdateFileNotFound) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = UpdateFileNotFound(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *UpdateFileRequest) SetFake() {
+func (s *UpdateFileDataRequest) SetFake() {
 	{
 		{
-			s.FileName.SetFake()
+			s.StorageType.SetFake()
+		}
+	}
+	{
+		{
+			s.Location.SetFake()
+		}
+	}
+	{
+		{
+			s.Checksum.SetFake()
 		}
 	}
 }
 
 // SetFake set fake values.
-func (s *UpdateFileUnauthorized) SetFake() {
+func (s *UpdateFileDataUnauthorized) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = UpdateFileUnauthorized(unwrapped)
+	*s = UpdateFileDataUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateGroupBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateGroupBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateGroupNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateGroupNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateGroupRequest) SetFake() {
+	{
+		{
+			s.Groupname.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *UpdateGroupUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateGroupUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateInodeBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateInodeBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateInodeNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateInodeNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateInodeRequest) SetFake() {
+	{
+		{
+			s.ByteSize.SetFake()
+		}
+	}
+	{
+		{
+			s.PermOwner.SetFake()
+		}
+	}
+	{
+		{
+			s.PermGroup.SetFake()
+		}
+	}
+	{
+		{
+			s.PermOthers.SetFake()
+		}
+	}
+	{
+		{
+			s.LinkCount.SetFake()
+		}
+	}
+	{
+		{
+			s.AccessedAt.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *UpdateInodeUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateInodeUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateSymlinkBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateSymlinkBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateSymlinkNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateSymlinkNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateSymlinkRequest) SetFake() {
+	{
+		{
+			s.TargetPath = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *UpdateSymlinkUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateSymlinkUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateSystemBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateSystemBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateSystemNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateSystemNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *UpdateSystemRequest) SetFake() {
+	{
+		{
+			s.Name.SetFake()
+		}
+	}
+	{
+		{
+			s.Description.SetFake()
+		}
+	}
+	{
+		{
+			s.Status.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *UpdateSystemUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = UpdateSystemUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
 func (s *UploadToken) SetFake() {
 	{
 		{
-			s.Token = "string"
+			s.UploadUrl = url.URL{Scheme: "https", Host: "github.com", Path: "/ogen-go/ogen"}
 		}
 	}
 	{
 		{
-			s.UploadUrl = url.URL{Scheme: "https", Host: "github.com", Path: "/ogen-go/ogen"}
+			s.Key.SetFake()
 		}
 	}
 	{

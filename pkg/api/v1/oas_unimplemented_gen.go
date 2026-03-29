@@ -17,26 +17,80 @@ var _ Handler = UnimplementedHandler{}
 //
 // Mark file upload as complete and update metadata.
 //
-// PATCH /file/upload/complete/{fileKey}
+// PATCH /upload/{inodeId}/complete
 func (UnimplementedHandler) CompleteUpload(ctx context.Context, req OptCompleteUploadRequest, params CompleteUploadParams) (r CompleteUploadRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // CopyFile implements copyFile operation.
 //
-// Copy a file to a different container.
+// Copy a file to another directory.
 //
-// POST /file/{fileKey}/copy
+// POST /fs/{inodeId}/copy
 func (UnimplementedHandler) CopyFile(ctx context.Context, req *CopyFileRequest, params CopyFileParams) (r CopyFileRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// CreateDirectoryEntry implements createDirectoryEntry operation.
+//
+// Create a new directory entry (link name to inode).
+//
+// POST /directory-entries
+func (UnimplementedHandler) CreateDirectoryEntry(ctx context.Context, req *CreateDirectoryEntryRequest) (r CreateDirectoryEntryRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // CreateFile implements createFile operation.
 //
-// Create a new file or container in a parent container.
+// Create a new file or directory.
 //
-// POST /file
+// POST /fs
 func (UnimplementedHandler) CreateFile(ctx context.Context, req *CreateFileRequest) (r CreateFileRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// CreateFileData implements createFileData operation.
+//
+// Create storage data for an inode.
+//
+// POST /file-data/{inodeId}
+func (UnimplementedHandler) CreateFileData(ctx context.Context, req *CreateFileDataRequest, params CreateFileDataParams) (r CreateFileDataRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// CreateGroup implements createGroup operation.
+//
+// Create a new group.
+//
+// POST /groups
+func (UnimplementedHandler) CreateGroup(ctx context.Context, req *CreateGroupRequest) (r CreateGroupRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// CreateInode implements createInode operation.
+//
+// Create a new inode.
+//
+// POST /inodes
+func (UnimplementedHandler) CreateInode(ctx context.Context, req *CreateInodeRequest) (r CreateInodeRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// CreateSymlink implements createSymlink operation.
+//
+// Create symlink for an inode.
+//
+// POST /symlinks/{inodeId}
+func (UnimplementedHandler) CreateSymlink(ctx context.Context, req *CreateSymlinkRequest, params CreateSymlinkParams) (r CreateSymlinkRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// CreateSystem implements createSystem operation.
+//
+// Create a new system.
+//
+// POST /systems
+func (UnimplementedHandler) CreateSystem(ctx context.Context, req *CreateSystemRequest) (r CreateSystemRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -49,12 +103,75 @@ func (UnimplementedHandler) CreateUser(ctx context.Context, req *CreateUserReque
 	return r, ht.ErrNotImplemented
 }
 
+// DeleteDirectoryEntry implements deleteDirectoryEntry operation.
+//
+// Delete a directory entry (unlink name from inode).
+//
+// DELETE /directory-entries/{entryId}
+func (UnimplementedHandler) DeleteDirectoryEntry(ctx context.Context, params DeleteDirectoryEntryParams) (r DeleteDirectoryEntryRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // DeleteFile implements deleteFile operation.
 //
-// Move file to trash or permanently delete.
+// Delete a file by inode ID.
 //
-// DELETE /file/{fileKey}
+// DELETE /fs/{inodeId}
 func (UnimplementedHandler) DeleteFile(ctx context.Context, params DeleteFileParams) (r DeleteFileRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// DeleteFileData implements deleteFileData operation.
+//
+// Delete file storage data.
+//
+// DELETE /file-data/{inodeId}
+func (UnimplementedHandler) DeleteFileData(ctx context.Context, params DeleteFileDataParams) (r DeleteFileDataRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// DeleteGroup implements deleteGroup operation.
+//
+// Delete a group.
+//
+// DELETE /groups/{groupId}
+func (UnimplementedHandler) DeleteGroup(ctx context.Context, params DeleteGroupParams) (r DeleteGroupRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// DeleteInode implements deleteInode operation.
+//
+// Delete an inode.
+//
+// DELETE /inodes/{inodeId}
+func (UnimplementedHandler) DeleteInode(ctx context.Context, params DeleteInodeParams) (r DeleteInodeRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// DeleteSession implements deleteSession operation.
+//
+// Delete a specific session (logout).
+//
+// DELETE /sessions/{sessionId}
+func (UnimplementedHandler) DeleteSession(ctx context.Context, params DeleteSessionParams) (r DeleteSessionRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// DeleteSymlink implements deleteSymlink operation.
+//
+// Delete symlink data.
+//
+// DELETE /symlinks/{inodeId}
+func (UnimplementedHandler) DeleteSymlink(ctx context.Context, params DeleteSymlinkParams) (r DeleteSymlinkRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// DeleteSystem implements deleteSystem operation.
+//
+// Delete a system.
+//
+// DELETE /systems/{systemId}
+func (UnimplementedHandler) DeleteSystem(ctx context.Context, params DeleteSystemParams) (r DeleteSystemRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -67,21 +184,57 @@ func (UnimplementedHandler) DeleteUser(ctx context.Context) (r DeleteUserRes, _ 
 	return r, ht.ErrNotImplemented
 }
 
+// DeleteUserSessions implements deleteUserSessions operation.
+//
+// Delete all sessions for a specific user.
+//
+// DELETE /sessions/by-user/{userId}
+func (UnimplementedHandler) DeleteUserSessions(ctx context.Context, params DeleteUserSessionsParams) (r DeleteUserSessionsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetDirectoryEntry implements getDirectoryEntry operation.
+//
+// Retrieve directory entry details.
+//
+// GET /directory-entries/{entryId}
+func (UnimplementedHandler) GetDirectoryEntry(ctx context.Context, params GetDirectoryEntryParams) (r GetDirectoryEntryRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetFile implements getFile operation.
+//
+// Get file information by inode ID.
+//
+// GET /fs/{inodeId}
+func (UnimplementedHandler) GetFile(ctx context.Context, params GetFileParams) (r GetFileRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetFileChildren implements getFileChildren operation.
 //
-// Get all children of a container.
+// Get children of a directory.
 //
-// GET /file/children/{fileKey}
+// GET /fs/{inodeId}/children
 func (UnimplementedHandler) GetFileChildren(ctx context.Context, params GetFileChildrenParams) (r GetFileChildrenRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// GetFileInfo implements getFileInfo operation.
+// GetFileData implements getFileData operation.
 //
-// Get detailed information about a file.
+// Retrieve file storage data.
 //
-// GET /file/info/{fileKey}
-func (UnimplementedHandler) GetFileInfo(ctx context.Context, params GetFileInfoParams) (r GetFileInfoRes, _ error) {
+// GET /file-data/{inodeId}
+func (UnimplementedHandler) GetFileData(ctx context.Context, params GetFileDataParams) (r GetFileDataRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetGroup implements getGroup operation.
+//
+// Retrieve group details.
+//
+// GET /groups/{groupId}
+func (UnimplementedHandler) GetGroup(ctx context.Context, params GetGroupParams) (r GetGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -90,25 +243,43 @@ func (UnimplementedHandler) GetFileInfo(ctx context.Context, params GetFileInfoP
 // Check if the service is healthy.
 //
 // GET /health
-func (UnimplementedHandler) GetHealth(ctx context.Context) (r *HealthStatus, _ error) {
+func (UnimplementedHandler) GetHealth(ctx context.Context) (r GetHealthRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // GetHomeContainer implements getHomeContainer operation.
 //
-// Get the home container for the current user.
+// Get the user's home container.
 //
-// GET /file/home
+// GET /fs/home
 func (UnimplementedHandler) GetHomeContainer(ctx context.Context) (r GetHomeContainerRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetInode implements getInode operation.
+//
+// Retrieve inode details.
+//
+// GET /inodes/{inodeId}
+func (UnimplementedHandler) GetInode(ctx context.Context, params GetInodeParams) (r GetInodeRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // GetRootContainer implements getRootContainer operation.
 //
-// Get the root container for the current user.
+// Get the user's root container.
 //
-// GET /file/root
+// GET /fs/root
 func (UnimplementedHandler) GetRootContainer(ctx context.Context) (r GetRootContainerRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetSession implements getSession operation.
+//
+// Retrieve session details.
+//
+// GET /sessions/{sessionId}
+func (UnimplementedHandler) GetSession(ctx context.Context, params GetSessionParams) (r GetSessionRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -116,25 +287,43 @@ func (UnimplementedHandler) GetRootContainer(ctx context.Context) (r GetRootCont
 //
 // Get a presigned URL for downloading/streaming file content.
 //
-// GET /file/stream/read-token/{fileKey}
+// GET /stream/{inodeId}/token
 func (UnimplementedHandler) GetStreamToken(ctx context.Context, params GetStreamTokenParams) (r GetStreamTokenRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetSymlink implements getSymlink operation.
+//
+// Retrieve symlink target path.
+//
+// GET /symlinks/{inodeId}
+func (UnimplementedHandler) GetSymlink(ctx context.Context, params GetSymlinkParams) (r GetSymlinkRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetSystem implements getSystem operation.
+//
+// Retrieve system details.
+//
+// GET /systems/{systemId}
+func (UnimplementedHandler) GetSystem(ctx context.Context, params GetSystemParams) (r GetSystemRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // GetTrashContainer implements getTrashContainer operation.
 //
-// Get the trash container for the current user.
+// Get the user's trash container.
 //
-// GET /file/trash
+// GET /fs/trash
 func (UnimplementedHandler) GetTrashContainer(ctx context.Context) (r GetTrashContainerRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // GetUploadToken implements getUploadToken operation.
 //
-// Get a presigned URL and token for uploading file content.
+// Get a presigned URL for uploading file content.
 //
-// GET /file/upload/write-token/{fileKey}
+// GET /upload/{inodeId}/token
 func (UnimplementedHandler) GetUploadToken(ctx context.Context, params GetUploadTokenParams) (r GetUploadTokenRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -162,13 +351,58 @@ func (UnimplementedHandler) HandleCallback(ctx context.Context, req *CallbackReq
 // Start OIDC login flow and return authorization URL.
 //
 // GET /auth/login
-func (UnimplementedHandler) InitiateLogin(ctx context.Context) (r *LoginResponse, _ error) {
+func (UnimplementedHandler) InitiateLogin(ctx context.Context) (r InitiateLoginRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// ListDirectoryEntries implements listDirectoryEntries operation.
+//
+// List directory entries with optional filtering.
+//
+// GET /directory-entries
+func (UnimplementedHandler) ListDirectoryEntries(ctx context.Context, params ListDirectoryEntriesParams) (r ListDirectoryEntriesRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// ListGroups implements listGroups operation.
+//
+// List all groups with optional filtering.
+//
+// GET /groups
+func (UnimplementedHandler) ListGroups(ctx context.Context, params ListGroupsParams) (r ListGroupsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// ListInodes implements listInodes operation.
+//
+// List all inodes with optional filtering.
+//
+// GET /inodes
+func (UnimplementedHandler) ListInodes(ctx context.Context, params ListInodesParams) (r ListInodesRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// ListSessions implements listSessions operation.
+//
+// List all sessions (admin) or sessions for a specific user.
+//
+// GET /sessions
+func (UnimplementedHandler) ListSessions(ctx context.Context, params ListSessionsParams) (r ListSessionsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// ListSystems implements listSystems operation.
+//
+// List all systems with optional filtering.
+//
+// GET /systems
+func (UnimplementedHandler) ListSystems(ctx context.Context, params ListSystemsParams) (r ListSystemsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // Logout implements logout operation.
 //
-// Logout and delete session.
+// Logout current session from context.
 //
 // POST /auth/logout
 func (UnimplementedHandler) Logout(ctx context.Context) (r LogoutRes, _ error) {
@@ -177,26 +411,54 @@ func (UnimplementedHandler) Logout(ctx context.Context) (r LogoutRes, _ error) {
 
 // MoveFile implements moveFile operation.
 //
-// Move a file to a different container.
+// Move a file to another directory.
 //
-// POST /file/{fileKey}/move
+// POST /fs/{inodeId}/move
 func (UnimplementedHandler) MoveFile(ctx context.Context, req *MoveFileRequest, params MoveFileParams) (r MoveFileRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UpdateFile implements updateFile operation.
+// UpdateFileData implements updateFileData operation.
 //
-// Update file name or other metadata.
+// Update file storage data.
 //
-// PATCH /file/{fileKey}
-func (UnimplementedHandler) UpdateFile(ctx context.Context, req *UpdateFileRequest, params UpdateFileParams) (r UpdateFileRes, _ error) {
+// PATCH /file-data/{inodeId}
+func (UnimplementedHandler) UpdateFileData(ctx context.Context, req *UpdateFileDataRequest, params UpdateFileDataParams) (r UpdateFileDataRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// NewError creates *ErrorStatusCode from error returned by handler.
+// UpdateGroup implements updateGroup operation.
 //
-// Used for common default response.
-func (UnimplementedHandler) NewError(ctx context.Context, err error) (r *ErrorStatusCode) {
-	r = new(ErrorStatusCode)
-	return r
+// Update group properties.
+//
+// PATCH /groups/{groupId}
+func (UnimplementedHandler) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, params UpdateGroupParams) (r UpdateGroupRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// UpdateInode implements updateInode operation.
+//
+// Update inode properties.
+//
+// PATCH /inodes/{inodeId}
+func (UnimplementedHandler) UpdateInode(ctx context.Context, req *UpdateInodeRequest, params UpdateInodeParams) (r UpdateInodeRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// UpdateSymlink implements updateSymlink operation.
+//
+// Update symlink target path.
+//
+// PATCH /symlinks/{inodeId}
+func (UnimplementedHandler) UpdateSymlink(ctx context.Context, req *UpdateSymlinkRequest, params UpdateSymlinkParams) (r UpdateSymlinkRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// UpdateSystem implements updateSystem operation.
+//
+// Update system properties.
+//
+// PATCH /systems/{systemId}
+func (UnimplementedHandler) UpdateSystem(ctx context.Context, req *UpdateSystemRequest, params UpdateSystemParams) (r UpdateSystemRes, _ error) {
+	return r, ht.ErrNotImplemented
 }

@@ -3,17 +3,11 @@
 package apiv1
 
 import (
-	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/go-faster/errors"
-	"github.com/google/uuid"
 )
-
-func (s *ErrorStatusCode) Error() string {
-	return fmt.Sprintf("code %d: %+v", s.StatusCode, s.Response)
-}
 
 // Ref: #/components/schemas/CallbackRequest
 type CallbackRequest struct {
@@ -48,7 +42,9 @@ type CallbackResponse struct {
 	// Session ID for the authenticated user.
 	SessionId string `json:"sessionId"`
 	// User ID.
-	UserId    int64        `json:"userId"`
+	UserId int64 `json:"userId"`
+	// User UID (public identifier).
+	UserUid   string       `json:"userUid"`
 	ExpiresAt OptTimestamp `json:"expiresAt"`
 }
 
@@ -60,6 +56,11 @@ func (s *CallbackResponse) GetSessionId() string {
 // GetUserId returns the value of UserId.
 func (s *CallbackResponse) GetUserId() int64 {
 	return s.UserId
+}
+
+// GetUserUid returns the value of UserUid.
+func (s *CallbackResponse) GetUserUid() string {
+	return s.UserUid
 }
 
 // GetExpiresAt returns the value of ExpiresAt.
@@ -75,6 +76,11 @@ func (s *CallbackResponse) SetSessionId(val string) {
 // SetUserId sets the value of UserId.
 func (s *CallbackResponse) SetUserId(val int64) {
 	s.UserId = val
+}
+
+// SetUserUid sets the value of UserUid.
+func (s *CallbackResponse) SetUserUid(val string) {
+	s.UserUid = val
 }
 
 // SetExpiresAt sets the value of ExpiresAt.
@@ -130,31 +136,134 @@ func (*CopyFileNotFound) copyFileRes() {}
 
 // Ref: #/components/schemas/CopyFileRequest
 type CopyFileRequest struct {
-	// Target container file key.
-	TargetKey uuid.UUID `json:"targetKey"`
+	// Target directory inode ID.
+	TargetId int64 `json:"targetId"`
+	// New file name in target directory.
+	NewName string `json:"newName"`
 }
 
-// GetTargetKey returns the value of TargetKey.
-func (s *CopyFileRequest) GetTargetKey() uuid.UUID {
-	return s.TargetKey
+// GetTargetId returns the value of TargetId.
+func (s *CopyFileRequest) GetTargetId() int64 {
+	return s.TargetId
 }
 
-// SetTargetKey sets the value of TargetKey.
-func (s *CopyFileRequest) SetTargetKey(val uuid.UUID) {
-	s.TargetKey = val
+// GetNewName returns the value of NewName.
+func (s *CopyFileRequest) GetNewName() string {
+	return s.NewName
+}
+
+// SetTargetId sets the value of TargetId.
+func (s *CopyFileRequest) SetTargetId(val int64) {
+	s.TargetId = val
+}
+
+// SetNewName sets the value of NewName.
+func (s *CopyFileRequest) SetNewName(val string) {
+	s.NewName = val
 }
 
 type CopyFileUnauthorized Error
 
 func (*CopyFileUnauthorized) copyFileRes() {}
 
+type CreateDirectoryEntryBadRequest Error
+
+func (*CreateDirectoryEntryBadRequest) createDirectoryEntryRes() {}
+
+// Ref: #/components/schemas/CreateDirectoryEntryRequest
+type CreateDirectoryEntryRequest struct {
+	// Parent directory inode ID.
+	ParentId int64 `json:"parentId"`
+	// Entry name.
+	Name string `json:"name"`
+	// Child inode ID.
+	ChildId int64 `json:"childId"`
+}
+
+// GetParentId returns the value of ParentId.
+func (s *CreateDirectoryEntryRequest) GetParentId() int64 {
+	return s.ParentId
+}
+
+// GetName returns the value of Name.
+func (s *CreateDirectoryEntryRequest) GetName() string {
+	return s.Name
+}
+
+// GetChildId returns the value of ChildId.
+func (s *CreateDirectoryEntryRequest) GetChildId() int64 {
+	return s.ChildId
+}
+
+// SetParentId sets the value of ParentId.
+func (s *CreateDirectoryEntryRequest) SetParentId(val int64) {
+	s.ParentId = val
+}
+
+// SetName sets the value of Name.
+func (s *CreateDirectoryEntryRequest) SetName(val string) {
+	s.Name = val
+}
+
+// SetChildId sets the value of ChildId.
+func (s *CreateDirectoryEntryRequest) SetChildId(val int64) {
+	s.ChildId = val
+}
+
+type CreateDirectoryEntryUnauthorized Error
+
+func (*CreateDirectoryEntryUnauthorized) createDirectoryEntryRes() {}
+
 type CreateFileBadRequest Error
 
 func (*CreateFileBadRequest) createFileRes() {}
 
-type CreateFileForbidden Error
+type CreateFileDataBadRequest Error
 
-func (*CreateFileForbidden) createFileRes() {}
+func (*CreateFileDataBadRequest) createFileDataRes() {}
+
+// Ref: #/components/schemas/CreateFileDataRequest
+type CreateFileDataRequest struct {
+	StorageType StorageType `json:"storageType"`
+	// Storage location.
+	Location string `json:"location"`
+	// File checksum.
+	Checksum OptString `json:"checksum"`
+}
+
+// GetStorageType returns the value of StorageType.
+func (s *CreateFileDataRequest) GetStorageType() StorageType {
+	return s.StorageType
+}
+
+// GetLocation returns the value of Location.
+func (s *CreateFileDataRequest) GetLocation() string {
+	return s.Location
+}
+
+// GetChecksum returns the value of Checksum.
+func (s *CreateFileDataRequest) GetChecksum() OptString {
+	return s.Checksum
+}
+
+// SetStorageType sets the value of StorageType.
+func (s *CreateFileDataRequest) SetStorageType(val StorageType) {
+	s.StorageType = val
+}
+
+// SetLocation sets the value of Location.
+func (s *CreateFileDataRequest) SetLocation(val string) {
+	s.Location = val
+}
+
+// SetChecksum sets the value of Checksum.
+func (s *CreateFileDataRequest) SetChecksum(val OptString) {
+	s.Checksum = val
+}
+
+type CreateFileDataUnauthorized Error
+
+func (*CreateFileDataUnauthorized) createFileDataRes() {}
 
 type CreateFileNotFound Error
 
@@ -164,9 +273,17 @@ func (*CreateFileNotFound) createFileRes() {}
 type CreateFileRequest struct {
 	Type FileType `json:"type"`
 	// File name.
-	FileName string `json:"fileName"`
-	// Parent file key (container).
-	ParentKey OptNilUUID `json:"parentKey"`
+	Name string `json:"name"`
+	// Parent directory inode ID.
+	ParentId OptNilInt64 `json:"parentId"`
+	// Owner permissions.
+	PermOwner OptString `json:"permOwner"`
+	// Group permissions.
+	PermGroup OptString `json:"permGroup"`
+	// Others permissions.
+	PermOthers OptString `json:"permOthers"`
+	// Target path for symlinks.
+	TargetPath OptString `json:"targetPath"`
 }
 
 // GetType returns the value of Type.
@@ -174,14 +291,34 @@ func (s *CreateFileRequest) GetType() FileType {
 	return s.Type
 }
 
-// GetFileName returns the value of FileName.
-func (s *CreateFileRequest) GetFileName() string {
-	return s.FileName
+// GetName returns the value of Name.
+func (s *CreateFileRequest) GetName() string {
+	return s.Name
 }
 
-// GetParentKey returns the value of ParentKey.
-func (s *CreateFileRequest) GetParentKey() OptNilUUID {
-	return s.ParentKey
+// GetParentId returns the value of ParentId.
+func (s *CreateFileRequest) GetParentId() OptNilInt64 {
+	return s.ParentId
+}
+
+// GetPermOwner returns the value of PermOwner.
+func (s *CreateFileRequest) GetPermOwner() OptString {
+	return s.PermOwner
+}
+
+// GetPermGroup returns the value of PermGroup.
+func (s *CreateFileRequest) GetPermGroup() OptString {
+	return s.PermGroup
+}
+
+// GetPermOthers returns the value of PermOthers.
+func (s *CreateFileRequest) GetPermOthers() OptString {
+	return s.PermOthers
+}
+
+// GetTargetPath returns the value of TargetPath.
+func (s *CreateFileRequest) GetTargetPath() OptString {
+	return s.TargetPath
 }
 
 // SetType sets the value of Type.
@@ -189,19 +326,288 @@ func (s *CreateFileRequest) SetType(val FileType) {
 	s.Type = val
 }
 
-// SetFileName sets the value of FileName.
-func (s *CreateFileRequest) SetFileName(val string) {
-	s.FileName = val
+// SetName sets the value of Name.
+func (s *CreateFileRequest) SetName(val string) {
+	s.Name = val
 }
 
-// SetParentKey sets the value of ParentKey.
-func (s *CreateFileRequest) SetParentKey(val OptNilUUID) {
-	s.ParentKey = val
+// SetParentId sets the value of ParentId.
+func (s *CreateFileRequest) SetParentId(val OptNilInt64) {
+	s.ParentId = val
+}
+
+// SetPermOwner sets the value of PermOwner.
+func (s *CreateFileRequest) SetPermOwner(val OptString) {
+	s.PermOwner = val
+}
+
+// SetPermGroup sets the value of PermGroup.
+func (s *CreateFileRequest) SetPermGroup(val OptString) {
+	s.PermGroup = val
+}
+
+// SetPermOthers sets the value of PermOthers.
+func (s *CreateFileRequest) SetPermOthers(val OptString) {
+	s.PermOthers = val
+}
+
+// SetTargetPath sets the value of TargetPath.
+func (s *CreateFileRequest) SetTargetPath(val OptString) {
+	s.TargetPath = val
 }
 
 type CreateFileUnauthorized Error
 
 func (*CreateFileUnauthorized) createFileRes() {}
+
+type CreateGroupBadRequest Error
+
+func (*CreateGroupBadRequest) createGroupRes() {}
+
+// Ref: #/components/schemas/CreateGroupRequest
+type CreateGroupRequest struct {
+	// System ID.
+	SystemId int64 `json:"systemId"`
+	// Group GID.
+	Gid string `json:"gid"`
+	// Group name.
+	Groupname string `json:"groupname"`
+}
+
+// GetSystemId returns the value of SystemId.
+func (s *CreateGroupRequest) GetSystemId() int64 {
+	return s.SystemId
+}
+
+// GetGid returns the value of Gid.
+func (s *CreateGroupRequest) GetGid() string {
+	return s.Gid
+}
+
+// GetGroupname returns the value of Groupname.
+func (s *CreateGroupRequest) GetGroupname() string {
+	return s.Groupname
+}
+
+// SetSystemId sets the value of SystemId.
+func (s *CreateGroupRequest) SetSystemId(val int64) {
+	s.SystemId = val
+}
+
+// SetGid sets the value of Gid.
+func (s *CreateGroupRequest) SetGid(val string) {
+	s.Gid = val
+}
+
+// SetGroupname sets the value of Groupname.
+func (s *CreateGroupRequest) SetGroupname(val string) {
+	s.Groupname = val
+}
+
+type CreateGroupUnauthorized Error
+
+func (*CreateGroupUnauthorized) createGroupRes() {}
+
+type CreateInodeBadRequest Error
+
+func (*CreateInodeBadRequest) createInodeRes() {}
+
+// Ref: #/components/schemas/CreateInodeRequest
+type CreateInodeRequest struct {
+	// System ID if system-owned.
+	SystemId OptNilInt64 `json:"systemId"`
+	FileType FileType    `json:"fileType"`
+	// Owner user UID.
+	OwnerUid string `json:"ownerUid"`
+	// Owner group GID.
+	OwnerGid string `json:"ownerGid"`
+	// Owner permissions.
+	PermOwner string `json:"permOwner"`
+	// Group permissions.
+	PermGroup string `json:"permGroup"`
+	// Others permissions.
+	PermOthers string `json:"permOthers"`
+	// Whether this is a system inode.
+	IsSystem   OptBool          `json:"isSystem"`
+	SystemType OptNilSystemType `json:"systemType"`
+	// Target path for symlinks.
+	TargetPath OptString `json:"targetPath"`
+}
+
+// GetSystemId returns the value of SystemId.
+func (s *CreateInodeRequest) GetSystemId() OptNilInt64 {
+	return s.SystemId
+}
+
+// GetFileType returns the value of FileType.
+func (s *CreateInodeRequest) GetFileType() FileType {
+	return s.FileType
+}
+
+// GetOwnerUid returns the value of OwnerUid.
+func (s *CreateInodeRequest) GetOwnerUid() string {
+	return s.OwnerUid
+}
+
+// GetOwnerGid returns the value of OwnerGid.
+func (s *CreateInodeRequest) GetOwnerGid() string {
+	return s.OwnerGid
+}
+
+// GetPermOwner returns the value of PermOwner.
+func (s *CreateInodeRequest) GetPermOwner() string {
+	return s.PermOwner
+}
+
+// GetPermGroup returns the value of PermGroup.
+func (s *CreateInodeRequest) GetPermGroup() string {
+	return s.PermGroup
+}
+
+// GetPermOthers returns the value of PermOthers.
+func (s *CreateInodeRequest) GetPermOthers() string {
+	return s.PermOthers
+}
+
+// GetIsSystem returns the value of IsSystem.
+func (s *CreateInodeRequest) GetIsSystem() OptBool {
+	return s.IsSystem
+}
+
+// GetSystemType returns the value of SystemType.
+func (s *CreateInodeRequest) GetSystemType() OptNilSystemType {
+	return s.SystemType
+}
+
+// GetTargetPath returns the value of TargetPath.
+func (s *CreateInodeRequest) GetTargetPath() OptString {
+	return s.TargetPath
+}
+
+// SetSystemId sets the value of SystemId.
+func (s *CreateInodeRequest) SetSystemId(val OptNilInt64) {
+	s.SystemId = val
+}
+
+// SetFileType sets the value of FileType.
+func (s *CreateInodeRequest) SetFileType(val FileType) {
+	s.FileType = val
+}
+
+// SetOwnerUid sets the value of OwnerUid.
+func (s *CreateInodeRequest) SetOwnerUid(val string) {
+	s.OwnerUid = val
+}
+
+// SetOwnerGid sets the value of OwnerGid.
+func (s *CreateInodeRequest) SetOwnerGid(val string) {
+	s.OwnerGid = val
+}
+
+// SetPermOwner sets the value of PermOwner.
+func (s *CreateInodeRequest) SetPermOwner(val string) {
+	s.PermOwner = val
+}
+
+// SetPermGroup sets the value of PermGroup.
+func (s *CreateInodeRequest) SetPermGroup(val string) {
+	s.PermGroup = val
+}
+
+// SetPermOthers sets the value of PermOthers.
+func (s *CreateInodeRequest) SetPermOthers(val string) {
+	s.PermOthers = val
+}
+
+// SetIsSystem sets the value of IsSystem.
+func (s *CreateInodeRequest) SetIsSystem(val OptBool) {
+	s.IsSystem = val
+}
+
+// SetSystemType sets the value of SystemType.
+func (s *CreateInodeRequest) SetSystemType(val OptNilSystemType) {
+	s.SystemType = val
+}
+
+// SetTargetPath sets the value of TargetPath.
+func (s *CreateInodeRequest) SetTargetPath(val OptString) {
+	s.TargetPath = val
+}
+
+type CreateInodeUnauthorized Error
+
+func (*CreateInodeUnauthorized) createInodeRes() {}
+
+type CreateSymlinkBadRequest Error
+
+func (*CreateSymlinkBadRequest) createSymlinkRes() {}
+
+// Ref: #/components/schemas/CreateSymlinkRequest
+type CreateSymlinkRequest struct {
+	// Target path.
+	TargetPath string `json:"targetPath"`
+}
+
+// GetTargetPath returns the value of TargetPath.
+func (s *CreateSymlinkRequest) GetTargetPath() string {
+	return s.TargetPath
+}
+
+// SetTargetPath sets the value of TargetPath.
+func (s *CreateSymlinkRequest) SetTargetPath(val string) {
+	s.TargetPath = val
+}
+
+type CreateSymlinkUnauthorized Error
+
+func (*CreateSymlinkUnauthorized) createSymlinkRes() {}
+
+type CreateSystemBadRequest Error
+
+func (*CreateSystemBadRequest) createSystemRes() {}
+
+// Ref: #/components/schemas/CreateSystemRequest
+type CreateSystemRequest struct {
+	// System name.
+	Name string `json:"name"`
+	// System description.
+	Description OptString       `json:"description"`
+	Status      OptSystemStatus `json:"status"`
+}
+
+// GetName returns the value of Name.
+func (s *CreateSystemRequest) GetName() string {
+	return s.Name
+}
+
+// GetDescription returns the value of Description.
+func (s *CreateSystemRequest) GetDescription() OptString {
+	return s.Description
+}
+
+// GetStatus returns the value of Status.
+func (s *CreateSystemRequest) GetStatus() OptSystemStatus {
+	return s.Status
+}
+
+// SetName sets the value of Name.
+func (s *CreateSystemRequest) SetName(val string) {
+	s.Name = val
+}
+
+// SetDescription sets the value of Description.
+func (s *CreateSystemRequest) SetDescription(val OptString) {
+	s.Description = val
+}
+
+// SetStatus sets the value of Status.
+func (s *CreateSystemRequest) SetStatus(val OptSystemStatus) {
+	s.Status = val
+}
+
+type CreateSystemUnauthorized Error
+
+func (*CreateSystemUnauthorized) createSystemRes() {}
 
 type CreateUserBadRequest Error
 
@@ -238,6 +644,32 @@ func (s *CreateUserRequest) SetProviderId(val string) {
 	s.ProviderId = val
 }
 
+// DeleteDirectoryEntryNoContent is response for DeleteDirectoryEntry operation.
+type DeleteDirectoryEntryNoContent struct{}
+
+func (*DeleteDirectoryEntryNoContent) deleteDirectoryEntryRes() {}
+
+type DeleteDirectoryEntryNotFound Error
+
+func (*DeleteDirectoryEntryNotFound) deleteDirectoryEntryRes() {}
+
+type DeleteDirectoryEntryUnauthorized Error
+
+func (*DeleteDirectoryEntryUnauthorized) deleteDirectoryEntryRes() {}
+
+// DeleteFileDataNoContent is response for DeleteFileData operation.
+type DeleteFileDataNoContent struct{}
+
+func (*DeleteFileDataNoContent) deleteFileDataRes() {}
+
+type DeleteFileDataNotFound Error
+
+func (*DeleteFileDataNotFound) deleteFileDataRes() {}
+
+type DeleteFileDataUnauthorized Error
+
+func (*DeleteFileDataUnauthorized) deleteFileDataRes() {}
+
 type DeleteFileForbidden Error
 
 func (*DeleteFileForbidden) deleteFileRes() {}
@@ -255,6 +687,71 @@ type DeleteFileUnauthorized Error
 
 func (*DeleteFileUnauthorized) deleteFileRes() {}
 
+// DeleteGroupNoContent is response for DeleteGroup operation.
+type DeleteGroupNoContent struct{}
+
+func (*DeleteGroupNoContent) deleteGroupRes() {}
+
+type DeleteGroupNotFound Error
+
+func (*DeleteGroupNotFound) deleteGroupRes() {}
+
+type DeleteGroupUnauthorized Error
+
+func (*DeleteGroupUnauthorized) deleteGroupRes() {}
+
+// DeleteInodeNoContent is response for DeleteInode operation.
+type DeleteInodeNoContent struct{}
+
+func (*DeleteInodeNoContent) deleteInodeRes() {}
+
+type DeleteInodeNotFound Error
+
+func (*DeleteInodeNotFound) deleteInodeRes() {}
+
+type DeleteInodeUnauthorized Error
+
+func (*DeleteInodeUnauthorized) deleteInodeRes() {}
+
+// DeleteSessionNoContent is response for DeleteSession operation.
+type DeleteSessionNoContent struct{}
+
+func (*DeleteSessionNoContent) deleteSessionRes() {}
+
+type DeleteSessionNotFound Error
+
+func (*DeleteSessionNotFound) deleteSessionRes() {}
+
+type DeleteSessionUnauthorized Error
+
+func (*DeleteSessionUnauthorized) deleteSessionRes() {}
+
+// DeleteSymlinkNoContent is response for DeleteSymlink operation.
+type DeleteSymlinkNoContent struct{}
+
+func (*DeleteSymlinkNoContent) deleteSymlinkRes() {}
+
+type DeleteSymlinkNotFound Error
+
+func (*DeleteSymlinkNotFound) deleteSymlinkRes() {}
+
+type DeleteSymlinkUnauthorized Error
+
+func (*DeleteSymlinkUnauthorized) deleteSymlinkRes() {}
+
+// DeleteSystemNoContent is response for DeleteSystem operation.
+type DeleteSystemNoContent struct{}
+
+func (*DeleteSystemNoContent) deleteSystemRes() {}
+
+type DeleteSystemNotFound Error
+
+func (*DeleteSystemNotFound) deleteSystemRes() {}
+
+type DeleteSystemUnauthorized Error
+
+func (*DeleteSystemUnauthorized) deleteSystemRes() {}
+
 // DeleteUserNoContent is response for DeleteUser operation.
 type DeleteUserNoContent struct{}
 
@@ -264,9 +761,101 @@ type DeleteUserNotFound Error
 
 func (*DeleteUserNotFound) deleteUserRes() {}
 
+// DeleteUserSessionsNoContent is response for DeleteUserSessions operation.
+type DeleteUserSessionsNoContent struct{}
+
+func (*DeleteUserSessionsNoContent) deleteUserSessionsRes() {}
+
 type DeleteUserUnauthorized Error
 
 func (*DeleteUserUnauthorized) deleteUserRes() {}
+
+// Ref: #/components/schemas/DirectoryEntry
+type DirectoryEntry struct {
+	// Directory entry ID.
+	ID int64 `json:"id"`
+	// Parent directory inode ID.
+	ParentId int64 `json:"parentId"`
+	// Entry name.
+	Name string `json:"name"`
+	// Child inode ID.
+	ChildId int64 `json:"childId"`
+}
+
+// GetID returns the value of ID.
+func (s *DirectoryEntry) GetID() int64 {
+	return s.ID
+}
+
+// GetParentId returns the value of ParentId.
+func (s *DirectoryEntry) GetParentId() int64 {
+	return s.ParentId
+}
+
+// GetName returns the value of Name.
+func (s *DirectoryEntry) GetName() string {
+	return s.Name
+}
+
+// GetChildId returns the value of ChildId.
+func (s *DirectoryEntry) GetChildId() int64 {
+	return s.ChildId
+}
+
+// SetID sets the value of ID.
+func (s *DirectoryEntry) SetID(val int64) {
+	s.ID = val
+}
+
+// SetParentId sets the value of ParentId.
+func (s *DirectoryEntry) SetParentId(val int64) {
+	s.ParentId = val
+}
+
+// SetName sets the value of Name.
+func (s *DirectoryEntry) SetName(val string) {
+	s.Name = val
+}
+
+// SetChildId sets the value of ChildId.
+func (s *DirectoryEntry) SetChildId(val int64) {
+	s.ChildId = val
+}
+
+// Ref: #/components/schemas/DirectoryEntryListResponse
+type DirectoryEntryListResponse struct {
+	Entries []DirectoryEntry `json:"entries"`
+}
+
+// GetEntries returns the value of Entries.
+func (s *DirectoryEntryListResponse) GetEntries() []DirectoryEntry {
+	return s.Entries
+}
+
+// SetEntries sets the value of Entries.
+func (s *DirectoryEntryListResponse) SetEntries(val []DirectoryEntry) {
+	s.Entries = val
+}
+
+func (*DirectoryEntryListResponse) listDirectoryEntriesRes() {}
+
+// Ref: #/components/schemas/DirectoryEntryResponse
+type DirectoryEntryResponse struct {
+	Entry DirectoryEntry `json:"entry"`
+}
+
+// GetEntry returns the value of Entry.
+func (s *DirectoryEntryResponse) GetEntry() DirectoryEntry {
+	return s.Entry
+}
+
+// SetEntry sets the value of Entry.
+func (s *DirectoryEntryResponse) SetEntry(val DirectoryEntry) {
+	s.Entry = val
+}
+
+func (*DirectoryEntryResponse) createDirectoryEntryRes() {}
+func (*DirectoryEntryResponse) getDirectoryEntryRes()    {}
 
 // Ref: #/components/schemas/Error
 type Error struct {
@@ -283,7 +872,13 @@ func (s *Error) SetError(val ErrorError) {
 	s.Error = val
 }
 
-func (*Error) logoutRes() {}
+func (*Error) deleteUserSessionsRes()   {}
+func (*Error) listDirectoryEntriesRes() {}
+func (*Error) listGroupsRes()           {}
+func (*Error) listInodesRes()           {}
+func (*Error) listSessionsRes()         {}
+func (*Error) listSystemsRes()          {}
+func (*Error) logoutRes()               {}
 
 type ErrorError struct {
 	// Error type.
@@ -338,27 +933,78 @@ func (s *ErrorStatusCode) SetResponse(val Error) {
 	s.Response = val
 }
 
+func (*ErrorStatusCode) completeUploadRes()       {}
+func (*ErrorStatusCode) createDirectoryEntryRes() {}
+func (*ErrorStatusCode) createFileDataRes()       {}
+func (*ErrorStatusCode) createGroupRes()          {}
+func (*ErrorStatusCode) createInodeRes()          {}
+func (*ErrorStatusCode) createSymlinkRes()        {}
+func (*ErrorStatusCode) createSystemRes()         {}
+func (*ErrorStatusCode) createUserRes()           {}
+func (*ErrorStatusCode) deleteDirectoryEntryRes() {}
+func (*ErrorStatusCode) deleteFileDataRes()       {}
+func (*ErrorStatusCode) deleteGroupRes()          {}
+func (*ErrorStatusCode) deleteInodeRes()          {}
+func (*ErrorStatusCode) deleteSessionRes()        {}
+func (*ErrorStatusCode) deleteSymlinkRes()        {}
+func (*ErrorStatusCode) deleteSystemRes()         {}
+func (*ErrorStatusCode) deleteUserRes()           {}
+func (*ErrorStatusCode) deleteUserSessionsRes()   {}
+func (*ErrorStatusCode) getDirectoryEntryRes()    {}
+func (*ErrorStatusCode) getFileDataRes()          {}
+func (*ErrorStatusCode) getGroupRes()             {}
+func (*ErrorStatusCode) getHealthRes()            {}
+func (*ErrorStatusCode) getInodeRes()             {}
+func (*ErrorStatusCode) getSessionRes()           {}
+func (*ErrorStatusCode) getStreamTokenRes()       {}
+func (*ErrorStatusCode) getSymlinkRes()           {}
+func (*ErrorStatusCode) getSystemRes()            {}
+func (*ErrorStatusCode) getUploadTokenRes()       {}
+func (*ErrorStatusCode) getUserRes()              {}
+func (*ErrorStatusCode) handleCallbackRes()       {}
+func (*ErrorStatusCode) initiateLoginRes()        {}
+func (*ErrorStatusCode) listDirectoryEntriesRes() {}
+func (*ErrorStatusCode) listGroupsRes()           {}
+func (*ErrorStatusCode) listInodesRes()           {}
+func (*ErrorStatusCode) listSessionsRes()         {}
+func (*ErrorStatusCode) listSystemsRes()          {}
+func (*ErrorStatusCode) logoutRes()               {}
+func (*ErrorStatusCode) updateFileDataRes()       {}
+func (*ErrorStatusCode) updateGroupRes()          {}
+func (*ErrorStatusCode) updateInodeRes()          {}
+func (*ErrorStatusCode) updateSymlinkRes()        {}
+func (*ErrorStatusCode) updateSystemRes()         {}
+
 // Ref: #/components/schemas/File
 type File struct {
-	// File ID.
-	ID int64 `json:"id"`
-	// File UUID key.
-	FileKey uuid.UUID `json:"fileKey"`
-	Type    FileType  `json:"type"`
+	// Inode ID.
+	ID   int64    `json:"id"`
+	Type FileType `json:"type"`
 	// File name.
-	FileName string `json:"fileName"`
-	// Owner user ID.
-	OwnerId OptInt64 `json:"ownerId"`
-	// Parent file ID.
+	Name string `json:"name"`
+	// Owner user UID.
+	OwnerUid OptString `json:"ownerUid"`
+	// Owner group ID.
+	OwnerGid OptString `json:"ownerGid"`
+	// Parent directory inode ID.
 	ParentId OptNilInt64 `json:"parentId"`
 	// File size in bytes.
-	ByteSize  OptInt64     `json:"byteSize"`
+	ByteSize OptInt64 `json:"byteSize"`
+	// Owner permissions (e.g., rwx).
+	PermOwner OptString `json:"permOwner"`
+	// Group permissions (e.g., r-x).
+	PermGroup OptString `json:"permGroup"`
+	// Others permissions (e.g., r--).
+	PermOthers OptString `json:"permOthers"`
+	// Number of hard links.
+	LinkCount OptInt16 `json:"linkCount"`
+	// Whether this is a system file.
+	IsSystem   OptBool          `json:"isSystem"`
+	SystemType OptNilSystemType `json:"systemType"`
+	// Full path from root (e.g., /home/user/docs/file.txt).
+	Path      OptString    `json:"path"`
 	CreatedAt OptTimestamp `json:"createdAt"`
 	UpdatedAt OptTimestamp `json:"updatedAt"`
-	// Path from root to this file.
-	Path []int64 `json:"path"`
-	// Current user's roles for this file.
-	Roles []string `json:"roles"`
 }
 
 // GetID returns the value of ID.
@@ -366,24 +1012,24 @@ func (s *File) GetID() int64 {
 	return s.ID
 }
 
-// GetFileKey returns the value of FileKey.
-func (s *File) GetFileKey() uuid.UUID {
-	return s.FileKey
-}
-
 // GetType returns the value of Type.
 func (s *File) GetType() FileType {
 	return s.Type
 }
 
-// GetFileName returns the value of FileName.
-func (s *File) GetFileName() string {
-	return s.FileName
+// GetName returns the value of Name.
+func (s *File) GetName() string {
+	return s.Name
 }
 
-// GetOwnerId returns the value of OwnerId.
-func (s *File) GetOwnerId() OptInt64 {
-	return s.OwnerId
+// GetOwnerUid returns the value of OwnerUid.
+func (s *File) GetOwnerUid() OptString {
+	return s.OwnerUid
+}
+
+// GetOwnerGid returns the value of OwnerGid.
+func (s *File) GetOwnerGid() OptString {
+	return s.OwnerGid
 }
 
 // GetParentId returns the value of ParentId.
@@ -396,6 +1042,41 @@ func (s *File) GetByteSize() OptInt64 {
 	return s.ByteSize
 }
 
+// GetPermOwner returns the value of PermOwner.
+func (s *File) GetPermOwner() OptString {
+	return s.PermOwner
+}
+
+// GetPermGroup returns the value of PermGroup.
+func (s *File) GetPermGroup() OptString {
+	return s.PermGroup
+}
+
+// GetPermOthers returns the value of PermOthers.
+func (s *File) GetPermOthers() OptString {
+	return s.PermOthers
+}
+
+// GetLinkCount returns the value of LinkCount.
+func (s *File) GetLinkCount() OptInt16 {
+	return s.LinkCount
+}
+
+// GetIsSystem returns the value of IsSystem.
+func (s *File) GetIsSystem() OptBool {
+	return s.IsSystem
+}
+
+// GetSystemType returns the value of SystemType.
+func (s *File) GetSystemType() OptNilSystemType {
+	return s.SystemType
+}
+
+// GetPath returns the value of Path.
+func (s *File) GetPath() OptString {
+	return s.Path
+}
+
 // GetCreatedAt returns the value of CreatedAt.
 func (s *File) GetCreatedAt() OptTimestamp {
 	return s.CreatedAt
@@ -406,24 +1087,9 @@ func (s *File) GetUpdatedAt() OptTimestamp {
 	return s.UpdatedAt
 }
 
-// GetPath returns the value of Path.
-func (s *File) GetPath() []int64 {
-	return s.Path
-}
-
-// GetRoles returns the value of Roles.
-func (s *File) GetRoles() []string {
-	return s.Roles
-}
-
 // SetID sets the value of ID.
 func (s *File) SetID(val int64) {
 	s.ID = val
-}
-
-// SetFileKey sets the value of FileKey.
-func (s *File) SetFileKey(val uuid.UUID) {
-	s.FileKey = val
 }
 
 // SetType sets the value of Type.
@@ -431,14 +1097,19 @@ func (s *File) SetType(val FileType) {
 	s.Type = val
 }
 
-// SetFileName sets the value of FileName.
-func (s *File) SetFileName(val string) {
-	s.FileName = val
+// SetName sets the value of Name.
+func (s *File) SetName(val string) {
+	s.Name = val
 }
 
-// SetOwnerId sets the value of OwnerId.
-func (s *File) SetOwnerId(val OptInt64) {
-	s.OwnerId = val
+// SetOwnerUid sets the value of OwnerUid.
+func (s *File) SetOwnerUid(val OptString) {
+	s.OwnerUid = val
+}
+
+// SetOwnerGid sets the value of OwnerGid.
+func (s *File) SetOwnerGid(val OptString) {
+	s.OwnerGid = val
 }
 
 // SetParentId sets the value of ParentId.
@@ -451,6 +1122,41 @@ func (s *File) SetByteSize(val OptInt64) {
 	s.ByteSize = val
 }
 
+// SetPermOwner sets the value of PermOwner.
+func (s *File) SetPermOwner(val OptString) {
+	s.PermOwner = val
+}
+
+// SetPermGroup sets the value of PermGroup.
+func (s *File) SetPermGroup(val OptString) {
+	s.PermGroup = val
+}
+
+// SetPermOthers sets the value of PermOthers.
+func (s *File) SetPermOthers(val OptString) {
+	s.PermOthers = val
+}
+
+// SetLinkCount sets the value of LinkCount.
+func (s *File) SetLinkCount(val OptInt16) {
+	s.LinkCount = val
+}
+
+// SetIsSystem sets the value of IsSystem.
+func (s *File) SetIsSystem(val OptBool) {
+	s.IsSystem = val
+}
+
+// SetSystemType sets the value of SystemType.
+func (s *File) SetSystemType(val OptNilSystemType) {
+	s.SystemType = val
+}
+
+// SetPath sets the value of Path.
+func (s *File) SetPath(val OptString) {
+	s.Path = val
+}
+
 // SetCreatedAt sets the value of CreatedAt.
 func (s *File) SetCreatedAt(val OptTimestamp) {
 	s.CreatedAt = val
@@ -461,15 +1167,75 @@ func (s *File) SetUpdatedAt(val OptTimestamp) {
 	s.UpdatedAt = val
 }
 
-// SetPath sets the value of Path.
-func (s *File) SetPath(val []int64) {
-	s.Path = val
+// Ref: #/components/schemas/FileData
+type FileData struct {
+	// Inode ID.
+	InodeId     int64       `json:"inodeId"`
+	StorageType StorageType `json:"storageType"`
+	// Storage location (e.g., S3 key or local path).
+	Location string `json:"location"`
+	// File checksum (e.g., SHA256).
+	Checksum OptString `json:"checksum"`
 }
 
-// SetRoles sets the value of Roles.
-func (s *File) SetRoles(val []string) {
-	s.Roles = val
+// GetInodeId returns the value of InodeId.
+func (s *FileData) GetInodeId() int64 {
+	return s.InodeId
 }
+
+// GetStorageType returns the value of StorageType.
+func (s *FileData) GetStorageType() StorageType {
+	return s.StorageType
+}
+
+// GetLocation returns the value of Location.
+func (s *FileData) GetLocation() string {
+	return s.Location
+}
+
+// GetChecksum returns the value of Checksum.
+func (s *FileData) GetChecksum() OptString {
+	return s.Checksum
+}
+
+// SetInodeId sets the value of InodeId.
+func (s *FileData) SetInodeId(val int64) {
+	s.InodeId = val
+}
+
+// SetStorageType sets the value of StorageType.
+func (s *FileData) SetStorageType(val StorageType) {
+	s.StorageType = val
+}
+
+// SetLocation sets the value of Location.
+func (s *FileData) SetLocation(val string) {
+	s.Location = val
+}
+
+// SetChecksum sets the value of Checksum.
+func (s *FileData) SetChecksum(val OptString) {
+	s.Checksum = val
+}
+
+// Ref: #/components/schemas/FileDataResponse
+type FileDataResponse struct {
+	FileData FileData `json:"fileData"`
+}
+
+// GetFileData returns the value of FileData.
+func (s *FileDataResponse) GetFileData() FileData {
+	return s.FileData
+}
+
+// SetFileData sets the value of FileData.
+func (s *FileDataResponse) SetFileData(val FileData) {
+	s.FileData = val
+}
+
+func (*FileDataResponse) createFileDataRes() {}
+func (*FileDataResponse) getFileDataRes()    {}
+func (*FileDataResponse) updateFileDataRes() {}
 
 // Ref: #/components/schemas/FileListResponse
 type FileListResponse struct {
@@ -506,36 +1272,55 @@ func (s *FileResponse) SetFile(val File) {
 func (*FileResponse) completeUploadRes()    {}
 func (*FileResponse) copyFileRes()          {}
 func (*FileResponse) createFileRes()        {}
-func (*FileResponse) getFileInfoRes()       {}
+func (*FileResponse) getFileRes()           {}
 func (*FileResponse) getHomeContainerRes()  {}
 func (*FileResponse) getRootContainerRes()  {}
 func (*FileResponse) getTrashContainerRes() {}
 func (*FileResponse) moveFileRes()          {}
-func (*FileResponse) updateFileRes()        {}
 
-// Type of file (container or file).
+// Type of file (inode).
 // Ref: #/components/schemas/FileType
 type FileType string
 
 const (
-	FileTypeContainer FileType = "container"
-	FileTypeFile      FileType = "file"
+	FileTypeRegular   FileType = "regular"
+	FileTypeDirectory FileType = "directory"
+	FileTypeSymlink   FileType = "symlink"
+	FileTypeBlock     FileType = "block"
+	FileTypeChar      FileType = "char"
+	FileTypeSocket    FileType = "socket"
+	FileTypeFifo      FileType = "fifo"
 )
 
 // AllValues returns all FileType values.
 func (FileType) AllValues() []FileType {
 	return []FileType{
-		FileTypeContainer,
-		FileTypeFile,
+		FileTypeRegular,
+		FileTypeDirectory,
+		FileTypeSymlink,
+		FileTypeBlock,
+		FileTypeChar,
+		FileTypeSocket,
+		FileTypeFifo,
 	}
 }
 
 // MarshalText implements encoding.TextMarshaler.
 func (s FileType) MarshalText() ([]byte, error) {
 	switch s {
-	case FileTypeContainer:
+	case FileTypeRegular:
 		return []byte(s), nil
-	case FileTypeFile:
+	case FileTypeDirectory:
+		return []byte(s), nil
+	case FileTypeSymlink:
+		return []byte(s), nil
+	case FileTypeBlock:
+		return []byte(s), nil
+	case FileTypeChar:
+		return []byte(s), nil
+	case FileTypeSocket:
+		return []byte(s), nil
+	case FileTypeFifo:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -545,16 +1330,39 @@ func (s FileType) MarshalText() ([]byte, error) {
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (s *FileType) UnmarshalText(data []byte) error {
 	switch FileType(data) {
-	case FileTypeContainer:
-		*s = FileTypeContainer
+	case FileTypeRegular:
+		*s = FileTypeRegular
 		return nil
-	case FileTypeFile:
-		*s = FileTypeFile
+	case FileTypeDirectory:
+		*s = FileTypeDirectory
+		return nil
+	case FileTypeSymlink:
+		*s = FileTypeSymlink
+		return nil
+	case FileTypeBlock:
+		*s = FileTypeBlock
+		return nil
+	case FileTypeChar:
+		*s = FileTypeChar
+		return nil
+	case FileTypeSocket:
+		*s = FileTypeSocket
+		return nil
+	case FileTypeFifo:
+		*s = FileTypeFifo
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
 	}
 }
+
+type GetDirectoryEntryNotFound Error
+
+func (*GetDirectoryEntryNotFound) getDirectoryEntryRes() {}
+
+type GetDirectoryEntryUnauthorized Error
+
+func (*GetDirectoryEntryUnauthorized) getDirectoryEntryRes() {}
 
 type GetFileChildrenForbidden Error
 
@@ -568,17 +1376,29 @@ type GetFileChildrenUnauthorized Error
 
 func (*GetFileChildrenUnauthorized) getFileChildrenRes() {}
 
-type GetFileInfoForbidden Error
+type GetFileDataNotFound Error
 
-func (*GetFileInfoForbidden) getFileInfoRes() {}
+func (*GetFileDataNotFound) getFileDataRes() {}
 
-type GetFileInfoNotFound Error
+type GetFileDataUnauthorized Error
 
-func (*GetFileInfoNotFound) getFileInfoRes() {}
+func (*GetFileDataUnauthorized) getFileDataRes() {}
 
-type GetFileInfoUnauthorized Error
+type GetFileNotFound Error
 
-func (*GetFileInfoUnauthorized) getFileInfoRes() {}
+func (*GetFileNotFound) getFileRes() {}
+
+type GetFileUnauthorized Error
+
+func (*GetFileUnauthorized) getFileRes() {}
+
+type GetGroupNotFound Error
+
+func (*GetGroupNotFound) getGroupRes() {}
+
+type GetGroupUnauthorized Error
+
+func (*GetGroupUnauthorized) getGroupRes() {}
 
 type GetHomeContainerNotFound Error
 
@@ -588,6 +1408,14 @@ type GetHomeContainerUnauthorized Error
 
 func (*GetHomeContainerUnauthorized) getHomeContainerRes() {}
 
+type GetInodeNotFound Error
+
+func (*GetInodeNotFound) getInodeRes() {}
+
+type GetInodeUnauthorized Error
+
+func (*GetInodeUnauthorized) getInodeRes() {}
+
 type GetRootContainerNotFound Error
 
 func (*GetRootContainerNotFound) getRootContainerRes() {}
@@ -595,6 +1423,14 @@ func (*GetRootContainerNotFound) getRootContainerRes() {}
 type GetRootContainerUnauthorized Error
 
 func (*GetRootContainerUnauthorized) getRootContainerRes() {}
+
+type GetSessionNotFound Error
+
+func (*GetSessionNotFound) getSessionRes() {}
+
+type GetSessionUnauthorized Error
+
+func (*GetSessionUnauthorized) getSessionRes() {}
 
 type GetStreamTokenForbidden Error
 
@@ -607,6 +1443,22 @@ func (*GetStreamTokenNotFound) getStreamTokenRes() {}
 type GetStreamTokenUnauthorized Error
 
 func (*GetStreamTokenUnauthorized) getStreamTokenRes() {}
+
+type GetSymlinkNotFound Error
+
+func (*GetSymlinkNotFound) getSymlinkRes() {}
+
+type GetSymlinkUnauthorized Error
+
+func (*GetSymlinkUnauthorized) getSymlinkRes() {}
+
+type GetSystemNotFound Error
+
+func (*GetSystemNotFound) getSystemRes() {}
+
+type GetSystemUnauthorized Error
+
+func (*GetSystemUnauthorized) getSystemRes() {}
 
 type GetTrashContainerNotFound Error
 
@@ -635,6 +1487,116 @@ func (*GetUserNotFound) getUserRes() {}
 type GetUserUnauthorized Error
 
 func (*GetUserUnauthorized) getUserRes() {}
+
+// Ref: #/components/schemas/Group
+type Group struct {
+	// Group ID.
+	ID int64 `json:"id"`
+	// System ID this group belongs to.
+	SystemId int64 `json:"systemId"`
+	// Group GID (e.g., '1001').
+	Gid string `json:"gid"`
+	// Group name.
+	Groupname string    `json:"groupname"`
+	CreatedAt Timestamp `json:"createdAt"`
+	UpdatedAt Timestamp `json:"updatedAt"`
+}
+
+// GetID returns the value of ID.
+func (s *Group) GetID() int64 {
+	return s.ID
+}
+
+// GetSystemId returns the value of SystemId.
+func (s *Group) GetSystemId() int64 {
+	return s.SystemId
+}
+
+// GetGid returns the value of Gid.
+func (s *Group) GetGid() string {
+	return s.Gid
+}
+
+// GetGroupname returns the value of Groupname.
+func (s *Group) GetGroupname() string {
+	return s.Groupname
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *Group) GetCreatedAt() Timestamp {
+	return s.CreatedAt
+}
+
+// GetUpdatedAt returns the value of UpdatedAt.
+func (s *Group) GetUpdatedAt() Timestamp {
+	return s.UpdatedAt
+}
+
+// SetID sets the value of ID.
+func (s *Group) SetID(val int64) {
+	s.ID = val
+}
+
+// SetSystemId sets the value of SystemId.
+func (s *Group) SetSystemId(val int64) {
+	s.SystemId = val
+}
+
+// SetGid sets the value of Gid.
+func (s *Group) SetGid(val string) {
+	s.Gid = val
+}
+
+// SetGroupname sets the value of Groupname.
+func (s *Group) SetGroupname(val string) {
+	s.Groupname = val
+}
+
+// SetCreatedAt sets the value of CreatedAt.
+func (s *Group) SetCreatedAt(val Timestamp) {
+	s.CreatedAt = val
+}
+
+// SetUpdatedAt sets the value of UpdatedAt.
+func (s *Group) SetUpdatedAt(val Timestamp) {
+	s.UpdatedAt = val
+}
+
+// Ref: #/components/schemas/GroupListResponse
+type GroupListResponse struct {
+	Groups []Group `json:"groups"`
+}
+
+// GetGroups returns the value of Groups.
+func (s *GroupListResponse) GetGroups() []Group {
+	return s.Groups
+}
+
+// SetGroups sets the value of Groups.
+func (s *GroupListResponse) SetGroups(val []Group) {
+	s.Groups = val
+}
+
+func (*GroupListResponse) listGroupsRes() {}
+
+// Ref: #/components/schemas/GroupResponse
+type GroupResponse struct {
+	Group Group `json:"group"`
+}
+
+// GetGroup returns the value of Group.
+func (s *GroupResponse) GetGroup() Group {
+	return s.Group
+}
+
+// SetGroup sets the value of Group.
+func (s *GroupResponse) SetGroup(val Group) {
+	s.Group = val
+}
+
+func (*GroupResponse) createGroupRes() {}
+func (*GroupResponse) getGroupRes()    {}
+func (*GroupResponse) updateGroupRes() {}
 
 type HandleCallbackBadRequest Error
 
@@ -671,6 +1633,8 @@ func (s *HealthStatus) SetStatus(val HealthStatusStatus) {
 func (s *HealthStatus) SetVersion(val OptString) {
 	s.Version = val
 }
+
+func (*HealthStatus) getHealthRes() {}
 
 // Health status.
 type HealthStatusStatus string
@@ -714,6 +1678,221 @@ func (s *HealthStatusStatus) UnmarshalText(data []byte) error {
 	}
 }
 
+// Ref: #/components/schemas/Inode
+type Inode struct {
+	// Inode ID.
+	ID int64 `json:"id"`
+	// System ID if system-owned.
+	SystemId OptNilInt64 `json:"systemId"`
+	FileType FileType    `json:"fileType"`
+	// File size in bytes.
+	ByteSize int64 `json:"byteSize"`
+	// Owner user UID.
+	OwnerUid string `json:"ownerUid"`
+	// Owner group GID.
+	OwnerGid string `json:"ownerGid"`
+	// Owner permissions (e.g., 'rwx').
+	PermOwner string `json:"permOwner"`
+	// Group permissions (e.g., 'r-x').
+	PermGroup string `json:"permGroup"`
+	// Others permissions (e.g., 'r--').
+	PermOthers string `json:"permOthers"`
+	// Number of hard links.
+	LinkCount  int16        `json:"linkCount"`
+	AccessedAt OptTimestamp `json:"accessedAt"`
+	// Whether this is a system inode.
+	IsSystem   bool             `json:"isSystem"`
+	SystemType OptNilSystemType `json:"systemType"`
+	CreatedAt  Timestamp        `json:"createdAt"`
+	UpdatedAt  Timestamp        `json:"updatedAt"`
+}
+
+// GetID returns the value of ID.
+func (s *Inode) GetID() int64 {
+	return s.ID
+}
+
+// GetSystemId returns the value of SystemId.
+func (s *Inode) GetSystemId() OptNilInt64 {
+	return s.SystemId
+}
+
+// GetFileType returns the value of FileType.
+func (s *Inode) GetFileType() FileType {
+	return s.FileType
+}
+
+// GetByteSize returns the value of ByteSize.
+func (s *Inode) GetByteSize() int64 {
+	return s.ByteSize
+}
+
+// GetOwnerUid returns the value of OwnerUid.
+func (s *Inode) GetOwnerUid() string {
+	return s.OwnerUid
+}
+
+// GetOwnerGid returns the value of OwnerGid.
+func (s *Inode) GetOwnerGid() string {
+	return s.OwnerGid
+}
+
+// GetPermOwner returns the value of PermOwner.
+func (s *Inode) GetPermOwner() string {
+	return s.PermOwner
+}
+
+// GetPermGroup returns the value of PermGroup.
+func (s *Inode) GetPermGroup() string {
+	return s.PermGroup
+}
+
+// GetPermOthers returns the value of PermOthers.
+func (s *Inode) GetPermOthers() string {
+	return s.PermOthers
+}
+
+// GetLinkCount returns the value of LinkCount.
+func (s *Inode) GetLinkCount() int16 {
+	return s.LinkCount
+}
+
+// GetAccessedAt returns the value of AccessedAt.
+func (s *Inode) GetAccessedAt() OptTimestamp {
+	return s.AccessedAt
+}
+
+// GetIsSystem returns the value of IsSystem.
+func (s *Inode) GetIsSystem() bool {
+	return s.IsSystem
+}
+
+// GetSystemType returns the value of SystemType.
+func (s *Inode) GetSystemType() OptNilSystemType {
+	return s.SystemType
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *Inode) GetCreatedAt() Timestamp {
+	return s.CreatedAt
+}
+
+// GetUpdatedAt returns the value of UpdatedAt.
+func (s *Inode) GetUpdatedAt() Timestamp {
+	return s.UpdatedAt
+}
+
+// SetID sets the value of ID.
+func (s *Inode) SetID(val int64) {
+	s.ID = val
+}
+
+// SetSystemId sets the value of SystemId.
+func (s *Inode) SetSystemId(val OptNilInt64) {
+	s.SystemId = val
+}
+
+// SetFileType sets the value of FileType.
+func (s *Inode) SetFileType(val FileType) {
+	s.FileType = val
+}
+
+// SetByteSize sets the value of ByteSize.
+func (s *Inode) SetByteSize(val int64) {
+	s.ByteSize = val
+}
+
+// SetOwnerUid sets the value of OwnerUid.
+func (s *Inode) SetOwnerUid(val string) {
+	s.OwnerUid = val
+}
+
+// SetOwnerGid sets the value of OwnerGid.
+func (s *Inode) SetOwnerGid(val string) {
+	s.OwnerGid = val
+}
+
+// SetPermOwner sets the value of PermOwner.
+func (s *Inode) SetPermOwner(val string) {
+	s.PermOwner = val
+}
+
+// SetPermGroup sets the value of PermGroup.
+func (s *Inode) SetPermGroup(val string) {
+	s.PermGroup = val
+}
+
+// SetPermOthers sets the value of PermOthers.
+func (s *Inode) SetPermOthers(val string) {
+	s.PermOthers = val
+}
+
+// SetLinkCount sets the value of LinkCount.
+func (s *Inode) SetLinkCount(val int16) {
+	s.LinkCount = val
+}
+
+// SetAccessedAt sets the value of AccessedAt.
+func (s *Inode) SetAccessedAt(val OptTimestamp) {
+	s.AccessedAt = val
+}
+
+// SetIsSystem sets the value of IsSystem.
+func (s *Inode) SetIsSystem(val bool) {
+	s.IsSystem = val
+}
+
+// SetSystemType sets the value of SystemType.
+func (s *Inode) SetSystemType(val OptNilSystemType) {
+	s.SystemType = val
+}
+
+// SetCreatedAt sets the value of CreatedAt.
+func (s *Inode) SetCreatedAt(val Timestamp) {
+	s.CreatedAt = val
+}
+
+// SetUpdatedAt sets the value of UpdatedAt.
+func (s *Inode) SetUpdatedAt(val Timestamp) {
+	s.UpdatedAt = val
+}
+
+// Ref: #/components/schemas/InodeListResponse
+type InodeListResponse struct {
+	Inodes []Inode `json:"inodes"`
+}
+
+// GetInodes returns the value of Inodes.
+func (s *InodeListResponse) GetInodes() []Inode {
+	return s.Inodes
+}
+
+// SetInodes sets the value of Inodes.
+func (s *InodeListResponse) SetInodes(val []Inode) {
+	s.Inodes = val
+}
+
+func (*InodeListResponse) listInodesRes() {}
+
+// Ref: #/components/schemas/InodeResponse
+type InodeResponse struct {
+	Inode Inode `json:"inode"`
+}
+
+// GetInode returns the value of Inode.
+func (s *InodeResponse) GetInode() Inode {
+	return s.Inode
+}
+
+// SetInode sets the value of Inode.
+func (s *InodeResponse) SetInode(val Inode) {
+	s.Inode = val
+}
+
+func (*InodeResponse) createInodeRes() {}
+func (*InodeResponse) getInodeRes()    {}
+func (*InodeResponse) updateInodeRes() {}
+
 // Ref: #/components/schemas/LoginResponse
 type LoginResponse struct {
 	// Keycloak authorization URL.
@@ -742,6 +1921,8 @@ func (s *LoginResponse) SetState(val string) {
 	s.State = val
 }
 
+func (*LoginResponse) initiateLoginRes() {}
+
 // LogoutNoContent is response for Logout operation.
 type LogoutNoContent struct{}
 
@@ -761,18 +1942,30 @@ func (*MoveFileNotFound) moveFileRes() {}
 
 // Ref: #/components/schemas/MoveFileRequest
 type MoveFileRequest struct {
-	// Target container file key.
-	TargetKey uuid.UUID `json:"targetKey"`
+	// Target directory inode ID.
+	TargetId int64 `json:"targetId"`
+	// New file name in target directory.
+	NewName string `json:"newName"`
 }
 
-// GetTargetKey returns the value of TargetKey.
-func (s *MoveFileRequest) GetTargetKey() uuid.UUID {
-	return s.TargetKey
+// GetTargetId returns the value of TargetId.
+func (s *MoveFileRequest) GetTargetId() int64 {
+	return s.TargetId
 }
 
-// SetTargetKey sets the value of TargetKey.
-func (s *MoveFileRequest) SetTargetKey(val uuid.UUID) {
-	s.TargetKey = val
+// GetNewName returns the value of NewName.
+func (s *MoveFileRequest) GetNewName() string {
+	return s.NewName
+}
+
+// SetTargetId sets the value of TargetId.
+func (s *MoveFileRequest) SetTargetId(val int64) {
+	s.TargetId = val
+}
+
+// SetNewName sets the value of NewName.
+func (s *MoveFileRequest) SetNewName(val string) {
+	s.NewName = val
 }
 
 type MoveFileUnauthorized Error
@@ -865,6 +2058,98 @@ func (o OptCompleteUploadRequest) Get() (v CompleteUploadRequest, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptCompleteUploadRequest) Or(d CompleteUploadRequest) CompleteUploadRequest {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptFileType returns new OptFileType with value set to v.
+func NewOptFileType(v FileType) OptFileType {
+	return OptFileType{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptFileType is optional FileType.
+type OptFileType struct {
+	Value FileType
+	Set   bool
+}
+
+// IsSet returns true if OptFileType was set.
+func (o OptFileType) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptFileType) Reset() {
+	var v FileType
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptFileType) SetTo(v FileType) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptFileType) Get() (v FileType, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptFileType) Or(d FileType) FileType {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptInt16 returns new OptInt16 with value set to v.
+func NewOptInt16(v int16) OptInt16 {
+	return OptInt16{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptInt16 is optional int16.
+type OptInt16 struct {
+	Value int16
+	Set   bool
+}
+
+// IsSet returns true if OptInt16 was set.
+func (o OptInt16) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptInt16) Reset() {
+	var v int16
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptInt16) SetTo(v int16) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptInt16) Get() (v int16, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptInt16) Or(d int16) int16 {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -980,52 +2265,52 @@ func (o OptNilInt64) Or(d int64) int64 {
 	return d
 }
 
-// NewOptNilUUID returns new OptNilUUID with value set to v.
-func NewOptNilUUID(v uuid.UUID) OptNilUUID {
-	return OptNilUUID{
+// NewOptNilSystemType returns new OptNilSystemType with value set to v.
+func NewOptNilSystemType(v SystemType) OptNilSystemType {
+	return OptNilSystemType{
 		Value: v,
 		Set:   true,
 	}
 }
 
-// OptNilUUID is optional nullable uuid.UUID.
-type OptNilUUID struct {
-	Value uuid.UUID
+// OptNilSystemType is optional nullable SystemType.
+type OptNilSystemType struct {
+	Value SystemType
 	Set   bool
 	Null  bool
 }
 
-// IsSet returns true if OptNilUUID was set.
-func (o OptNilUUID) IsSet() bool { return o.Set }
+// IsSet returns true if OptNilSystemType was set.
+func (o OptNilSystemType) IsSet() bool { return o.Set }
 
 // Reset unsets value.
-func (o *OptNilUUID) Reset() {
-	var v uuid.UUID
+func (o *OptNilSystemType) Reset() {
+	var v SystemType
 	o.Value = v
 	o.Set = false
 	o.Null = false
 }
 
 // SetTo sets value to v.
-func (o *OptNilUUID) SetTo(v uuid.UUID) {
+func (o *OptNilSystemType) SetTo(v SystemType) {
 	o.Set = true
 	o.Null = false
 	o.Value = v
 }
 
 // IsNull returns true if value is Null.
-func (o OptNilUUID) IsNull() bool { return o.Null }
+func (o OptNilSystemType) IsNull() bool { return o.Null }
 
 // SetToNull sets value to null.
-func (o *OptNilUUID) SetToNull() {
+func (o *OptNilSystemType) SetToNull() {
 	o.Set = true
 	o.Null = true
-	var v uuid.UUID
+	var v SystemType
 	o.Value = v
 }
 
 // Get returns value and boolean that denotes whether value was set.
-func (o OptNilUUID) Get() (v uuid.UUID, ok bool) {
+func (o OptNilSystemType) Get() (v SystemType, ok bool) {
 	if o.Null {
 		return v, false
 	}
@@ -1036,7 +2321,53 @@ func (o OptNilUUID) Get() (v uuid.UUID, ok bool) {
 }
 
 // Or returns value if set, or given parameter if does not.
-func (o OptNilUUID) Or(d uuid.UUID) uuid.UUID {
+func (o OptNilSystemType) Or(d SystemType) SystemType {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptStorageType returns new OptStorageType with value set to v.
+func NewOptStorageType(v StorageType) OptStorageType {
+	return OptStorageType{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptStorageType is optional StorageType.
+type OptStorageType struct {
+	Value StorageType
+	Set   bool
+}
+
+// IsSet returns true if OptStorageType was set.
+func (o OptStorageType) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptStorageType) Reset() {
+	var v StorageType
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptStorageType) SetTo(v StorageType) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptStorageType) Get() (v StorageType, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptStorageType) Or(d StorageType) StorageType {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -1083,6 +2414,52 @@ func (o OptString) Get() (v string, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptString) Or(d string) string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptSystemStatus returns new OptSystemStatus with value set to v.
+func NewOptSystemStatus(v SystemStatus) OptSystemStatus {
+	return OptSystemStatus{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptSystemStatus is optional SystemStatus.
+type OptSystemStatus struct {
+	Value SystemStatus
+	Set   bool
+}
+
+// IsSet returns true if OptSystemStatus was set.
+func (o OptSystemStatus) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptSystemStatus) Reset() {
+	var v SystemStatus
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptSystemStatus) SetTo(v SystemStatus) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptSystemStatus) Get() (v SystemStatus, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptSystemStatus) Or(d SystemStatus) SystemStatus {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -1178,6 +2555,68 @@ func (s *Provider) UnmarshalText(data []byte) error {
 	}
 }
 
+// Ref: #/components/schemas/Session
+type Session struct {
+	// Session ID.
+	ID string `json:"id"`
+	// User ID.
+	UserId int64 `json:"userId"`
+	// User UID.
+	UserUid   string    `json:"userUid"`
+	ExpiresAt Timestamp `json:"expiresAt"`
+	CreatedAt Timestamp `json:"createdAt"`
+}
+
+// GetID returns the value of ID.
+func (s *Session) GetID() string {
+	return s.ID
+}
+
+// GetUserId returns the value of UserId.
+func (s *Session) GetUserId() int64 {
+	return s.UserId
+}
+
+// GetUserUid returns the value of UserUid.
+func (s *Session) GetUserUid() string {
+	return s.UserUid
+}
+
+// GetExpiresAt returns the value of ExpiresAt.
+func (s *Session) GetExpiresAt() Timestamp {
+	return s.ExpiresAt
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *Session) GetCreatedAt() Timestamp {
+	return s.CreatedAt
+}
+
+// SetID sets the value of ID.
+func (s *Session) SetID(val string) {
+	s.ID = val
+}
+
+// SetUserId sets the value of UserId.
+func (s *Session) SetUserId(val int64) {
+	s.UserId = val
+}
+
+// SetUserUid sets the value of UserUid.
+func (s *Session) SetUserUid(val string) {
+	s.UserUid = val
+}
+
+// SetExpiresAt sets the value of ExpiresAt.
+func (s *Session) SetExpiresAt(val Timestamp) {
+	s.ExpiresAt = val
+}
+
+// SetCreatedAt sets the value of CreatedAt.
+func (s *Session) SetCreatedAt(val Timestamp) {
+	s.CreatedAt = val
+}
+
 type SessionAuth struct {
 	APIKey string
 	Roles  []string
@@ -1203,18 +2642,90 @@ func (s *SessionAuth) SetRoles(val []string) {
 	s.Roles = val
 }
 
-// Ref: #/components/schemas/StreamToken
-type StreamToken struct {
-	// Stream token.
-	Token string `json:"token"`
-	// Presigned S3 download URL.
-	DownloadUrl url.URL   `json:"downloadUrl"`
-	ExpiresAt   Timestamp `json:"expiresAt"`
+// Ref: #/components/schemas/SessionListResponse
+type SessionListResponse struct {
+	Sessions []Session `json:"sessions"`
 }
 
-// GetToken returns the value of Token.
-func (s *StreamToken) GetToken() string {
-	return s.Token
+// GetSessions returns the value of Sessions.
+func (s *SessionListResponse) GetSessions() []Session {
+	return s.Sessions
+}
+
+// SetSessions sets the value of Sessions.
+func (s *SessionListResponse) SetSessions(val []Session) {
+	s.Sessions = val
+}
+
+func (*SessionListResponse) listSessionsRes() {}
+
+// Ref: #/components/schemas/SessionResponse
+type SessionResponse struct {
+	Session Session `json:"session"`
+}
+
+// GetSession returns the value of Session.
+func (s *SessionResponse) GetSession() Session {
+	return s.Session
+}
+
+// SetSession sets the value of Session.
+func (s *SessionResponse) SetSession(val Session) {
+	s.Session = val
+}
+
+func (*SessionResponse) getSessionRes() {}
+
+// Storage backend type.
+// Ref: #/components/schemas/StorageType
+type StorageType string
+
+const (
+	StorageTypeS3    StorageType = "s3"
+	StorageTypeLocal StorageType = "local"
+)
+
+// AllValues returns all StorageType values.
+func (StorageType) AllValues() []StorageType {
+	return []StorageType{
+		StorageTypeS3,
+		StorageTypeLocal,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s StorageType) MarshalText() ([]byte, error) {
+	switch s {
+	case StorageTypeS3:
+		return []byte(s), nil
+	case StorageTypeLocal:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *StorageType) UnmarshalText(data []byte) error {
+	switch StorageType(data) {
+	case StorageTypeS3:
+		*s = StorageTypeS3
+		return nil
+	case StorageTypeLocal:
+		*s = StorageTypeLocal
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Ref: #/components/schemas/StreamToken
+type StreamToken struct {
+	// Presigned S3 download URL.
+	DownloadUrl url.URL `json:"downloadUrl"`
+	// Storage key.
+	Key       OptString `json:"key"`
+	ExpiresAt Timestamp `json:"expiresAt"`
 }
 
 // GetDownloadUrl returns the value of DownloadUrl.
@@ -1222,19 +2733,24 @@ func (s *StreamToken) GetDownloadUrl() url.URL {
 	return s.DownloadUrl
 }
 
+// GetKey returns the value of Key.
+func (s *StreamToken) GetKey() OptString {
+	return s.Key
+}
+
 // GetExpiresAt returns the value of ExpiresAt.
 func (s *StreamToken) GetExpiresAt() Timestamp {
 	return s.ExpiresAt
 }
 
-// SetToken sets the value of Token.
-func (s *StreamToken) SetToken(val string) {
-	s.Token = val
-}
-
 // SetDownloadUrl sets the value of DownloadUrl.
 func (s *StreamToken) SetDownloadUrl(val url.URL) {
 	s.DownloadUrl = val
+}
+
+// SetKey sets the value of Key.
+func (s *StreamToken) SetKey(val OptString) {
+	s.Key = val
 }
 
 // SetExpiresAt sets the value of ExpiresAt.
@@ -1259,52 +2775,516 @@ func (s *StreamTokenResponse) SetStreamToken(val StreamToken) {
 
 func (*StreamTokenResponse) getStreamTokenRes() {}
 
+// Ref: #/components/schemas/Symlink
+type Symlink struct {
+	// Inode ID.
+	InodeId int64 `json:"inodeId"`
+	// Target path.
+	TargetPath string `json:"targetPath"`
+}
+
+// GetInodeId returns the value of InodeId.
+func (s *Symlink) GetInodeId() int64 {
+	return s.InodeId
+}
+
+// GetTargetPath returns the value of TargetPath.
+func (s *Symlink) GetTargetPath() string {
+	return s.TargetPath
+}
+
+// SetInodeId sets the value of InodeId.
+func (s *Symlink) SetInodeId(val int64) {
+	s.InodeId = val
+}
+
+// SetTargetPath sets the value of TargetPath.
+func (s *Symlink) SetTargetPath(val string) {
+	s.TargetPath = val
+}
+
+// Ref: #/components/schemas/SymlinkResponse
+type SymlinkResponse struct {
+	Symlink Symlink `json:"symlink"`
+}
+
+// GetSymlink returns the value of Symlink.
+func (s *SymlinkResponse) GetSymlink() Symlink {
+	return s.Symlink
+}
+
+// SetSymlink sets the value of Symlink.
+func (s *SymlinkResponse) SetSymlink(val Symlink) {
+	s.Symlink = val
+}
+
+func (*SymlinkResponse) createSymlinkRes() {}
+func (*SymlinkResponse) getSymlinkRes()    {}
+func (*SymlinkResponse) updateSymlinkRes() {}
+
+// Ref: #/components/schemas/System
+type System struct {
+	// System ID.
+	ID int64 `json:"id"`
+	// System name.
+	Name string `json:"name"`
+	// System description.
+	Description OptString    `json:"description"`
+	Status      SystemStatus `json:"status"`
+	CreatedAt   Timestamp    `json:"createdAt"`
+	UpdatedAt   Timestamp    `json:"updatedAt"`
+}
+
+// GetID returns the value of ID.
+func (s *System) GetID() int64 {
+	return s.ID
+}
+
+// GetName returns the value of Name.
+func (s *System) GetName() string {
+	return s.Name
+}
+
+// GetDescription returns the value of Description.
+func (s *System) GetDescription() OptString {
+	return s.Description
+}
+
+// GetStatus returns the value of Status.
+func (s *System) GetStatus() SystemStatus {
+	return s.Status
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *System) GetCreatedAt() Timestamp {
+	return s.CreatedAt
+}
+
+// GetUpdatedAt returns the value of UpdatedAt.
+func (s *System) GetUpdatedAt() Timestamp {
+	return s.UpdatedAt
+}
+
+// SetID sets the value of ID.
+func (s *System) SetID(val int64) {
+	s.ID = val
+}
+
+// SetName sets the value of Name.
+func (s *System) SetName(val string) {
+	s.Name = val
+}
+
+// SetDescription sets the value of Description.
+func (s *System) SetDescription(val OptString) {
+	s.Description = val
+}
+
+// SetStatus sets the value of Status.
+func (s *System) SetStatus(val SystemStatus) {
+	s.Status = val
+}
+
+// SetCreatedAt sets the value of CreatedAt.
+func (s *System) SetCreatedAt(val Timestamp) {
+	s.CreatedAt = val
+}
+
+// SetUpdatedAt sets the value of UpdatedAt.
+func (s *System) SetUpdatedAt(val Timestamp) {
+	s.UpdatedAt = val
+}
+
+// Ref: #/components/schemas/SystemListResponse
+type SystemListResponse struct {
+	Systems []System `json:"systems"`
+}
+
+// GetSystems returns the value of Systems.
+func (s *SystemListResponse) GetSystems() []System {
+	return s.Systems
+}
+
+// SetSystems sets the value of Systems.
+func (s *SystemListResponse) SetSystems(val []System) {
+	s.Systems = val
+}
+
+func (*SystemListResponse) listSystemsRes() {}
+
+// Ref: #/components/schemas/SystemResponse
+type SystemResponse struct {
+	System System `json:"system"`
+}
+
+// GetSystem returns the value of System.
+func (s *SystemResponse) GetSystem() System {
+	return s.System
+}
+
+// SetSystem sets the value of System.
+func (s *SystemResponse) SetSystem(val System) {
+	s.System = val
+}
+
+func (*SystemResponse) createSystemRes() {}
+func (*SystemResponse) getSystemRes()    {}
+func (*SystemResponse) updateSystemRes() {}
+
+// System status.
+// Ref: #/components/schemas/SystemStatus
+type SystemStatus string
+
+const (
+	SystemStatusActive      SystemStatus = "active"
+	SystemStatusInactive    SystemStatus = "inactive"
+	SystemStatusMaintenance SystemStatus = "maintenance"
+)
+
+// AllValues returns all SystemStatus values.
+func (SystemStatus) AllValues() []SystemStatus {
+	return []SystemStatus{
+		SystemStatusActive,
+		SystemStatusInactive,
+		SystemStatusMaintenance,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s SystemStatus) MarshalText() ([]byte, error) {
+	switch s {
+	case SystemStatusActive:
+		return []byte(s), nil
+	case SystemStatusInactive:
+		return []byte(s), nil
+	case SystemStatusMaintenance:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *SystemStatus) UnmarshalText(data []byte) error {
+	switch SystemStatus(data) {
+	case SystemStatusActive:
+		*s = SystemStatusActive
+		return nil
+	case SystemStatusInactive:
+		*s = SystemStatusInactive
+		return nil
+	case SystemStatusMaintenance:
+		*s = SystemStatusMaintenance
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// System file type.
+// Ref: #/components/schemas/SystemType
+type SystemType string
+
+const (
+	SystemTypeRoot  SystemType = "root"
+	SystemTypeHome  SystemType = "home"
+	SystemTypeTrash SystemType = "trash"
+)
+
+// AllValues returns all SystemType values.
+func (SystemType) AllValues() []SystemType {
+	return []SystemType{
+		SystemTypeRoot,
+		SystemTypeHome,
+		SystemTypeTrash,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s SystemType) MarshalText() ([]byte, error) {
+	switch s {
+	case SystemTypeRoot:
+		return []byte(s), nil
+	case SystemTypeHome:
+		return []byte(s), nil
+	case SystemTypeTrash:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *SystemType) UnmarshalText(data []byte) error {
+	switch SystemType(data) {
+	case SystemTypeRoot:
+		*s = SystemTypeRoot
+		return nil
+	case SystemTypeHome:
+		*s = SystemTypeHome
+		return nil
+	case SystemTypeTrash:
+		*s = SystemTypeTrash
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
 type Timestamp time.Time
 
-type UpdateFileBadRequest Error
+type UpdateFileDataBadRequest Error
 
-func (*UpdateFileBadRequest) updateFileRes() {}
+func (*UpdateFileDataBadRequest) updateFileDataRes() {}
 
-type UpdateFileForbidden Error
+type UpdateFileDataNotFound Error
 
-func (*UpdateFileForbidden) updateFileRes() {}
+func (*UpdateFileDataNotFound) updateFileDataRes() {}
 
-type UpdateFileNotFound Error
-
-func (*UpdateFileNotFound) updateFileRes() {}
-
-// Ref: #/components/schemas/UpdateFileRequest
-type UpdateFileRequest struct {
-	// New file name.
-	FileName OptString `json:"fileName"`
+// Ref: #/components/schemas/UpdateFileDataRequest
+type UpdateFileDataRequest struct {
+	StorageType OptStorageType `json:"storageType"`
+	// Storage location.
+	Location OptString `json:"location"`
+	// File checksum.
+	Checksum OptString `json:"checksum"`
 }
 
-// GetFileName returns the value of FileName.
-func (s *UpdateFileRequest) GetFileName() OptString {
-	return s.FileName
+// GetStorageType returns the value of StorageType.
+func (s *UpdateFileDataRequest) GetStorageType() OptStorageType {
+	return s.StorageType
 }
 
-// SetFileName sets the value of FileName.
-func (s *UpdateFileRequest) SetFileName(val OptString) {
-	s.FileName = val
+// GetLocation returns the value of Location.
+func (s *UpdateFileDataRequest) GetLocation() OptString {
+	return s.Location
 }
 
-type UpdateFileUnauthorized Error
+// GetChecksum returns the value of Checksum.
+func (s *UpdateFileDataRequest) GetChecksum() OptString {
+	return s.Checksum
+}
 
-func (*UpdateFileUnauthorized) updateFileRes() {}
+// SetStorageType sets the value of StorageType.
+func (s *UpdateFileDataRequest) SetStorageType(val OptStorageType) {
+	s.StorageType = val
+}
+
+// SetLocation sets the value of Location.
+func (s *UpdateFileDataRequest) SetLocation(val OptString) {
+	s.Location = val
+}
+
+// SetChecksum sets the value of Checksum.
+func (s *UpdateFileDataRequest) SetChecksum(val OptString) {
+	s.Checksum = val
+}
+
+type UpdateFileDataUnauthorized Error
+
+func (*UpdateFileDataUnauthorized) updateFileDataRes() {}
+
+type UpdateGroupBadRequest Error
+
+func (*UpdateGroupBadRequest) updateGroupRes() {}
+
+type UpdateGroupNotFound Error
+
+func (*UpdateGroupNotFound) updateGroupRes() {}
+
+// Ref: #/components/schemas/UpdateGroupRequest
+type UpdateGroupRequest struct {
+	// Group name.
+	Groupname OptString `json:"groupname"`
+}
+
+// GetGroupname returns the value of Groupname.
+func (s *UpdateGroupRequest) GetGroupname() OptString {
+	return s.Groupname
+}
+
+// SetGroupname sets the value of Groupname.
+func (s *UpdateGroupRequest) SetGroupname(val OptString) {
+	s.Groupname = val
+}
+
+type UpdateGroupUnauthorized Error
+
+func (*UpdateGroupUnauthorized) updateGroupRes() {}
+
+type UpdateInodeBadRequest Error
+
+func (*UpdateInodeBadRequest) updateInodeRes() {}
+
+type UpdateInodeNotFound Error
+
+func (*UpdateInodeNotFound) updateInodeRes() {}
+
+// Ref: #/components/schemas/UpdateInodeRequest
+type UpdateInodeRequest struct {
+	// File size in bytes.
+	ByteSize OptInt64 `json:"byteSize"`
+	// Owner permissions.
+	PermOwner OptString `json:"permOwner"`
+	// Group permissions.
+	PermGroup OptString `json:"permGroup"`
+	// Others permissions.
+	PermOthers OptString `json:"permOthers"`
+	// Number of hard links.
+	LinkCount  OptInt16     `json:"linkCount"`
+	AccessedAt OptTimestamp `json:"accessedAt"`
+}
+
+// GetByteSize returns the value of ByteSize.
+func (s *UpdateInodeRequest) GetByteSize() OptInt64 {
+	return s.ByteSize
+}
+
+// GetPermOwner returns the value of PermOwner.
+func (s *UpdateInodeRequest) GetPermOwner() OptString {
+	return s.PermOwner
+}
+
+// GetPermGroup returns the value of PermGroup.
+func (s *UpdateInodeRequest) GetPermGroup() OptString {
+	return s.PermGroup
+}
+
+// GetPermOthers returns the value of PermOthers.
+func (s *UpdateInodeRequest) GetPermOthers() OptString {
+	return s.PermOthers
+}
+
+// GetLinkCount returns the value of LinkCount.
+func (s *UpdateInodeRequest) GetLinkCount() OptInt16 {
+	return s.LinkCount
+}
+
+// GetAccessedAt returns the value of AccessedAt.
+func (s *UpdateInodeRequest) GetAccessedAt() OptTimestamp {
+	return s.AccessedAt
+}
+
+// SetByteSize sets the value of ByteSize.
+func (s *UpdateInodeRequest) SetByteSize(val OptInt64) {
+	s.ByteSize = val
+}
+
+// SetPermOwner sets the value of PermOwner.
+func (s *UpdateInodeRequest) SetPermOwner(val OptString) {
+	s.PermOwner = val
+}
+
+// SetPermGroup sets the value of PermGroup.
+func (s *UpdateInodeRequest) SetPermGroup(val OptString) {
+	s.PermGroup = val
+}
+
+// SetPermOthers sets the value of PermOthers.
+func (s *UpdateInodeRequest) SetPermOthers(val OptString) {
+	s.PermOthers = val
+}
+
+// SetLinkCount sets the value of LinkCount.
+func (s *UpdateInodeRequest) SetLinkCount(val OptInt16) {
+	s.LinkCount = val
+}
+
+// SetAccessedAt sets the value of AccessedAt.
+func (s *UpdateInodeRequest) SetAccessedAt(val OptTimestamp) {
+	s.AccessedAt = val
+}
+
+type UpdateInodeUnauthorized Error
+
+func (*UpdateInodeUnauthorized) updateInodeRes() {}
+
+type UpdateSymlinkBadRequest Error
+
+func (*UpdateSymlinkBadRequest) updateSymlinkRes() {}
+
+type UpdateSymlinkNotFound Error
+
+func (*UpdateSymlinkNotFound) updateSymlinkRes() {}
+
+// Ref: #/components/schemas/UpdateSymlinkRequest
+type UpdateSymlinkRequest struct {
+	// Target path.
+	TargetPath string `json:"targetPath"`
+}
+
+// GetTargetPath returns the value of TargetPath.
+func (s *UpdateSymlinkRequest) GetTargetPath() string {
+	return s.TargetPath
+}
+
+// SetTargetPath sets the value of TargetPath.
+func (s *UpdateSymlinkRequest) SetTargetPath(val string) {
+	s.TargetPath = val
+}
+
+type UpdateSymlinkUnauthorized Error
+
+func (*UpdateSymlinkUnauthorized) updateSymlinkRes() {}
+
+type UpdateSystemBadRequest Error
+
+func (*UpdateSystemBadRequest) updateSystemRes() {}
+
+type UpdateSystemNotFound Error
+
+func (*UpdateSystemNotFound) updateSystemRes() {}
+
+// Ref: #/components/schemas/UpdateSystemRequest
+type UpdateSystemRequest struct {
+	// System name.
+	Name OptString `json:"name"`
+	// System description.
+	Description OptString       `json:"description"`
+	Status      OptSystemStatus `json:"status"`
+}
+
+// GetName returns the value of Name.
+func (s *UpdateSystemRequest) GetName() OptString {
+	return s.Name
+}
+
+// GetDescription returns the value of Description.
+func (s *UpdateSystemRequest) GetDescription() OptString {
+	return s.Description
+}
+
+// GetStatus returns the value of Status.
+func (s *UpdateSystemRequest) GetStatus() OptSystemStatus {
+	return s.Status
+}
+
+// SetName sets the value of Name.
+func (s *UpdateSystemRequest) SetName(val OptString) {
+	s.Name = val
+}
+
+// SetDescription sets the value of Description.
+func (s *UpdateSystemRequest) SetDescription(val OptString) {
+	s.Description = val
+}
+
+// SetStatus sets the value of Status.
+func (s *UpdateSystemRequest) SetStatus(val OptSystemStatus) {
+	s.Status = val
+}
+
+type UpdateSystemUnauthorized Error
+
+func (*UpdateSystemUnauthorized) updateSystemRes() {}
 
 // Ref: #/components/schemas/UploadToken
 type UploadToken struct {
-	// Upload token for tracking.
-	Token string `json:"token"`
 	// Presigned S3 upload URL.
-	UploadUrl url.URL   `json:"uploadUrl"`
+	UploadUrl url.URL `json:"uploadUrl"`
+	// Storage key.
+	Key       OptString `json:"key"`
 	ExpiresAt Timestamp `json:"expiresAt"`
-}
-
-// GetToken returns the value of Token.
-func (s *UploadToken) GetToken() string {
-	return s.Token
 }
 
 // GetUploadUrl returns the value of UploadUrl.
@@ -1312,19 +3292,24 @@ func (s *UploadToken) GetUploadUrl() url.URL {
 	return s.UploadUrl
 }
 
+// GetKey returns the value of Key.
+func (s *UploadToken) GetKey() OptString {
+	return s.Key
+}
+
 // GetExpiresAt returns the value of ExpiresAt.
 func (s *UploadToken) GetExpiresAt() Timestamp {
 	return s.ExpiresAt
 }
 
-// SetToken sets the value of Token.
-func (s *UploadToken) SetToken(val string) {
-	s.Token = val
-}
-
 // SetUploadUrl sets the value of UploadUrl.
 func (s *UploadToken) SetUploadUrl(val url.URL) {
 	s.UploadUrl = val
+}
+
+// SetKey sets the value of Key.
+func (s *UploadToken) SetKey(val OptString) {
+	s.Key = val
 }
 
 // SetExpiresAt sets the value of ExpiresAt.

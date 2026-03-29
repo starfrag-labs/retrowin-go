@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	"github.com/go-faster/errors"
-	"github.com/google/uuid"
 	"github.com/ogen-go/ogen/conv"
 	"github.com/ogen-go/ogen/middleware"
 	"github.com/ogen-go/ogen/ogenerrors"
@@ -17,23 +16,23 @@ import (
 
 // CompleteUploadParams is parameters of completeUpload operation.
 type CompleteUploadParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
+	// Inode ID.
+	InodeId int64
 }
 
 func unpackCompleteUploadParams(packed middleware.Parameters) (params CompleteUploadParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 		}
-		params.FileKey = packed[key].(uuid.UUID)
+		params.InodeId = packed[key].(int64)
 	}
 	return params
 }
 
 func decodeCompleteUploadParams(args [1]string, argsEscaped bool, r *http.Request) (params CompleteUploadParams, _ error) {
-	// Decode path: fileKey.
+	// Decode path: inodeId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -45,7 +44,7 @@ func decodeCompleteUploadParams(args [1]string, argsEscaped bool, r *http.Reques
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
+				Param:   "inodeId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -57,12 +56,12 @@ func decodeCompleteUploadParams(args [1]string, argsEscaped bool, r *http.Reques
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt64(val)
 				if err != nil {
 					return err
 				}
 
-				params.FileKey = c
+				params.InodeId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -73,7 +72,7 @@ func decodeCompleteUploadParams(args [1]string, argsEscaped bool, r *http.Reques
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 			Err:  err,
 		}
@@ -83,23 +82,23 @@ func decodeCompleteUploadParams(args [1]string, argsEscaped bool, r *http.Reques
 
 // CopyFileParams is parameters of copyFile operation.
 type CopyFileParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
+	// File inode ID.
+	InodeId int64
 }
 
 func unpackCopyFileParams(packed middleware.Parameters) (params CopyFileParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 		}
-		params.FileKey = packed[key].(uuid.UUID)
+		params.InodeId = packed[key].(int64)
 	}
 	return params
 }
 
 func decodeCopyFileParams(args [1]string, argsEscaped bool, r *http.Request) (params CopyFileParams, _ error) {
-	// Decode path: fileKey.
+	// Decode path: inodeId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -111,7 +110,7 @@ func decodeCopyFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
+				Param:   "inodeId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -123,12 +122,12 @@ func decodeCopyFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt64(val)
 				if err != nil {
 					return err
 				}
 
-				params.FileKey = c
+				params.InodeId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -139,7 +138,205 @@ func decodeCopyFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// CreateFileDataParams is parameters of createFileData operation.
+type CreateFileDataParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackCreateFileDataParams(packed middleware.Parameters) (params CreateFileDataParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeCreateFileDataParams(args [1]string, argsEscaped bool, r *http.Request) (params CreateFileDataParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// CreateSymlinkParams is parameters of createSymlink operation.
+type CreateSymlinkParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackCreateSymlinkParams(packed middleware.Parameters) (params CreateSymlinkParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeCreateSymlinkParams(args [1]string, argsEscaped bool, r *http.Request) (params CreateSymlinkParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// DeleteDirectoryEntryParams is parameters of deleteDirectoryEntry operation.
+type DeleteDirectoryEntryParams struct {
+	// Directory entry ID.
+	EntryId int64
+}
+
+func unpackDeleteDirectoryEntryParams(packed middleware.Parameters) (params DeleteDirectoryEntryParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "entryId",
+			In:   "path",
+		}
+		params.EntryId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeDeleteDirectoryEntryParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteDirectoryEntryParams, _ error) {
+	// Decode path: entryId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "entryId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.EntryId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "entryId",
 			In:   "path",
 			Err:  err,
 		}
@@ -149,35 +346,23 @@ func decodeCopyFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 
 // DeleteFileParams is parameters of deleteFile operation.
 type DeleteFileParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
-	// Permanently delete (bypass trash).
-	Permanent OptBool `json:",omitempty,omitzero"`
+	// Inode ID.
+	InodeId int64
 }
 
 func unpackDeleteFileParams(packed middleware.Parameters) (params DeleteFileParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 		}
-		params.FileKey = packed[key].(uuid.UUID)
-	}
-	{
-		key := middleware.ParameterKey{
-			Name: "permanent",
-			In:   "query",
-		}
-		if v, ok := packed[key]; ok {
-			params.Permanent = v.(OptBool)
-		}
+		params.InodeId = packed[key].(int64)
 	}
 	return params
 }
 
 func decodeDeleteFileParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteFileParams, _ error) {
-	q := uri.NewQueryDecoder(r.URL.Query())
-	// Decode path: fileKey.
+	// Decode path: inodeId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -189,7 +374,7 @@ func decodeDeleteFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
+				Param:   "inodeId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -201,12 +386,12 @@ func decodeDeleteFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt64(val)
 				if err != nil {
 					return err
 				}
 
-				params.FileKey = c
+				params.InodeId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -217,27 +402,1535 @@ func decodeDeleteFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 			Err:  err,
 		}
 	}
-	// Set default value for query: permanent.
+	return params, nil
+}
+
+// DeleteFileDataParams is parameters of deleteFileData operation.
+type DeleteFileDataParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackDeleteFileDataParams(packed middleware.Parameters) (params DeleteFileDataParams) {
 	{
-		val := bool(false)
-		params.Permanent.SetTo(val)
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
 	}
-	// Decode query: permanent.
+	return params
+}
+
+func decodeDeleteFileDataParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteFileDataParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// DeleteGroupParams is parameters of deleteGroup operation.
+type DeleteGroupParams struct {
+	// Group ID.
+	GroupId int64
+}
+
+func unpackDeleteGroupParams(packed middleware.Parameters) (params DeleteGroupParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "groupId",
+			In:   "path",
+		}
+		params.GroupId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeDeleteGroupParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteGroupParams, _ error) {
+	// Decode path: groupId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "groupId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.GroupId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "groupId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// DeleteInodeParams is parameters of deleteInode operation.
+type DeleteInodeParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackDeleteInodeParams(packed middleware.Parameters) (params DeleteInodeParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeDeleteInodeParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteInodeParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// DeleteSessionParams is parameters of deleteSession operation.
+type DeleteSessionParams struct {
+	// Session ID.
+	SessionId string
+}
+
+func unpackDeleteSessionParams(packed middleware.Parameters) (params DeleteSessionParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "sessionId",
+			In:   "path",
+		}
+		params.SessionId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeDeleteSessionParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteSessionParams, _ error) {
+	// Decode path: sessionId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "sessionId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SessionId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "sessionId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// DeleteSymlinkParams is parameters of deleteSymlink operation.
+type DeleteSymlinkParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackDeleteSymlinkParams(packed middleware.Parameters) (params DeleteSymlinkParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeDeleteSymlinkParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteSymlinkParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// DeleteSystemParams is parameters of deleteSystem operation.
+type DeleteSystemParams struct {
+	// System ID.
+	SystemId int64
+}
+
+func unpackDeleteSystemParams(packed middleware.Parameters) (params DeleteSystemParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeDeleteSystemParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteSystemParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// DeleteUserSessionsParams is parameters of deleteUserSessions operation.
+type DeleteUserSessionsParams struct {
+	// User ID.
+	UserId int64
+}
+
+func unpackDeleteUserSessionsParams(packed middleware.Parameters) (params DeleteUserSessionsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "userId",
+			In:   "path",
+		}
+		params.UserId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeDeleteUserSessionsParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteUserSessionsParams, _ error) {
+	// Decode path: userId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "userId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.UserId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "userId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetDirectoryEntryParams is parameters of getDirectoryEntry operation.
+type GetDirectoryEntryParams struct {
+	// Directory entry ID.
+	EntryId int64
+}
+
+func unpackGetDirectoryEntryParams(packed middleware.Parameters) (params GetDirectoryEntryParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "entryId",
+			In:   "path",
+		}
+		params.EntryId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetDirectoryEntryParams(args [1]string, argsEscaped bool, r *http.Request) (params GetDirectoryEntryParams, _ error) {
+	// Decode path: entryId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "entryId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.EntryId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "entryId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetFileParams is parameters of getFile operation.
+type GetFileParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackGetFileParams(packed middleware.Parameters) (params GetFileParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetFileParams(args [1]string, argsEscaped bool, r *http.Request) (params GetFileParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetFileChildrenParams is parameters of getFileChildren operation.
+type GetFileChildrenParams struct {
+	// Directory inode ID.
+	InodeId int64
+}
+
+func unpackGetFileChildrenParams(packed middleware.Parameters) (params GetFileChildrenParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetFileChildrenParams(args [1]string, argsEscaped bool, r *http.Request) (params GetFileChildrenParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetFileDataParams is parameters of getFileData operation.
+type GetFileDataParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackGetFileDataParams(packed middleware.Parameters) (params GetFileDataParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetFileDataParams(args [1]string, argsEscaped bool, r *http.Request) (params GetFileDataParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetGroupParams is parameters of getGroup operation.
+type GetGroupParams struct {
+	// Group ID.
+	GroupId int64
+}
+
+func unpackGetGroupParams(packed middleware.Parameters) (params GetGroupParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "groupId",
+			In:   "path",
+		}
+		params.GroupId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetGroupParams(args [1]string, argsEscaped bool, r *http.Request) (params GetGroupParams, _ error) {
+	// Decode path: groupId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "groupId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.GroupId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "groupId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetInodeParams is parameters of getInode operation.
+type GetInodeParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackGetInodeParams(packed middleware.Parameters) (params GetInodeParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetInodeParams(args [1]string, argsEscaped bool, r *http.Request) (params GetInodeParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetSessionParams is parameters of getSession operation.
+type GetSessionParams struct {
+	// Session ID.
+	SessionId string
+}
+
+func unpackGetSessionParams(packed middleware.Parameters) (params GetSessionParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "sessionId",
+			In:   "path",
+		}
+		params.SessionId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeGetSessionParams(args [1]string, argsEscaped bool, r *http.Request) (params GetSessionParams, _ error) {
+	// Decode path: sessionId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "sessionId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SessionId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "sessionId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetStreamTokenParams is parameters of getStreamToken operation.
+type GetStreamTokenParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackGetStreamTokenParams(packed middleware.Parameters) (params GetStreamTokenParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetStreamTokenParams(args [1]string, argsEscaped bool, r *http.Request) (params GetStreamTokenParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetSymlinkParams is parameters of getSymlink operation.
+type GetSymlinkParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackGetSymlinkParams(packed middleware.Parameters) (params GetSymlinkParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetSymlinkParams(args [1]string, argsEscaped bool, r *http.Request) (params GetSymlinkParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetSystemParams is parameters of getSystem operation.
+type GetSystemParams struct {
+	// System ID.
+	SystemId int64
+}
+
+func unpackGetSystemParams(packed middleware.Parameters) (params GetSystemParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetSystemParams(args [1]string, argsEscaped bool, r *http.Request) (params GetSystemParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetUploadTokenParams is parameters of getUploadToken operation.
+type GetUploadTokenParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackGetUploadTokenParams(packed middleware.Parameters) (params GetUploadTokenParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeGetUploadTokenParams(args [1]string, argsEscaped bool, r *http.Request) (params GetUploadTokenParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// ListDirectoryEntriesParams is parameters of listDirectoryEntries operation.
+type ListDirectoryEntriesParams struct {
+	// Filter by parent directory ID.
+	ParentId OptInt64 `json:",omitempty,omitzero"`
+	// Filter by child inode ID.
+	ChildId OptInt64 `json:",omitempty,omitzero"`
+}
+
+func unpackListDirectoryEntriesParams(packed middleware.Parameters) (params ListDirectoryEntriesParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "parentId",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.ParentId = v.(OptInt64)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "childId",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.ChildId = v.(OptInt64)
+		}
+	}
+	return params
+}
+
+func decodeListDirectoryEntriesParams(args [0]string, argsEscaped bool, r *http.Request) (params ListDirectoryEntriesParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: parentId.
 	if err := func() error {
 		cfg := uri.QueryParameterDecodingConfig{
-			Name:    "permanent",
+			Name:    "parentId",
 			Style:   uri.QueryStyleForm,
 			Explode: true,
 		}
 
 		if err := q.HasParam(cfg); err == nil {
 			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
-				var paramsDotPermanentVal bool
+				var paramsDotParentIdVal int64
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt64(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotParentIdVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.ParentId.SetTo(paramsDotParentIdVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "parentId",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: childId.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "childId",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotChildIdVal int64
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt64(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotChildIdVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.ChildId.SetTo(paramsDotChildIdVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "childId",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// ListGroupsParams is parameters of listGroups operation.
+type ListGroupsParams struct {
+	// Filter by system ID.
+	SystemId OptInt64 `json:",omitempty,omitzero"`
+}
+
+func unpackListGroupsParams(packed middleware.Parameters) (params ListGroupsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.SystemId = v.(OptInt64)
+		}
+	}
+	return params
+}
+
+func decodeListGroupsParams(args [0]string, argsEscaped bool, r *http.Request) (params ListGroupsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: systemId.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "systemId",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotSystemIdVal int64
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt64(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotSystemIdVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.SystemId.SetTo(paramsDotSystemIdVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// ListInodesParams is parameters of listInodes operation.
+type ListInodesParams struct {
+	// Filter by owner UID.
+	OwnerUid OptString `json:",omitempty,omitzero"`
+	// Filter by file type.
+	FileType OptFileType `json:",omitempty,omitzero"`
+	// Filter by system flag.
+	IsSystem OptBool `json:",omitempty,omitzero"`
+}
+
+func unpackListInodesParams(packed middleware.Parameters) (params ListInodesParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "ownerUid",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.OwnerUid = v.(OptString)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "fileType",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.FileType = v.(OptFileType)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "isSystem",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.IsSystem = v.(OptBool)
+		}
+	}
+	return params
+}
+
+func decodeListInodesParams(args [0]string, argsEscaped bool, r *http.Request) (params ListInodesParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: ownerUid.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "ownerUid",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotOwnerUidVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotOwnerUidVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.OwnerUid.SetTo(paramsDotOwnerUidVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "ownerUid",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: fileType.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "fileType",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotFileTypeVal FileType
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotFileTypeVal = FileType(c)
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.FileType.SetTo(paramsDotFileTypeVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+			if err := func() error {
+				if value, ok := params.FileType.Get(); ok {
+					if err := func() error {
+						if err := value.Validate(); err != nil {
+							return err
+						}
+						return nil
+					}(); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "fileType",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: isSystem.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "isSystem",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotIsSystemVal bool
 				if err := func() error {
 					val, err := d.DecodeValue()
 					if err != nil {
@@ -249,12 +1942,12 @@ func decodeDeleteFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 						return err
 					}
 
-					paramsDotPermanentVal = c
+					paramsDotIsSystemVal = c
 					return nil
 				}(); err != nil {
 					return err
 				}
-				params.Permanent.SetTo(paramsDotPermanentVal)
+				params.IsSystem.SetTo(paramsDotIsSystemVal)
 				return nil
 			}); err != nil {
 				return err
@@ -263,7 +1956,7 @@ func decodeDeleteFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "permanent",
+			Name: "isSystem",
 			In:   "query",
 			Err:  err,
 		}
@@ -271,264 +1964,145 @@ func decodeDeleteFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 	return params, nil
 }
 
-// GetFileChildrenParams is parameters of getFileChildren operation.
-type GetFileChildrenParams struct {
-	// Container file key (UUID).
-	FileKey uuid.UUID
+// ListSessionsParams is parameters of listSessions operation.
+type ListSessionsParams struct {
+	// Filter by user ID (optional).
+	UserId OptInt64 `json:",omitempty,omitzero"`
 }
 
-func unpackGetFileChildrenParams(packed middleware.Parameters) (params GetFileChildrenParams) {
+func unpackListSessionsParams(packed middleware.Parameters) (params ListSessionsParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "fileKey",
-			In:   "path",
+			Name: "userId",
+			In:   "query",
 		}
-		params.FileKey = packed[key].(uuid.UUID)
+		if v, ok := packed[key]; ok {
+			params.UserId = v.(OptInt64)
+		}
 	}
 	return params
 }
 
-func decodeGetFileChildrenParams(args [1]string, argsEscaped bool, r *http.Request) (params GetFileChildrenParams, _ error) {
-	// Decode path: fileKey.
+func decodeListSessionsParams(args [0]string, argsEscaped bool, r *http.Request) (params ListSessionsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: userId.
 	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "userId",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
 		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
 
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotUserIdVal int64
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt64(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotUserIdVal = c
+					return nil
+				}(); err != nil {
 					return err
 				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.FileKey = c
+				params.UserId.SetTo(paramsDotUserIdVal)
 				return nil
-			}(); err != nil {
+			}); err != nil {
 				return err
 			}
-		} else {
-			return validate.ErrFieldRequired
 		}
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
-			In:   "path",
+			Name: "userId",
+			In:   "query",
 			Err:  err,
 		}
 	}
 	return params, nil
 }
 
-// GetFileInfoParams is parameters of getFileInfo operation.
-type GetFileInfoParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
+// ListSystemsParams is parameters of listSystems operation.
+type ListSystemsParams struct {
+	// Filter by status.
+	Status OptSystemStatus `json:",omitempty,omitzero"`
 }
 
-func unpackGetFileInfoParams(packed middleware.Parameters) (params GetFileInfoParams) {
+func unpackListSystemsParams(packed middleware.Parameters) (params ListSystemsParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "fileKey",
-			In:   "path",
+			Name: "status",
+			In:   "query",
 		}
-		params.FileKey = packed[key].(uuid.UUID)
+		if v, ok := packed[key]; ok {
+			params.Status = v.(OptSystemStatus)
+		}
 	}
 	return params
 }
 
-func decodeGetFileInfoParams(args [1]string, argsEscaped bool, r *http.Request) (params GetFileInfoParams, _ error) {
-	// Decode path: fileKey.
+func decodeListSystemsParams(args [0]string, argsEscaped bool, r *http.Request) (params ListSystemsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: status.
 	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "status",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
 		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
 
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotStatusVal SystemStatus
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotStatusVal = SystemStatus(c)
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.Status.SetTo(paramsDotStatusVal)
+				return nil
+			}); err != nil {
+				return err
+			}
 			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
+				if value, ok := params.Status.Get(); ok {
+					if err := func() error {
+						if err := value.Validate(); err != nil {
+							return err
+						}
+						return nil
+					}(); err != nil {
+						return err
+					}
 				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.FileKey = c
 				return nil
 			}(); err != nil {
 				return err
 			}
-		} else {
-			return validate.ErrFieldRequired
 		}
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
-// GetStreamTokenParams is parameters of getStreamToken operation.
-type GetStreamTokenParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
-}
-
-func unpackGetStreamTokenParams(packed middleware.Parameters) (params GetStreamTokenParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "fileKey",
-			In:   "path",
-		}
-		params.FileKey = packed[key].(uuid.UUID)
-	}
-	return params
-}
-
-func decodeGetStreamTokenParams(args [1]string, argsEscaped bool, r *http.Request) (params GetStreamTokenParams, _ error) {
-	// Decode path: fileKey.
-	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.FileKey = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
-// GetUploadTokenParams is parameters of getUploadToken operation.
-type GetUploadTokenParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
-}
-
-func unpackGetUploadTokenParams(packed middleware.Parameters) (params GetUploadTokenParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "fileKey",
-			In:   "path",
-		}
-		params.FileKey = packed[key].(uuid.UUID)
-	}
-	return params
-}
-
-func decodeGetUploadTokenParams(args [1]string, argsEscaped bool, r *http.Request) (params GetUploadTokenParams, _ error) {
-	// Decode path: fileKey.
-	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.FileKey = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
-			In:   "path",
+			Name: "status",
+			In:   "query",
 			Err:  err,
 		}
 	}
@@ -537,23 +2111,23 @@ func decodeGetUploadTokenParams(args [1]string, argsEscaped bool, r *http.Reques
 
 // MoveFileParams is parameters of moveFile operation.
 type MoveFileParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
+	// File inode ID.
+	InodeId int64
 }
 
 func unpackMoveFileParams(packed middleware.Parameters) (params MoveFileParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 		}
-		params.FileKey = packed[key].(uuid.UUID)
+		params.InodeId = packed[key].(int64)
 	}
 	return params
 }
 
 func decodeMoveFileParams(args [1]string, argsEscaped bool, r *http.Request) (params MoveFileParams, _ error) {
-	// Decode path: fileKey.
+	// Decode path: inodeId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -565,7 +2139,7 @@ func decodeMoveFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
+				Param:   "inodeId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -577,12 +2151,12 @@ func decodeMoveFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt64(val)
 				if err != nil {
 					return err
 				}
 
-				params.FileKey = c
+				params.InodeId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -593,7 +2167,7 @@ func decodeMoveFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 			Err:  err,
 		}
@@ -601,25 +2175,25 @@ func decodeMoveFileParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 	return params, nil
 }
 
-// UpdateFileParams is parameters of updateFile operation.
-type UpdateFileParams struct {
-	// File key (UUID).
-	FileKey uuid.UUID
+// UpdateFileDataParams is parameters of updateFileData operation.
+type UpdateFileDataParams struct {
+	// Inode ID.
+	InodeId int64
 }
 
-func unpackUpdateFileParams(packed middleware.Parameters) (params UpdateFileParams) {
+func unpackUpdateFileDataParams(packed middleware.Parameters) (params UpdateFileDataParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "fileKey",
+			Name: "inodeId",
 			In:   "path",
 		}
-		params.FileKey = packed[key].(uuid.UUID)
+		params.InodeId = packed[key].(int64)
 	}
 	return params
 }
 
-func decodeUpdateFileParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateFileParams, _ error) {
-	// Decode path: fileKey.
+func decodeUpdateFileDataParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateFileDataParams, _ error) {
+	// Decode path: inodeId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -631,7 +2205,7 @@ func decodeUpdateFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "fileKey",
+				Param:   "inodeId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -643,12 +2217,12 @@ func decodeUpdateFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt64(val)
 				if err != nil {
 					return err
 				}
 
-				params.FileKey = c
+				params.InodeId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -659,7 +2233,271 @@ func decodeUpdateFileParams(args [1]string, argsEscaped bool, r *http.Request) (
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "fileKey",
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// UpdateGroupParams is parameters of updateGroup operation.
+type UpdateGroupParams struct {
+	// Group ID.
+	GroupId int64
+}
+
+func unpackUpdateGroupParams(packed middleware.Parameters) (params UpdateGroupParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "groupId",
+			In:   "path",
+		}
+		params.GroupId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeUpdateGroupParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateGroupParams, _ error) {
+	// Decode path: groupId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "groupId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.GroupId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "groupId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// UpdateInodeParams is parameters of updateInode operation.
+type UpdateInodeParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackUpdateInodeParams(packed middleware.Parameters) (params UpdateInodeParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeUpdateInodeParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateInodeParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// UpdateSymlinkParams is parameters of updateSymlink operation.
+type UpdateSymlinkParams struct {
+	// Inode ID.
+	InodeId int64
+}
+
+func unpackUpdateSymlinkParams(packed middleware.Parameters) (params UpdateSymlinkParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "inodeId",
+			In:   "path",
+		}
+		params.InodeId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeUpdateSymlinkParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateSymlinkParams, _ error) {
+	// Decode path: inodeId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "inodeId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.InodeId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "inodeId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// UpdateSystemParams is parameters of updateSystem operation.
+type UpdateSystemParams struct {
+	// System ID.
+	SystemId int64
+}
+
+func unpackUpdateSystemParams(packed middleware.Parameters) (params UpdateSystemParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(int64)
+	}
+	return params
+}
+
+func decodeUpdateSystemParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateSystemParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToInt64(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
 			In:   "path",
 			Err:  err,
 		}

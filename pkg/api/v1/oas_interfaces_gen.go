@@ -9,40 +9,128 @@ type CopyFileRes interface {
 	copyFileRes()
 }
 
+type CreateDirectoryEntryRes interface {
+	createDirectoryEntryRes()
+}
+
+type CreateFileDataRes interface {
+	createFileDataRes()
+}
+
 type CreateFileRes interface {
 	createFileRes()
+}
+
+type CreateGroupRes interface {
+	createGroupRes()
+}
+
+type CreateInodeRes interface {
+	createInodeRes()
+}
+
+type CreateSymlinkRes interface {
+	createSymlinkRes()
+}
+
+type CreateSystemRes interface {
+	createSystemRes()
 }
 
 type CreateUserRes interface {
 	createUserRes()
 }
 
+type DeleteDirectoryEntryRes interface {
+	deleteDirectoryEntryRes()
+}
+
+type DeleteFileDataRes interface {
+	deleteFileDataRes()
+}
+
 type DeleteFileRes interface {
 	deleteFileRes()
+}
+
+type DeleteGroupRes interface {
+	deleteGroupRes()
+}
+
+type DeleteInodeRes interface {
+	deleteInodeRes()
+}
+
+type DeleteSessionRes interface {
+	deleteSessionRes()
+}
+
+type DeleteSymlinkRes interface {
+	deleteSymlinkRes()
+}
+
+type DeleteSystemRes interface {
+	deleteSystemRes()
 }
 
 type DeleteUserRes interface {
 	deleteUserRes()
 }
 
+type DeleteUserSessionsRes interface {
+	deleteUserSessionsRes()
+}
+
+type GetDirectoryEntryRes interface {
+	getDirectoryEntryRes()
+}
+
 type GetFileChildrenRes interface {
 	getFileChildrenRes()
 }
 
-type GetFileInfoRes interface {
-	getFileInfoRes()
+type GetFileDataRes interface {
+	getFileDataRes()
+}
+
+type GetFileRes interface {
+	getFileRes()
+}
+
+type GetGroupRes interface {
+	getGroupRes()
+}
+
+type GetHealthRes interface {
+	getHealthRes()
 }
 
 type GetHomeContainerRes interface {
 	getHomeContainerRes()
 }
 
+type GetInodeRes interface {
+	getInodeRes()
+}
+
 type GetRootContainerRes interface {
 	getRootContainerRes()
 }
 
+type GetSessionRes interface {
+	getSessionRes()
+}
+
 type GetStreamTokenRes interface {
 	getStreamTokenRes()
+}
+
+type GetSymlinkRes interface {
+	getSymlinkRes()
+}
+
+type GetSystemRes interface {
+	getSystemRes()
 }
 
 type GetTrashContainerRes interface {
@@ -61,6 +149,30 @@ type HandleCallbackRes interface {
 	handleCallbackRes()
 }
 
+type InitiateLoginRes interface {
+	initiateLoginRes()
+}
+
+type ListDirectoryEntriesRes interface {
+	listDirectoryEntriesRes()
+}
+
+type ListGroupsRes interface {
+	listGroupsRes()
+}
+
+type ListInodesRes interface {
+	listInodesRes()
+}
+
+type ListSessionsRes interface {
+	listSessionsRes()
+}
+
+type ListSystemsRes interface {
+	listSystemsRes()
+}
+
 type LogoutRes interface {
 	logoutRes()
 }
@@ -69,6 +181,22 @@ type MoveFileRes interface {
 	moveFileRes()
 }
 
-type UpdateFileRes interface {
-	updateFileRes()
+type UpdateFileDataRes interface {
+	updateFileDataRes()
+}
+
+type UpdateGroupRes interface {
+	updateGroupRes()
+}
+
+type UpdateInodeRes interface {
+	updateInodeRes()
+}
+
+type UpdateSymlinkRes interface {
+	updateSymlinkRes()
+}
+
+type UpdateSystemRes interface {
+	updateSystemRes()
 }

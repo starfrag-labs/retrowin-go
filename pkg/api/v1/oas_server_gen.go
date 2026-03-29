@@ -12,85 +12,211 @@ type Handler interface {
 	//
 	// Mark file upload as complete and update metadata.
 	//
-	// PATCH /file/upload/complete/{fileKey}
+	// PATCH /upload/{inodeId}/complete
 	CompleteUpload(ctx context.Context, req OptCompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error)
 	// CopyFile implements copyFile operation.
 	//
-	// Copy a file to a different container.
+	// Copy a file to another directory.
 	//
-	// POST /file/{fileKey}/copy
+	// POST /fs/{inodeId}/copy
 	CopyFile(ctx context.Context, req *CopyFileRequest, params CopyFileParams) (CopyFileRes, error)
+	// CreateDirectoryEntry implements createDirectoryEntry operation.
+	//
+	// Create a new directory entry (link name to inode).
+	//
+	// POST /directory-entries
+	CreateDirectoryEntry(ctx context.Context, req *CreateDirectoryEntryRequest) (CreateDirectoryEntryRes, error)
 	// CreateFile implements createFile operation.
 	//
-	// Create a new file or container in a parent container.
+	// Create a new file or directory.
 	//
-	// POST /file
+	// POST /fs
 	CreateFile(ctx context.Context, req *CreateFileRequest) (CreateFileRes, error)
+	// CreateFileData implements createFileData operation.
+	//
+	// Create storage data for an inode.
+	//
+	// POST /file-data/{inodeId}
+	CreateFileData(ctx context.Context, req *CreateFileDataRequest, params CreateFileDataParams) (CreateFileDataRes, error)
+	// CreateGroup implements createGroup operation.
+	//
+	// Create a new group.
+	//
+	// POST /groups
+	CreateGroup(ctx context.Context, req *CreateGroupRequest) (CreateGroupRes, error)
+	// CreateInode implements createInode operation.
+	//
+	// Create a new inode.
+	//
+	// POST /inodes
+	CreateInode(ctx context.Context, req *CreateInodeRequest) (CreateInodeRes, error)
+	// CreateSymlink implements createSymlink operation.
+	//
+	// Create symlink for an inode.
+	//
+	// POST /symlinks/{inodeId}
+	CreateSymlink(ctx context.Context, req *CreateSymlinkRequest, params CreateSymlinkParams) (CreateSymlinkRes, error)
+	// CreateSystem implements createSystem operation.
+	//
+	// Create a new system.
+	//
+	// POST /systems
+	CreateSystem(ctx context.Context, req *CreateSystemRequest) (CreateSystemRes, error)
 	// CreateUser implements createUser operation.
 	//
 	// Create a new user.
 	//
 	// POST /user
 	CreateUser(ctx context.Context, req *CreateUserRequest) (CreateUserRes, error)
+	// DeleteDirectoryEntry implements deleteDirectoryEntry operation.
+	//
+	// Delete a directory entry (unlink name from inode).
+	//
+	// DELETE /directory-entries/{entryId}
+	DeleteDirectoryEntry(ctx context.Context, params DeleteDirectoryEntryParams) (DeleteDirectoryEntryRes, error)
 	// DeleteFile implements deleteFile operation.
 	//
-	// Move file to trash or permanently delete.
+	// Delete a file by inode ID.
 	//
-	// DELETE /file/{fileKey}
+	// DELETE /fs/{inodeId}
 	DeleteFile(ctx context.Context, params DeleteFileParams) (DeleteFileRes, error)
+	// DeleteFileData implements deleteFileData operation.
+	//
+	// Delete file storage data.
+	//
+	// DELETE /file-data/{inodeId}
+	DeleteFileData(ctx context.Context, params DeleteFileDataParams) (DeleteFileDataRes, error)
+	// DeleteGroup implements deleteGroup operation.
+	//
+	// Delete a group.
+	//
+	// DELETE /groups/{groupId}
+	DeleteGroup(ctx context.Context, params DeleteGroupParams) (DeleteGroupRes, error)
+	// DeleteInode implements deleteInode operation.
+	//
+	// Delete an inode.
+	//
+	// DELETE /inodes/{inodeId}
+	DeleteInode(ctx context.Context, params DeleteInodeParams) (DeleteInodeRes, error)
+	// DeleteSession implements deleteSession operation.
+	//
+	// Delete a specific session (logout).
+	//
+	// DELETE /sessions/{sessionId}
+	DeleteSession(ctx context.Context, params DeleteSessionParams) (DeleteSessionRes, error)
+	// DeleteSymlink implements deleteSymlink operation.
+	//
+	// Delete symlink data.
+	//
+	// DELETE /symlinks/{inodeId}
+	DeleteSymlink(ctx context.Context, params DeleteSymlinkParams) (DeleteSymlinkRes, error)
+	// DeleteSystem implements deleteSystem operation.
+	//
+	// Delete a system.
+	//
+	// DELETE /systems/{systemId}
+	DeleteSystem(ctx context.Context, params DeleteSystemParams) (DeleteSystemRes, error)
 	// DeleteUser implements deleteUser operation.
 	//
 	// Delete the current user.
 	//
 	// DELETE /user
 	DeleteUser(ctx context.Context) (DeleteUserRes, error)
+	// DeleteUserSessions implements deleteUserSessions operation.
+	//
+	// Delete all sessions for a specific user.
+	//
+	// DELETE /sessions/by-user/{userId}
+	DeleteUserSessions(ctx context.Context, params DeleteUserSessionsParams) (DeleteUserSessionsRes, error)
+	// GetDirectoryEntry implements getDirectoryEntry operation.
+	//
+	// Retrieve directory entry details.
+	//
+	// GET /directory-entries/{entryId}
+	GetDirectoryEntry(ctx context.Context, params GetDirectoryEntryParams) (GetDirectoryEntryRes, error)
+	// GetFile implements getFile operation.
+	//
+	// Get file information by inode ID.
+	//
+	// GET /fs/{inodeId}
+	GetFile(ctx context.Context, params GetFileParams) (GetFileRes, error)
 	// GetFileChildren implements getFileChildren operation.
 	//
-	// Get all children of a container.
+	// Get children of a directory.
 	//
-	// GET /file/children/{fileKey}
+	// GET /fs/{inodeId}/children
 	GetFileChildren(ctx context.Context, params GetFileChildrenParams) (GetFileChildrenRes, error)
-	// GetFileInfo implements getFileInfo operation.
+	// GetFileData implements getFileData operation.
 	//
-	// Get detailed information about a file.
+	// Retrieve file storage data.
 	//
-	// GET /file/info/{fileKey}
-	GetFileInfo(ctx context.Context, params GetFileInfoParams) (GetFileInfoRes, error)
+	// GET /file-data/{inodeId}
+	GetFileData(ctx context.Context, params GetFileDataParams) (GetFileDataRes, error)
+	// GetGroup implements getGroup operation.
+	//
+	// Retrieve group details.
+	//
+	// GET /groups/{groupId}
+	GetGroup(ctx context.Context, params GetGroupParams) (GetGroupRes, error)
 	// GetHealth implements getHealth operation.
 	//
 	// Check if the service is healthy.
 	//
 	// GET /health
-	GetHealth(ctx context.Context) (*HealthStatus, error)
+	GetHealth(ctx context.Context) (GetHealthRes, error)
 	// GetHomeContainer implements getHomeContainer operation.
 	//
-	// Get the home container for the current user.
+	// Get the user's home container.
 	//
-	// GET /file/home
+	// GET /fs/home
 	GetHomeContainer(ctx context.Context) (GetHomeContainerRes, error)
+	// GetInode implements getInode operation.
+	//
+	// Retrieve inode details.
+	//
+	// GET /inodes/{inodeId}
+	GetInode(ctx context.Context, params GetInodeParams) (GetInodeRes, error)
 	// GetRootContainer implements getRootContainer operation.
 	//
-	// Get the root container for the current user.
+	// Get the user's root container.
 	//
-	// GET /file/root
+	// GET /fs/root
 	GetRootContainer(ctx context.Context) (GetRootContainerRes, error)
+	// GetSession implements getSession operation.
+	//
+	// Retrieve session details.
+	//
+	// GET /sessions/{sessionId}
+	GetSession(ctx context.Context, params GetSessionParams) (GetSessionRes, error)
 	// GetStreamToken implements getStreamToken operation.
 	//
 	// Get a presigned URL for downloading/streaming file content.
 	//
-	// GET /file/stream/read-token/{fileKey}
+	// GET /stream/{inodeId}/token
 	GetStreamToken(ctx context.Context, params GetStreamTokenParams) (GetStreamTokenRes, error)
+	// GetSymlink implements getSymlink operation.
+	//
+	// Retrieve symlink target path.
+	//
+	// GET /symlinks/{inodeId}
+	GetSymlink(ctx context.Context, params GetSymlinkParams) (GetSymlinkRes, error)
+	// GetSystem implements getSystem operation.
+	//
+	// Retrieve system details.
+	//
+	// GET /systems/{systemId}
+	GetSystem(ctx context.Context, params GetSystemParams) (GetSystemRes, error)
 	// GetTrashContainer implements getTrashContainer operation.
 	//
-	// Get the trash container for the current user.
+	// Get the user's trash container.
 	//
-	// GET /file/trash
+	// GET /fs/trash
 	GetTrashContainer(ctx context.Context) (GetTrashContainerRes, error)
 	// GetUploadToken implements getUploadToken operation.
 	//
-	// Get a presigned URL and token for uploading file content.
+	// Get a presigned URL for uploading file content.
 	//
-	// GET /file/upload/write-token/{fileKey}
+	// GET /upload/{inodeId}/token
 	GetUploadToken(ctx context.Context, params GetUploadTokenParams) (GetUploadTokenRes, error)
 	// GetUser implements getUser operation.
 	//
@@ -109,29 +235,79 @@ type Handler interface {
 	// Start OIDC login flow and return authorization URL.
 	//
 	// GET /auth/login
-	InitiateLogin(ctx context.Context) (*LoginResponse, error)
+	InitiateLogin(ctx context.Context) (InitiateLoginRes, error)
+	// ListDirectoryEntries implements listDirectoryEntries operation.
+	//
+	// List directory entries with optional filtering.
+	//
+	// GET /directory-entries
+	ListDirectoryEntries(ctx context.Context, params ListDirectoryEntriesParams) (ListDirectoryEntriesRes, error)
+	// ListGroups implements listGroups operation.
+	//
+	// List all groups with optional filtering.
+	//
+	// GET /groups
+	ListGroups(ctx context.Context, params ListGroupsParams) (ListGroupsRes, error)
+	// ListInodes implements listInodes operation.
+	//
+	// List all inodes with optional filtering.
+	//
+	// GET /inodes
+	ListInodes(ctx context.Context, params ListInodesParams) (ListInodesRes, error)
+	// ListSessions implements listSessions operation.
+	//
+	// List all sessions (admin) or sessions for a specific user.
+	//
+	// GET /sessions
+	ListSessions(ctx context.Context, params ListSessionsParams) (ListSessionsRes, error)
+	// ListSystems implements listSystems operation.
+	//
+	// List all systems with optional filtering.
+	//
+	// GET /systems
+	ListSystems(ctx context.Context, params ListSystemsParams) (ListSystemsRes, error)
 	// Logout implements logout operation.
 	//
-	// Logout and delete session.
+	// Logout current session from context.
 	//
 	// POST /auth/logout
 	Logout(ctx context.Context) (LogoutRes, error)
 	// MoveFile implements moveFile operation.
 	//
-	// Move a file to a different container.
+	// Move a file to another directory.
 	//
-	// POST /file/{fileKey}/move
+	// POST /fs/{inodeId}/move
 	MoveFile(ctx context.Context, req *MoveFileRequest, params MoveFileParams) (MoveFileRes, error)
-	// UpdateFile implements updateFile operation.
+	// UpdateFileData implements updateFileData operation.
 	//
-	// Update file name or other metadata.
+	// Update file storage data.
 	//
-	// PATCH /file/{fileKey}
-	UpdateFile(ctx context.Context, req *UpdateFileRequest, params UpdateFileParams) (UpdateFileRes, error)
-	// NewError creates *ErrorStatusCode from error returned by handler.
+	// PATCH /file-data/{inodeId}
+	UpdateFileData(ctx context.Context, req *UpdateFileDataRequest, params UpdateFileDataParams) (UpdateFileDataRes, error)
+	// UpdateGroup implements updateGroup operation.
 	//
-	// Used for common default response.
-	NewError(ctx context.Context, err error) *ErrorStatusCode
+	// Update group properties.
+	//
+	// PATCH /groups/{groupId}
+	UpdateGroup(ctx context.Context, req *UpdateGroupRequest, params UpdateGroupParams) (UpdateGroupRes, error)
+	// UpdateInode implements updateInode operation.
+	//
+	// Update inode properties.
+	//
+	// PATCH /inodes/{inodeId}
+	UpdateInode(ctx context.Context, req *UpdateInodeRequest, params UpdateInodeParams) (UpdateInodeRes, error)
+	// UpdateSymlink implements updateSymlink operation.
+	//
+	// Update symlink target path.
+	//
+	// PATCH /symlinks/{inodeId}
+	UpdateSymlink(ctx context.Context, req *UpdateSymlinkRequest, params UpdateSymlinkParams) (UpdateSymlinkRes, error)
+	// UpdateSystem implements updateSystem operation.
+	//
+	// Update system properties.
+	//
+	// PATCH /systems/{systemId}
+	UpdateSystem(ctx context.Context, req *UpdateSystemRequest, params UpdateSystemParams) (UpdateSystemRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and
