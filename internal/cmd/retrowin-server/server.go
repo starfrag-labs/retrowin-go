@@ -133,53 +133,6 @@ func ProvideValkeyClient(cfg *config.Config) (valkey.Client, error) {
 	return client, nil
 }
 
-// ProvideRepositories provides all repository implementations.
-func ProvideRepositories(
-	entClient *ent.Client,
-	valkeyCli valkey.Client,
-) struct {
-	UserRepo    user.Repository
-	StatusRepo  user.ServiceStatusRepository
-	FileRepo    file.Repository
-	InfoRepo    file.FileInfoRepository
-	PathRepo    file.FilePathRepository
-	RoleRepo    file.FileRoleRepository
-	SessionRepo auth.SessionRepository
-} {
-	userRepo := user.NewEntRepository(entClient)
-	statusRepo := user.NewEntServiceStatusRepository(entClient)
-	fileRepo := file.NewEntRepository(entClient)
-	infoRepo := file.NewEntFileInfoRepository(entClient)
-	pathRepo := file.NewEntFilePathRepository(entClient)
-	roleRepo := file.NewEntFileRoleRepository(entClient)
-
-	var sessionRepo auth.SessionRepository
-	if valkeyCli != nil {
-		sessionRepo = auth.NewValkeySessionRepository(valkeyCli, "retrowin:session:")
-	} else {
-		// TODO: Implement memory session repository
-		sessionRepo = nil
-	}
-
-	return struct {
-		UserRepo    user.Repository
-		StatusRepo  user.ServiceStatusRepository
-		FileRepo    file.Repository
-		InfoRepo    file.FileInfoRepository
-		PathRepo    file.FilePathRepository
-		RoleRepo    file.FileRoleRepository
-		SessionRepo auth.SessionRepository
-	}{
-		UserRepo:    userRepo,
-		StatusRepo:  statusRepo,
-		FileRepo:    fileRepo,
-		InfoRepo:    infoRepo,
-		PathRepo:    pathRepo,
-		RoleRepo:    roleRepo,
-		SessionRepo: sessionRepo,
-	}
-}
-
 // ProvideSessionTTL provides session TTL from config.
 func ProvideSessionTTL(cfg *config.Config) time.Duration {
 	return time.Duration(cfg.Auth.Session.TTL) * time.Second
@@ -260,7 +213,8 @@ func ProvideHTTPServer(
 }
 
 // RegisterShutdownHooks registers shutdown signal handlers.
-func RegisterShutdownHooks(lc fx.Lifecycle, entClient *ent.Client, valkeyCli valkey.Client) {
+// Taking srv *http.Server as parameter ensures the HTTP server provider is constructed.
+func RegisterShutdownHooks(lc fx.Lifecycle, entClient *ent.Client, valkeyCli valkey.Client, srv *http.Server) {
 	lc.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
 			if err := entClient.Close(); err != nil {
@@ -313,7 +267,14 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			ProvideLogger,
 			NewEntClient,
 			ProvideValkeyClient,
-			ProvideRepositories,
+			// Repositories - provide individually for fx to resolve dependencies
+			user.NewEntRepository,
+			user.NewEntServiceStatusRepository,
+			file.NewEntRepository,
+			file.NewEntFileInfoRepository,
+			file.NewEntFilePathRepository,
+			file.NewEntFileRoleRepository,
+			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
 			auth.NewSessionService,
@@ -362,6 +323,14 @@ func newValkeyClient(cfg *config.ValkeyConfig) (valkey.Client, error) {
 	}
 
 	return valkey.NewClient(opts)
+}
+
+// NewValkeySessionRepository provides the Valkey session repository.
+func NewValkeySessionRepository(client valkey.Client) auth.SessionRepository {
+	if client == nil {
+		return nil
+	}
+	return auth.NewValkeySessionRepository(client, "retrowin:session:")
 }
 
 // ProvideKeycloak provides the Keycloak OIDC client.
