@@ -60,6 +60,20 @@ func (_c *UserCreate) SetProviderID(v string) *UserCreate {
 	return _c
 }
 
+// SetJoinDate sets the "join_date" field.
+func (_c *UserCreate) SetJoinDate(v time.Time) *UserCreate {
+	_c.mutation.SetJoinDate(v)
+	return _c
+}
+
+// SetNillableJoinDate sets the "join_date" field if the given value is not nil.
+func (_c *UserCreate) SetNillableJoinDate(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetJoinDate(*v)
+	}
+	return _c
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_c *UserCreate) Mutation() *UserMutation {
 	return _c.mutation
@@ -103,6 +117,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
 	}
+	if _, ok := _c.mutation.JoinDate(); !ok {
+		v := user.DefaultJoinDate()
+		_c.mutation.SetJoinDate(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -118,6 +136,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.ProviderID(); !ok {
 		return &ValidationError{Name: "provider_id", err: errors.New(`ent: missing required field "User.provider_id"`)}
+	}
+	if _, ok := _c.mutation.JoinDate(); !ok {
+		return &ValidationError{Name: "join_date", err: errors.New(`ent: missing required field "User.join_date"`)}
 	}
 	return nil
 }
@@ -160,6 +181,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ProviderID(); ok {
 		_spec.SetField(user.FieldProviderID, field.TypeString, value)
 		_node.ProviderID = value
+	}
+	if value, ok := _c.mutation.JoinDate(); ok {
+		_spec.SetField(user.FieldJoinDate, field.TypeTime, value)
+		_node.JoinDate = value
 	}
 	return _node, _spec
 }

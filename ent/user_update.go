@@ -62,6 +62,20 @@ func (_u *UserUpdate) SetNillableProviderID(v *string) *UserUpdate {
 	return _u
 }
 
+// SetJoinDate sets the "join_date" field.
+func (_u *UserUpdate) SetJoinDate(v time.Time) *UserUpdate {
+	_u.mutation.SetJoinDate(v)
+	return _u
+}
+
+// SetNillableJoinDate sets the "join_date" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableJoinDate(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetJoinDate(*v)
+	}
+	return _u
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -121,6 +135,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ProviderID(); ok {
 		_spec.SetField(user.FieldProviderID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.JoinDate(); ok {
+		_spec.SetField(user.FieldJoinDate, field.TypeTime, value)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -171,6 +188,20 @@ func (_u *UserUpdateOne) SetProviderID(v string) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableProviderID(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetProviderID(*v)
+	}
+	return _u
+}
+
+// SetJoinDate sets the "join_date" field.
+func (_u *UserUpdateOne) SetJoinDate(v time.Time) *UserUpdateOne {
+	_u.mutation.SetJoinDate(v)
+	return _u
+}
+
+// SetNillableJoinDate sets the "join_date" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableJoinDate(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetJoinDate(*v)
 	}
 	return _u
 }
@@ -263,6 +294,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.ProviderID(); ok {
 		_spec.SetField(user.FieldProviderID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.JoinDate(); ok {
+		_spec.SetField(user.FieldJoinDate, field.TypeTime, value)
 	}
 	_node = &User{config: _u.config}
 	_spec.Assign = _node.assignValues

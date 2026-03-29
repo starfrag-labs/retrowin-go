@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-	"github.com/starfrag-lab/retrowin-go/ent/servicestatus"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 )
 
@@ -88,77 +87,8 @@ func fromEntUser(e *ent.User) *User {
 		ID:         int64(e.ID),
 		Provider:   e.Provider,
 		ProviderID: e.ProviderID,
+		JoinDate:   e.JoinDate,
 		CreatedAt:  e.CreateTime,
 		UpdatedAt:  e.UpdateTime,
-	}
-}
-
-// EntServiceStatusRepository implements ServiceStatusRepository using Ent.
-type EntServiceStatusRepository struct {
-	client *ent.Client
-}
-
-// NewEntServiceStatusRepository creates a new EntServiceStatusRepository.
-func NewEntServiceStatusRepository(client *ent.Client) ServiceStatusRepository {
-	return &EntServiceStatusRepository{client: client}
-}
-
-// Create creates a service status for a user.
-func (r *EntServiceStatusRepository) Create(ctx context.Context, userID int64) (*ServiceStatus, error) {
-	status, err := r.client.ServiceStatus.
-		Create().
-		SetUserID(userID).
-		SetAvailable(false).
-		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create service status: %w", err)
-	}
-	return fromEntServiceStatus(status), nil
-}
-
-// GetByUserID retrieves service status by user ID.
-func (r *EntServiceStatusRepository) GetByUserID(ctx context.Context, userID int64) (*ServiceStatus, error) {
-	status, err := r.client.ServiceStatus.
-		Query().
-		Where(servicestatus.UserIDEQ(userID)).
-		Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("failed to get service status: %w", err)
-	}
-	return fromEntServiceStatus(status), nil
-}
-
-// Update updates the service status.
-func (r *EntServiceStatusRepository) Update(ctx context.Context, userID int64, available bool) (*ServiceStatus, error) {
-	err := r.client.ServiceStatus.
-		Update().
-		Where(servicestatus.UserIDEQ(userID)).
-		SetAvailable(available).
-		Exec(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update service status: %w", err)
-	}
-	// Fetch the updated record
-	return r.GetByUserID(ctx, userID)
-}
-
-// Delete deletes service status by user ID.
-func (r *EntServiceStatusRepository) Delete(ctx context.Context, userID int64) error {
-	_, err := r.client.ServiceStatus.
-		Delete().
-		Where(servicestatus.UserIDEQ(userID)).
-		Exec(ctx)
-	return err
-}
-
-func fromEntServiceStatus(e *ent.ServiceStatus) *ServiceStatus {
-	return &ServiceStatus{
-		UserID:     e.UserID,
-		Available:  e.Available,
-		JoinDate:   e.JoinDate,
-		UpdateDate: e.UpdateDate,
 	}
 }

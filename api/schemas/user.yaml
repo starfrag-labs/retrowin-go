@@ -21,27 +21,11 @@ User:
     providerId:
       type: string
       description: User ID from the authentication provider
+    joinDate:
+      $ref: './common.yaml#/Timestamp'
     createdAt:
       $ref: './common.yaml#/Timestamp'
     updatedAt:
-      $ref: './common.yaml#/Timestamp'
-
-ServiceStatus:
-  type: object
-  required:
-    - userId
-    - available
-  properties:
-    userId:
-      type: integer
-      format: int64
-      description: User ID
-    available:
-      type: boolean
-      description: Service availability status
-    joinDate:
-      $ref: './common.yaml#/Timestamp'
-    updateDate:
       $ref: './common.yaml#/Timestamp'
 
 CreateUserRequest:
@@ -63,11 +47,3 @@ UserResponse:
   properties:
     user:
       $ref: '#/User'
-
-ServiceStatusResponse:
-  type: object
-  required:
-    - status
-  properties:
-    status:
-      $ref: '#/ServiceStatus'

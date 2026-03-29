@@ -78,6 +78,7 @@ ogen: openapi-bundle ## Generate API code from OpenAPI spec
 
 .PHONY: mock
 mock: ## Generate mocks
+	@find ./internal -type d -name "mocks" -exec rm -rf {} + 2>/dev/null || true
 	mockery
 
 .PHONY: gen

@@ -21,6 +21,8 @@ const (
 	FieldProvider = "provider"
 	// FieldProviderID holds the string denoting the provider_id field in the database.
 	FieldProviderID = "provider_id"
+	// FieldJoinDate holds the string denoting the join_date field in the database.
+	FieldJoinDate = "join_date"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -32,6 +34,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldProvider,
 	FieldProviderID,
+	FieldJoinDate,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -51,6 +54,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// DefaultJoinDate holds the default value on creation for the "join_date" field.
+	DefaultJoinDate func() time.Time
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -79,4 +84,9 @@ func ByProvider(opts ...sql.OrderTermOption) OrderOption {
 // ByProviderID orders the results by the provider_id field.
 func ByProviderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProviderID, opts...).ToFunc()
+}
+
+// ByJoinDate orders the results by the join_date field.
+func ByJoinDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJoinDate, opts...).ToFunc()
 }

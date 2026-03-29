@@ -112,15 +112,6 @@ func (UnimplementedHandler) GetRootContainer(ctx context.Context) (r GetRootCont
 	return r, ht.ErrNotImplemented
 }
 
-// GetServiceStatus implements getServiceStatus operation.
-//
-// Get the service status for the current user.
-//
-// GET /user/status
-func (UnimplementedHandler) GetServiceStatus(ctx context.Context) (r GetServiceStatusRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // GetStreamToken implements getStreamToken operation.
 //
 // Get a presigned URL for downloading/streaming file content.

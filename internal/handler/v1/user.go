@@ -76,32 +76,3 @@ func (h *Handler) DeleteUser(ctx context.Context) (apiv1.DeleteUserRes, error) {
 
 	return &apiv1.DeleteUserNoContent{}, nil
 }
-
-// GetServiceStatus implements GET /user/status.
-func (h *Handler) GetServiceStatus(ctx context.Context) (apiv1.GetServiceStatusRes, error) {
-	userID := middleware.GetUserID(ctx)
-	if userID == 0 {
-		return &apiv1.GetServiceStatusUnauthorized{}, nil
-	}
-
-	// Get user first to obtain provider info
-	u, err := h.userSvc.GetByID(ctx, userID)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return &apiv1.GetServiceStatusNotFound{}, nil
-		}
-		return &apiv1.GetServiceStatusUnauthorized{}, nil
-	}
-
-	status, err := h.userSvc.GetServiceStatus(ctx, u.Provider, u.ProviderID)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return &apiv1.GetServiceStatusNotFound{}, nil
-		}
-		return &apiv1.GetServiceStatusUnauthorized{}, nil
-	}
-
-	return &apiv1.ServiceStatusResponse{
-		Status: *h.toServiceStatus(status),
-	}, nil
-}

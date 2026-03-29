@@ -74,6 +74,11 @@ func ProviderID(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldProviderID, v))
 }
 
+// JoinDate applies equality check predicate on the "join_date" field. It's identical to JoinDateEQ.
+func JoinDate(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldJoinDate, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreateTime, v))
@@ -282,6 +287,46 @@ func ProviderIDEqualFold(v string) predicate.User {
 // ProviderIDContainsFold applies the ContainsFold predicate on the "provider_id" field.
 func ProviderIDContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldProviderID, v))
+}
+
+// JoinDateEQ applies the EQ predicate on the "join_date" field.
+func JoinDateEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldJoinDate, v))
+}
+
+// JoinDateNEQ applies the NEQ predicate on the "join_date" field.
+func JoinDateNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldJoinDate, v))
+}
+
+// JoinDateIn applies the In predicate on the "join_date" field.
+func JoinDateIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldJoinDate, vs...))
+}
+
+// JoinDateNotIn applies the NotIn predicate on the "join_date" field.
+func JoinDateNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldJoinDate, vs...))
+}
+
+// JoinDateGT applies the GT predicate on the "join_date" field.
+func JoinDateGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldJoinDate, v))
+}
+
+// JoinDateGTE applies the GTE predicate on the "join_date" field.
+func JoinDateGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldJoinDate, v))
+}
+
+// JoinDateLT applies the LT predicate on the "join_date" field.
+func JoinDateLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldJoinDate, v))
+}
+
+// JoinDateLTE applies the LTE predicate on the "join_date" field.
+func JoinDateLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldJoinDate, v))
 }
 
 // And groups predicates with the AND operator between them.

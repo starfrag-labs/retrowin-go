@@ -17,7 +17,6 @@ const (
 	GetHealthOperation         OperationName = "GetHealth"
 	GetHomeContainerOperation  OperationName = "GetHomeContainer"
 	GetRootContainerOperation  OperationName = "GetRootContainer"
-	GetServiceStatusOperation  OperationName = "GetServiceStatus"
 	GetStreamTokenOperation    OperationName = "GetStreamToken"
 	GetTrashContainerOperation OperationName = "GetTrashContainer"
 	GetUploadTokenOperation    OperationName = "GetUploadToken"

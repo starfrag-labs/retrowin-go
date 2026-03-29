@@ -45,7 +45,6 @@ var operationRolesSessionAuth = map[string][]string{
 	GetFileInfoOperation:       []string{},
 	GetHomeContainerOperation:  []string{},
 	GetRootContainerOperation:  []string{},
-	GetServiceStatusOperation:  []string{},
 	GetStreamTokenOperation:    []string{},
 	GetTrashContainerOperation: []string{},
 	GetUploadTokenOperation:    []string{},

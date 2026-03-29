@@ -25,16 +25,9 @@ type User struct {
 	ID         int64     `json:"id"`
 	Provider   string    `json:"provider"`
 	ProviderID string    `json:"providerId"`
+	JoinDate   time.Time `json:"joinDate"`
 	CreatedAt  time.Time `json:"createdAt"`
 	UpdatedAt  time.Time `json:"updatedAt"`
-}
-
-// ServiceStatus represents the service status for a user.
-type ServiceStatus struct {
-	UserID     int64     `json:"userId"`
-	Available  bool      `json:"available"`
-	JoinDate   time.Time `json:"joinDate"`
-	UpdateDate time.Time `json:"updateDate"`
 }
 
 // CreateCommand represents the command to create a new user.

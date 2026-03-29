@@ -596,14 +596,6 @@ type GetRootContainerUnauthorized Error
 
 func (*GetRootContainerUnauthorized) getRootContainerRes() {}
 
-type GetServiceStatusNotFound Error
-
-func (*GetServiceStatusNotFound) getServiceStatusRes() {}
-
-type GetServiceStatusUnauthorized Error
-
-func (*GetServiceStatusUnauthorized) getServiceStatusRes() {}
-
 type GetStreamTokenForbidden Error
 
 func (*GetStreamTokenForbidden) getStreamTokenRes() {}
@@ -1186,73 +1178,6 @@ func (s *Provider) UnmarshalText(data []byte) error {
 	}
 }
 
-// Ref: #/components/schemas/ServiceStatus
-type ServiceStatus struct {
-	// User ID.
-	UserId int64 `json:"userId"`
-	// Service availability status.
-	Available  bool         `json:"available"`
-	JoinDate   OptTimestamp `json:"joinDate"`
-	UpdateDate OptTimestamp `json:"updateDate"`
-}
-
-// GetUserId returns the value of UserId.
-func (s *ServiceStatus) GetUserId() int64 {
-	return s.UserId
-}
-
-// GetAvailable returns the value of Available.
-func (s *ServiceStatus) GetAvailable() bool {
-	return s.Available
-}
-
-// GetJoinDate returns the value of JoinDate.
-func (s *ServiceStatus) GetJoinDate() OptTimestamp {
-	return s.JoinDate
-}
-
-// GetUpdateDate returns the value of UpdateDate.
-func (s *ServiceStatus) GetUpdateDate() OptTimestamp {
-	return s.UpdateDate
-}
-
-// SetUserId sets the value of UserId.
-func (s *ServiceStatus) SetUserId(val int64) {
-	s.UserId = val
-}
-
-// SetAvailable sets the value of Available.
-func (s *ServiceStatus) SetAvailable(val bool) {
-	s.Available = val
-}
-
-// SetJoinDate sets the value of JoinDate.
-func (s *ServiceStatus) SetJoinDate(val OptTimestamp) {
-	s.JoinDate = val
-}
-
-// SetUpdateDate sets the value of UpdateDate.
-func (s *ServiceStatus) SetUpdateDate(val OptTimestamp) {
-	s.UpdateDate = val
-}
-
-// Ref: #/components/schemas/ServiceStatusResponse
-type ServiceStatusResponse struct {
-	Status ServiceStatus `json:"status"`
-}
-
-// GetStatus returns the value of Status.
-func (s *ServiceStatusResponse) GetStatus() ServiceStatus {
-	return s.Status
-}
-
-// SetStatus sets the value of Status.
-func (s *ServiceStatusResponse) SetStatus(val ServiceStatus) {
-	s.Status = val
-}
-
-func (*ServiceStatusResponse) getServiceStatusRes() {}
-
 type SessionAuth struct {
 	APIKey string
 	Roles  []string
@@ -1431,6 +1356,7 @@ type User struct {
 	Provider Provider `json:"provider"`
 	// User ID from the authentication provider.
 	ProviderId string       `json:"providerId"`
+	JoinDate   OptTimestamp `json:"joinDate"`
 	CreatedAt  OptTimestamp `json:"createdAt"`
 	UpdatedAt  OptTimestamp `json:"updatedAt"`
 }
@@ -1448,6 +1374,11 @@ func (s *User) GetProvider() Provider {
 // GetProviderId returns the value of ProviderId.
 func (s *User) GetProviderId() string {
 	return s.ProviderId
+}
+
+// GetJoinDate returns the value of JoinDate.
+func (s *User) GetJoinDate() OptTimestamp {
+	return s.JoinDate
 }
 
 // GetCreatedAt returns the value of CreatedAt.
@@ -1473,6 +1404,11 @@ func (s *User) SetProvider(val Provider) {
 // SetProviderId sets the value of ProviderId.
 func (s *User) SetProviderId(val string) {
 	s.ProviderId = val
+}
+
+// SetJoinDate sets the value of JoinDate.
+func (s *User) SetJoinDate(val OptTimestamp) {
+	s.JoinDate = val
 }
 
 // SetCreatedAt sets the value of CreatedAt.

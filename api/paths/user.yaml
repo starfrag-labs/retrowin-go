@@ -103,38 +103,3 @@
           application/json:
             schema:
               $ref: "../schemas/common.yaml#/Error"
-
-/user/status:
-  get:
-    operationId: getServiceStatus
-    summary: Get service status
-    description: Get the service status for the current user
-    tags:
-      - User
-    security:
-      - sessionAuth: []
-    responses:
-      '200':
-        description: Service status
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/user.yaml#/ServiceStatusResponse"
-      '401':
-        description: Unauthorized
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"
-      '404':
-        description: User not found
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"
-      default:
-        description: Error
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"

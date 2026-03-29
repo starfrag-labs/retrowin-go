@@ -481,24 +481,6 @@ func (s *GetRootContainerUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *GetServiceStatusNotFound) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = GetServiceStatusNotFound(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *GetServiceStatusUnauthorized) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = GetServiceStatusUnauthorized(unwrapped)
-}
-
-// SetFake set fake values.
 func (s *GetStreamTokenForbidden) SetFake() {
 	var unwrapped Error
 	{
@@ -738,39 +720,6 @@ func (s *Provider) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *ServiceStatus) SetFake() {
-	{
-		{
-			s.UserId = int64(0)
-		}
-	}
-	{
-		{
-			s.Available = true
-		}
-	}
-	{
-		{
-			s.JoinDate.SetFake()
-		}
-	}
-	{
-		{
-			s.UpdateDate.SetFake()
-		}
-	}
-}
-
-// SetFake set fake values.
-func (s *ServiceStatusResponse) SetFake() {
-	{
-		{
-			s.Status.SetFake()
-		}
-	}
-}
-
-// SetFake set fake values.
 func (s *StreamToken) SetFake() {
 	{
 		{
@@ -895,6 +844,11 @@ func (s *User) SetFake() {
 	{
 		{
 			s.ProviderId = "string"
+		}
+	}
+	{
+		{
+			s.JoinDate.SetFake()
 		}
 	}
 	{

@@ -503,30 +503,6 @@ func TestGetRootContainerUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 GetRootContainerUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestGetServiceStatusNotFound_EncodeDecode(t *testing.T) {
-	var typ GetServiceStatusNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetServiceStatusNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetServiceStatusUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetServiceStatusUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetServiceStatusUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
 func TestGetStreamTokenForbidden_EncodeDecode(t *testing.T) {
 	var typ GetStreamTokenForbidden
 	typ.SetFake()
@@ -777,30 +753,6 @@ func TestProvider_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 Provider
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestServiceStatus_EncodeDecode(t *testing.T) {
-	var typ ServiceStatus
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 ServiceStatus
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestServiceStatusResponse_EncodeDecode(t *testing.T) {
-	var typ ServiceStatusResponse
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 ServiceStatusResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestStreamToken_EncodeDecode(t *testing.T) {

@@ -41,10 +41,6 @@ type GetRootContainerRes interface {
 	getRootContainerRes()
 }
 
-type GetServiceStatusRes interface {
-	getServiceStatusRes()
-}
-
 type GetStreamTokenRes interface {
 	getStreamTokenRes()
 }

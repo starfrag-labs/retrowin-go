@@ -69,30 +69,6 @@ func (f FileRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileRoleMutation", m)
 }
 
-// The ServiceStatusFunc type is an adapter to allow the use of ordinary
-// function as ServiceStatus mutator.
-type ServiceStatusFunc func(context.Context, *ent.ServiceStatusMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ServiceStatusFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ServiceStatusMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ServiceStatusMutation", m)
-}
-
-// The TempFileFunc type is an adapter to allow the use of ordinary
-// function as TempFile mutator.
-type TempFileFunc func(context.Context, *ent.TempFileMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TempFileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.TempFileMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TempFileMutation", m)
-}
-
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

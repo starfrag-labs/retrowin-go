@@ -16,11 +16,8 @@ type Service interface {
 	// Create creates a new user.
 	Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 
-	// Delete deletes a user and all associated data.
+	// Delete deletes a user.
 	Delete(ctx context.Context, provider, providerID string) error
-
-	// GetServiceStatus retrieves the service status for a user.
-	GetServiceStatus(ctx context.Context, provider, providerID string) (*ServiceStatus, error)
 
 	// FindOrCreateByOIDC finds an existing user by OIDC subject or creates a new one.
 	FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, error)
@@ -34,15 +31,13 @@ var (
 )
 
 type service struct {
-	userRepo   Repository
-	statusRepo ServiceStatusRepository
+	userRepo Repository
 }
 
 // NewService creates a new user service.
-func NewService(userRepo Repository, statusRepo ServiceStatusRepository) Service {
+func NewService(userRepo Repository) Service {
 	return &service{
-		userRepo:   userRepo,
-		statusRepo: statusRepo,
+		userRepo: userRepo,
 	}
 }
 
@@ -95,14 +90,6 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 		return nil, err
 	}
 
-	// Create service status
-	_, err = s.statusRepo.Create(ctx, user.ID)
-	if err != nil {
-		// Rollback user creation on failure
-		_ = s.userRepo.Delete(ctx, user.ID)
-		return nil, err
-	}
-
 	return user, nil
 }
 
@@ -115,37 +102,12 @@ func (s *service) Delete(ctx context.Context, provider, providerID string) error
 		return ErrUserNotFound
 	}
 
-	// Delete service status first
-	if err := s.statusRepo.Delete(ctx, user.ID); err != nil {
-		return err
-	}
-
 	// Delete user
 	if err := s.userRepo.Delete(ctx, user.ID); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (s *service) GetServiceStatus(ctx context.Context, provider, providerID string) (*ServiceStatus, error) {
-	user, err := s.userRepo.GetByProvider(ctx, provider, providerID)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, ErrUserNotFound
-	}
-
-	status, err := s.statusRepo.GetByUserID(ctx, user.ID)
-	if err != nil {
-		return nil, err
-	}
-	if status == nil {
-		return nil, errors.New("service status not found")
-	}
-
-	return status, nil
 }
 
 func (s *service) FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, error) {

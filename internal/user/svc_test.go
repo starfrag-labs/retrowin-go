@@ -17,8 +17,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("returns user when found", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		expectedUser := &user.User{
 			ID:         123,
@@ -37,8 +36,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("returns error when user not found", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(nil, nil)
 
@@ -51,8 +49,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(nil, errors.New("db error"))
 
@@ -68,8 +65,7 @@ func TestService_GetByID(t *testing.T) {
 
 	t.Run("returns user when found", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		expectedUser := &user.User{
 			ID:         123,
@@ -86,8 +82,7 @@ func TestService_GetByID(t *testing.T) {
 
 	t.Run("returns error when user not found", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		userRepo.EXPECT().GetByID(mock.Anything, int64(123)).Return(nil, nil)
 
@@ -104,23 +99,20 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("creates user successfully", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
-		cmd := &user.CreateCommand{
-			Provider:   user.ProviderKeycloak,
-			ProviderID: "keycloak-123",
-		}
-
-		userRepo.EXPECT().ExistsByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(false, nil)
 		expectedUser := &user.User{
 			ID:         123,
 			Provider:   user.ProviderKeycloak,
 			ProviderID: "keycloak-123",
 		}
+		userRepo.EXPECT().ExistsByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(false, nil)
 		userRepo.EXPECT().Create(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(expectedUser, nil)
-		statusRepo.EXPECT().Create(mock.Anything, int64(123)).Return(&user.ServiceStatus{UserID: 123}, nil)
 
+		cmd := &user.CreateCommand{
+			Provider:   user.ProviderKeycloak,
+			ProviderID: "keycloak-123",
+		}
 		result, err := svc.Create(ctx, cmd)
 
 		assert.NoError(t, err)
@@ -129,8 +121,7 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("returns error when provider is empty", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		cmd := &user.CreateCommand{
 			Provider:   "",
@@ -146,8 +137,7 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("returns error when providerID is empty", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		cmd := &user.CreateCommand{
 			Provider:   user.ProviderKeycloak,
@@ -163,12 +153,11 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("returns error when provider is invalid", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		cmd := &user.CreateCommand{
 			Provider:   "invalid",
-			ProviderID: "123",
+			ProviderID: "keycloak-123",
 		}
 
 		result, err := svc.Create(ctx, cmd)
@@ -180,8 +169,7 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("returns error when user already exists", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		cmd := &user.CreateCommand{
 			Provider:   user.ProviderKeycloak,
@@ -203,8 +191,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("deletes user successfully", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		u := &user.User{
 			ID:         123,
@@ -212,7 +199,6 @@ func TestService_Delete(t *testing.T) {
 			ProviderID: "keycloak-123",
 		}
 		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(u, nil)
-		statusRepo.EXPECT().Delete(mock.Anything, int64(123)).Return(nil)
 		userRepo.EXPECT().Delete(mock.Anything, int64(123)).Return(nil)
 
 		err := svc.Delete(ctx, user.ProviderKeycloak, "keycloak-123")
@@ -222,8 +208,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("returns error when user not found", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(nil, nil)
 
@@ -239,8 +224,7 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 
 	t.Run("returns existing user", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		existingUser := &user.User{
 			ID:         123,
@@ -257,8 +241,7 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 
 	t.Run("creates new user when not found", func(t *testing.T) {
 		userRepo := userMocks.NewRepositoryMock(t)
-		statusRepo := userMocks.NewServiceStatusRepositoryMock(t)
-		svc := user.NewService(userRepo, statusRepo)
+		svc := user.NewService(userRepo)
 
 		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "subject-123").Return(nil, nil)
 		userRepo.EXPECT().ExistsByProvider(mock.Anything, user.ProviderKeycloak, "subject-123").Return(false, nil)
@@ -268,7 +251,6 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 			ProviderID: "subject-123",
 		}
 		userRepo.EXPECT().Create(mock.Anything, user.ProviderKeycloak, "subject-123").Return(newUser, nil)
-		statusRepo.EXPECT().Create(mock.Anything, int64(456)).Return(&user.ServiceStatus{UserID: 456}, nil)
 
 		userID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "test@example.com", "Test User", "")
 

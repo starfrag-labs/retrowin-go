@@ -24,7 +24,9 @@ type User struct {
 	// Provider holds the value of the "provider" field.
 	Provider string `json:"provider,omitempty"`
 	// ProviderID holds the value of the "provider_id" field.
-	ProviderID   string `json:"provider_id,omitempty"`
+	ProviderID string `json:"provider_id,omitempty"`
+	// JoinDate holds the value of the "join_date" field.
+	JoinDate     time.Time `json:"join_date,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -37,7 +39,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case user.FieldProvider, user.FieldProviderID:
 			values[i] = new(sql.NullString)
-		case user.FieldCreateTime, user.FieldUpdateTime:
+		case user.FieldCreateTime, user.FieldUpdateTime, user.FieldJoinDate:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -83,6 +85,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field provider_id", values[i])
 			} else if value.Valid {
 				_m.ProviderID = value.String
+			}
+		case user.FieldJoinDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field join_date", values[i])
+			} else if value.Valid {
+				_m.JoinDate = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -131,6 +139,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("provider_id=")
 	builder.WriteString(_m.ProviderID)
+	builder.WriteString(", ")
+	builder.WriteString("join_date=")
+	builder.WriteString(_m.JoinDate.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

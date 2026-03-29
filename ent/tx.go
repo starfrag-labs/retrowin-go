@@ -22,10 +22,6 @@ type Tx struct {
 	FilePath *FilePathClient
 	// FileRole is the client for interacting with the FileRole builders.
 	FileRole *FileRoleClient
-	// ServiceStatus is the client for interacting with the ServiceStatus builders.
-	ServiceStatus *ServiceStatusClient
-	// TempFile is the client for interacting with the TempFile builders.
-	TempFile *TempFileClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -164,8 +160,6 @@ func (tx *Tx) init() {
 	tx.FileLink = NewFileLinkClient(tx.config)
 	tx.FilePath = NewFilePathClient(tx.config)
 	tx.FileRole = NewFileRoleClient(tx.config)
-	tx.ServiceStatus = NewServiceStatusClient(tx.config)
-	tx.TempFile = NewTempFileClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

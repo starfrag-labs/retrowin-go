@@ -64,16 +64,6 @@ func TestUser_Struct(t *testing.T) {
 	assert.Equal(t, "keycloak-123", user.ProviderID)
 }
 
-func TestServiceStatus_Struct(t *testing.T) {
-	status := ServiceStatus{
-		UserID:    123,
-		Available: true,
-	}
-
-	assert.Equal(t, int64(123), status.UserID)
-	assert.True(t, status.Available)
-}
-
 func TestCreateCommand_Struct(t *testing.T) {
 	cmd := CreateCommand{
 		Provider:   ProviderKeycloak,

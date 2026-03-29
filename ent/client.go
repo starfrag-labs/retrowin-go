@@ -19,8 +19,6 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent/filelink"
 	"github.com/starfrag-lab/retrowin-go/ent/filepath"
 	"github.com/starfrag-lab/retrowin-go/ent/filerole"
-	"github.com/starfrag-lab/retrowin-go/ent/servicestatus"
-	"github.com/starfrag-lab/retrowin-go/ent/tempfile"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 )
 
@@ -39,10 +37,6 @@ type Client struct {
 	FilePath *FilePathClient
 	// FileRole is the client for interacting with the FileRole builders.
 	FileRole *FileRoleClient
-	// ServiceStatus is the client for interacting with the ServiceStatus builders.
-	ServiceStatus *ServiceStatusClient
-	// TempFile is the client for interacting with the TempFile builders.
-	TempFile *TempFileClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -61,8 +55,6 @@ func (c *Client) init() {
 	c.FileLink = NewFileLinkClient(c.config)
 	c.FilePath = NewFilePathClient(c.config)
 	c.FileRole = NewFileRoleClient(c.config)
-	c.ServiceStatus = NewServiceStatusClient(c.config)
-	c.TempFile = NewTempFileClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -154,16 +146,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		File:          NewFileClient(cfg),
-		FileInfo:      NewFileInfoClient(cfg),
-		FileLink:      NewFileLinkClient(cfg),
-		FilePath:      NewFilePathClient(cfg),
-		FileRole:      NewFileRoleClient(cfg),
-		ServiceStatus: NewServiceStatusClient(cfg),
-		TempFile:      NewTempFileClient(cfg),
-		User:          NewUserClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		File:     NewFileClient(cfg),
+		FileInfo: NewFileInfoClient(cfg),
+		FileLink: NewFileLinkClient(cfg),
+		FilePath: NewFilePathClient(cfg),
+		FileRole: NewFileRoleClient(cfg),
+		User:     NewUserClient(cfg),
 	}, nil
 }
 
@@ -181,16 +171,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		File:          NewFileClient(cfg),
-		FileInfo:      NewFileInfoClient(cfg),
-		FileLink:      NewFileLinkClient(cfg),
-		FilePath:      NewFilePathClient(cfg),
-		FileRole:      NewFileRoleClient(cfg),
-		ServiceStatus: NewServiceStatusClient(cfg),
-		TempFile:      NewTempFileClient(cfg),
-		User:          NewUserClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		File:     NewFileClient(cfg),
+		FileInfo: NewFileInfoClient(cfg),
+		FileLink: NewFileLinkClient(cfg),
+		FilePath: NewFilePathClient(cfg),
+		FileRole: NewFileRoleClient(cfg),
+		User:     NewUserClient(cfg),
 	}, nil
 }
 
@@ -220,8 +208,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.File, c.FileInfo, c.FileLink, c.FilePath, c.FileRole, c.ServiceStatus,
-		c.TempFile, c.User,
+		c.File, c.FileInfo, c.FileLink, c.FilePath, c.FileRole, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -231,8 +218,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.File, c.FileInfo, c.FileLink, c.FilePath, c.FileRole, c.ServiceStatus,
-		c.TempFile, c.User,
+		c.File, c.FileInfo, c.FileLink, c.FilePath, c.FileRole, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -251,10 +237,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FilePath.mutate(ctx, m)
 	case *FileRoleMutation:
 		return c.FileRole.mutate(ctx, m)
-	case *ServiceStatusMutation:
-		return c.ServiceStatus.mutate(ctx, m)
-	case *TempFileMutation:
-		return c.TempFile.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -927,272 +909,6 @@ func (c *FileRoleClient) mutate(ctx context.Context, m *FileRoleMutation) (Value
 	}
 }
 
-// ServiceStatusClient is a client for the ServiceStatus schema.
-type ServiceStatusClient struct {
-	config
-}
-
-// NewServiceStatusClient returns a client for the ServiceStatus from the given config.
-func NewServiceStatusClient(c config) *ServiceStatusClient {
-	return &ServiceStatusClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `servicestatus.Hooks(f(g(h())))`.
-func (c *ServiceStatusClient) Use(hooks ...Hook) {
-	c.hooks.ServiceStatus = append(c.hooks.ServiceStatus, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `servicestatus.Intercept(f(g(h())))`.
-func (c *ServiceStatusClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ServiceStatus = append(c.inters.ServiceStatus, interceptors...)
-}
-
-// Create returns a builder for creating a ServiceStatus entity.
-func (c *ServiceStatusClient) Create() *ServiceStatusCreate {
-	mutation := newServiceStatusMutation(c.config, OpCreate)
-	return &ServiceStatusCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ServiceStatus entities.
-func (c *ServiceStatusClient) CreateBulk(builders ...*ServiceStatusCreate) *ServiceStatusCreateBulk {
-	return &ServiceStatusCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *ServiceStatusClient) MapCreateBulk(slice any, setFunc func(*ServiceStatusCreate, int)) *ServiceStatusCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &ServiceStatusCreateBulk{err: fmt.Errorf("calling to ServiceStatusClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*ServiceStatusCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &ServiceStatusCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ServiceStatus.
-func (c *ServiceStatusClient) Update() *ServiceStatusUpdate {
-	mutation := newServiceStatusMutation(c.config, OpUpdate)
-	return &ServiceStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ServiceStatusClient) UpdateOne(_m *ServiceStatus) *ServiceStatusUpdateOne {
-	mutation := newServiceStatusMutation(c.config, OpUpdateOne, withServiceStatus(_m))
-	return &ServiceStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ServiceStatusClient) UpdateOneID(id int) *ServiceStatusUpdateOne {
-	mutation := newServiceStatusMutation(c.config, OpUpdateOne, withServiceStatusID(id))
-	return &ServiceStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ServiceStatus.
-func (c *ServiceStatusClient) Delete() *ServiceStatusDelete {
-	mutation := newServiceStatusMutation(c.config, OpDelete)
-	return &ServiceStatusDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ServiceStatusClient) DeleteOne(_m *ServiceStatus) *ServiceStatusDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ServiceStatusClient) DeleteOneID(id int) *ServiceStatusDeleteOne {
-	builder := c.Delete().Where(servicestatus.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceStatusDeleteOne{builder}
-}
-
-// Query returns a query builder for ServiceStatus.
-func (c *ServiceStatusClient) Query() *ServiceStatusQuery {
-	return &ServiceStatusQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeServiceStatus},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ServiceStatus entity by its id.
-func (c *ServiceStatusClient) Get(ctx context.Context, id int) (*ServiceStatus, error) {
-	return c.Query().Where(servicestatus.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ServiceStatusClient) GetX(ctx context.Context, id int) *ServiceStatus {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ServiceStatusClient) Hooks() []Hook {
-	return c.hooks.ServiceStatus
-}
-
-// Interceptors returns the client interceptors.
-func (c *ServiceStatusClient) Interceptors() []Interceptor {
-	return c.inters.ServiceStatus
-}
-
-func (c *ServiceStatusClient) mutate(ctx context.Context, m *ServiceStatusMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ServiceStatusCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ServiceStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ServiceStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ServiceStatusDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown ServiceStatus mutation op: %q", m.Op())
-	}
-}
-
-// TempFileClient is a client for the TempFile schema.
-type TempFileClient struct {
-	config
-}
-
-// NewTempFileClient returns a client for the TempFile from the given config.
-func NewTempFileClient(c config) *TempFileClient {
-	return &TempFileClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `tempfile.Hooks(f(g(h())))`.
-func (c *TempFileClient) Use(hooks ...Hook) {
-	c.hooks.TempFile = append(c.hooks.TempFile, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `tempfile.Intercept(f(g(h())))`.
-func (c *TempFileClient) Intercept(interceptors ...Interceptor) {
-	c.inters.TempFile = append(c.inters.TempFile, interceptors...)
-}
-
-// Create returns a builder for creating a TempFile entity.
-func (c *TempFileClient) Create() *TempFileCreate {
-	mutation := newTempFileMutation(c.config, OpCreate)
-	return &TempFileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of TempFile entities.
-func (c *TempFileClient) CreateBulk(builders ...*TempFileCreate) *TempFileCreateBulk {
-	return &TempFileCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *TempFileClient) MapCreateBulk(slice any, setFunc func(*TempFileCreate, int)) *TempFileCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &TempFileCreateBulk{err: fmt.Errorf("calling to TempFileClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*TempFileCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &TempFileCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for TempFile.
-func (c *TempFileClient) Update() *TempFileUpdate {
-	mutation := newTempFileMutation(c.config, OpUpdate)
-	return &TempFileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *TempFileClient) UpdateOne(_m *TempFile) *TempFileUpdateOne {
-	mutation := newTempFileMutation(c.config, OpUpdateOne, withTempFile(_m))
-	return &TempFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *TempFileClient) UpdateOneID(id int) *TempFileUpdateOne {
-	mutation := newTempFileMutation(c.config, OpUpdateOne, withTempFileID(id))
-	return &TempFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for TempFile.
-func (c *TempFileClient) Delete() *TempFileDelete {
-	mutation := newTempFileMutation(c.config, OpDelete)
-	return &TempFileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *TempFileClient) DeleteOne(_m *TempFile) *TempFileDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TempFileClient) DeleteOneID(id int) *TempFileDeleteOne {
-	builder := c.Delete().Where(tempfile.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TempFileDeleteOne{builder}
-}
-
-// Query returns a query builder for TempFile.
-func (c *TempFileClient) Query() *TempFileQuery {
-	return &TempFileQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeTempFile},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a TempFile entity by its id.
-func (c *TempFileClient) Get(ctx context.Context, id int) (*TempFile, error) {
-	return c.Query().Where(tempfile.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *TempFileClient) GetX(ctx context.Context, id int) *TempFile {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *TempFileClient) Hooks() []Hook {
-	return c.hooks.TempFile
-}
-
-// Interceptors returns the client interceptors.
-func (c *TempFileClient) Interceptors() []Interceptor {
-	return c.inters.TempFile
-}
-
-func (c *TempFileClient) mutate(ctx context.Context, m *TempFileMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&TempFileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&TempFileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&TempFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&TempFileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown TempFile mutation op: %q", m.Op())
-	}
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1329,11 +1045,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		File, FileInfo, FileLink, FilePath, FileRole, ServiceStatus, TempFile,
-		User []ent.Hook
+		File, FileInfo, FileLink, FilePath, FileRole, User []ent.Hook
 	}
 	inters struct {
-		File, FileInfo, FileLink, FilePath, FileRole, ServiceStatus, TempFile,
-		User []ent.Interceptor
+		File, FileInfo, FileLink, FilePath, FileRole, User []ent.Interceptor
 	}
 )

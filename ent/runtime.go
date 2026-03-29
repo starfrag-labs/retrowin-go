@@ -10,8 +10,6 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent/filelink"
 	"github.com/starfrag-lab/retrowin-go/ent/filerole"
 	"github.com/starfrag-lab/retrowin-go/ent/schema"
-	"github.com/starfrag-lab/retrowin-go/ent/servicestatus"
-	"github.com/starfrag-lab/retrowin-go/ent/tempfile"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 )
 
@@ -100,40 +98,6 @@ func init() {
 	fileroleDescRoles := fileroleFields[2].Descriptor()
 	// filerole.DefaultRoles holds the default value on creation for the roles field.
 	filerole.DefaultRoles = fileroleDescRoles.Default.([]string)
-	servicestatusFields := schema.ServiceStatus{}.Fields()
-	_ = servicestatusFields
-	// servicestatusDescAvailable is the schema descriptor for available field.
-	servicestatusDescAvailable := servicestatusFields[1].Descriptor()
-	// servicestatus.DefaultAvailable holds the default value on creation for the available field.
-	servicestatus.DefaultAvailable = servicestatusDescAvailable.Default.(bool)
-	// servicestatusDescJoinDate is the schema descriptor for join_date field.
-	servicestatusDescJoinDate := servicestatusFields[2].Descriptor()
-	// servicestatus.DefaultJoinDate holds the default value on creation for the join_date field.
-	servicestatus.DefaultJoinDate = servicestatusDescJoinDate.Default.(func() time.Time)
-	// servicestatusDescUpdateDate is the schema descriptor for update_date field.
-	servicestatusDescUpdateDate := servicestatusFields[3].Descriptor()
-	// servicestatus.DefaultUpdateDate holds the default value on creation for the update_date field.
-	servicestatus.DefaultUpdateDate = servicestatusDescUpdateDate.Default.(func() time.Time)
-	// servicestatus.UpdateDefaultUpdateDate holds the default value on update for the update_date field.
-	servicestatus.UpdateDefaultUpdateDate = servicestatusDescUpdateDate.UpdateDefault.(func() time.Time)
-	tempfileFields := schema.TempFile{}.Fields()
-	_ = tempfileFields
-	// tempfileDescFileName is the schema descriptor for file_name field.
-	tempfileDescFileName := tempfileFields[2].Descriptor()
-	// tempfile.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
-	tempfile.FileNameValidator = tempfileDescFileName.Validators[0].(func(string) error)
-	// tempfileDescByteSize is the schema descriptor for byte_size field.
-	tempfileDescByteSize := tempfileFields[3].Descriptor()
-	// tempfile.DefaultByteSize holds the default value on creation for the byte_size field.
-	tempfile.DefaultByteSize = tempfileDescByteSize.Default.(int64)
-	// tempfileDescCreateDate is the schema descriptor for create_date field.
-	tempfileDescCreateDate := tempfileFields[4].Descriptor()
-	// tempfile.DefaultCreateDate holds the default value on creation for the create_date field.
-	tempfile.DefaultCreateDate = tempfileDescCreateDate.Default.(func() time.Time)
-	// tempfileDescExpiresAt is the schema descriptor for expires_at field.
-	tempfileDescExpiresAt := tempfileFields[6].Descriptor()
-	// tempfile.DefaultExpiresAt holds the default value on creation for the expires_at field.
-	tempfile.DefaultExpiresAt = tempfileDescExpiresAt.Default.(func() time.Time)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -149,4 +113,8 @@ func init() {
 	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
 	// user.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	user.UpdateDefaultUpdateTime = userDescUpdateTime.UpdateDefault.(func() time.Time)
+	// userDescJoinDate is the schema descriptor for join_date field.
+	userDescJoinDate := userFields[2].Descriptor()
+	// user.DefaultJoinDate holds the default value on creation for the join_date field.
+	user.DefaultJoinDate = userDescJoinDate.Default.(func() time.Time)
 }

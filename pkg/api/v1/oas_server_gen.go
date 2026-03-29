@@ -74,12 +74,6 @@ type Handler interface {
 	//
 	// GET /file/root
 	GetRootContainer(ctx context.Context) (GetRootContainerRes, error)
-	// GetServiceStatus implements getServiceStatus operation.
-	//
-	// Get the service status for the current user.
-	//
-	// GET /user/status
-	GetServiceStatus(ctx context.Context) (GetServiceStatusRes, error)
 	// GetStreamToken implements getStreamToken operation.
 	//
 	// Get a presigned URL for downloading/streaming file content.

@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -24,6 +26,8 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("provider"),
 		field.String("provider_id"),
+		field.Time("join_date").
+			Default(time.Now),
 	}
 }
 

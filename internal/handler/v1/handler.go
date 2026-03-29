@@ -51,17 +51,9 @@ func (h *Handler) toUser(u *user.User) *apiv1.User {
 		ID:         u.ID,
 		Provider:   apiv1.Provider(u.Provider),
 		ProviderId: u.ProviderID,
+		JoinDate:   apiv1.NewOptTimestamp(toTimestamp(u.JoinDate)),
 		CreatedAt:  apiv1.NewOptTimestamp(toTimestamp(u.CreatedAt)),
 		UpdatedAt:  apiv1.NewOptTimestamp(toTimestamp(u.UpdatedAt)),
-	}
-}
-
-func (h *Handler) toServiceStatus(s *user.ServiceStatus) *apiv1.ServiceStatus {
-	return &apiv1.ServiceStatus{
-		UserId:     s.UserID,
-		Available:  s.Available,
-		JoinDate:   apiv1.NewOptTimestamp(toTimestamp(s.JoinDate)),
-		UpdateDate: apiv1.NewOptTimestamp(toTimestamp(s.UpdateDate)),
 	}
 }
 

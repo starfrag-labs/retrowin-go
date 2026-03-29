@@ -274,7 +274,6 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			ProvideValkeyClient,
 			// Repositories - provide individually for fx to resolve dependencies
 			user.NewEntRepository,
-			user.NewEntServiceStatusRepository,
 			file.NewEntRepository,
 			file.NewEntFileInfoRepository,
 			file.NewEntFilePathRepository,

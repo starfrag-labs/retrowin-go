@@ -138,61 +138,6 @@ var (
 			},
 		},
 	}
-	// ServiceStatusColumns holds the columns for the "service_status" table.
-	ServiceStatusColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_id", Type: field.TypeInt64, Unique: true},
-		{Name: "available", Type: field.TypeBool, Default: true},
-		{Name: "join_date", Type: field.TypeTime},
-		{Name: "update_date", Type: field.TypeTime},
-	}
-	// ServiceStatusTable holds the schema information for the "service_status" table.
-	ServiceStatusTable = &schema.Table{
-		Name:       "service_status",
-		Columns:    ServiceStatusColumns,
-		PrimaryKey: []*schema.Column{ServiceStatusColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "servicestatus_user_id",
-				Unique:  true,
-				Columns: []*schema.Column{ServiceStatusColumns[1]},
-			},
-		},
-	}
-	// TempFilesColumns holds the columns for the "temp_files" table.
-	TempFilesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "owner_id", Type: field.TypeInt64},
-		{Name: "file_key", Type: field.TypeString, Unique: true},
-		{Name: "file_name", Type: field.TypeString, Size: 255},
-		{Name: "byte_size", Type: field.TypeInt64, Default: 0},
-		{Name: "create_date", Type: field.TypeTime},
-		{Name: "parent_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "expires_at", Type: field.TypeTime},
-	}
-	// TempFilesTable holds the schema information for the "temp_files" table.
-	TempFilesTable = &schema.Table{
-		Name:       "temp_files",
-		Columns:    TempFilesColumns,
-		PrimaryKey: []*schema.Column{TempFilesColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "tempfile_file_key",
-				Unique:  true,
-				Columns: []*schema.Column{TempFilesColumns[2]},
-			},
-			{
-				Name:    "tempfile_owner_id",
-				Unique:  false,
-				Columns: []*schema.Column{TempFilesColumns[1]},
-			},
-			{
-				Name:    "tempfile_expires_at",
-				Unique:  false,
-				Columns: []*schema.Column{TempFilesColumns[7]},
-			},
-		},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -200,6 +145,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "provider", Type: field.TypeString},
 		{Name: "provider_id", Type: field.TypeString},
+		{Name: "join_date", Type: field.TypeTime},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -221,8 +167,6 @@ var (
 		FileLinksTable,
 		FilePathsTable,
 		FileRolesTable,
-		ServiceStatusTable,
-		TempFilesTable,
 		UsersTable,
 	}
 )

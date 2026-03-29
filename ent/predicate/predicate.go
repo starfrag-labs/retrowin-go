@@ -21,11 +21,5 @@ type FilePath func(*sql.Selector)
 // FileRole is the predicate function for filerole builders.
 type FileRole func(*sql.Selector)
 
-// ServiceStatus is the predicate function for servicestatus builders.
-type ServiceStatus func(*sql.Selector)
-
-// TempFile is the predicate function for tempfile builders.
-type TempFile func(*sql.Selector)
-
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

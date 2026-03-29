@@ -17,8 +17,6 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent/filelink"
 	"github.com/starfrag-lab/retrowin-go/ent/filepath"
 	"github.com/starfrag-lab/retrowin-go/ent/filerole"
-	"github.com/starfrag-lab/retrowin-go/ent/servicestatus"
-	"github.com/starfrag-lab/retrowin-go/ent/tempfile"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 )
 
@@ -80,14 +78,12 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			file.Table:          file.ValidColumn,
-			fileinfo.Table:      fileinfo.ValidColumn,
-			filelink.Table:      filelink.ValidColumn,
-			filepath.Table:      filepath.ValidColumn,
-			filerole.Table:      filerole.ValidColumn,
-			servicestatus.Table: servicestatus.ValidColumn,
-			tempfile.Table:      tempfile.ValidColumn,
-			user.Table:          user.ValidColumn,
+			file.Table:     file.ValidColumn,
+			fileinfo.Table: fileinfo.ValidColumn,
+			filelink.Table: filelink.ValidColumn,
+			filepath.Table: filepath.ValidColumn,
+			filerole.Table: filerole.ValidColumn,
+			user.Table:     user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)
