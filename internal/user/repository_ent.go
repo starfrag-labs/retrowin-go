@@ -35,7 +35,22 @@ func (r *EntRepository) Create(ctx context.Context, provider, providerID string)
 func (r *EntRepository) GetByID(ctx context.Context, id int64) (*User, error) {
 	entUser, err := r.client.User.
 		Query().
-		Where(user.ID(int(id))).
+		Where(user.ID(id)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+	return fromEntUser(entUser), nil
+}
+
+// GetByUID retrieves a user by UID.
+func (r *EntRepository) GetByUID(ctx context.Context, uid string) (*User, error) {
+	entUser, err := r.client.User.
+		Query().
+		Where(user.UID(uid)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -67,7 +82,7 @@ func (r *EntRepository) GetByProvider(ctx context.Context, provider, providerID 
 // Delete deletes a user by ID.
 func (r *EntRepository) Delete(ctx context.Context, id int64) error {
 	return r.client.User.
-		DeleteOneID(int(id)).
+		DeleteOneID(id).
 		Exec(ctx)
 }
 
@@ -84,7 +99,8 @@ func (r *EntRepository) ExistsByProvider(ctx context.Context, provider, provider
 
 func fromEntUser(e *ent.User) *User {
 	return &User{
-		ID:         int64(e.ID),
+		ID:         e.ID,
+		UID:        e.UID,
 		Provider:   e.Provider,
 		ProviderID: e.ProviderID,
 		JoinDate:   e.JoinDate,

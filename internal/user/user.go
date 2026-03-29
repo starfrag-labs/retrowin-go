@@ -23,6 +23,7 @@ func IsValidProvider(provider string) bool {
 // User represents a user in the system.
 type User struct {
 	ID         int64     `json:"id"`
+	UID        string    `json:"uid"`
 	Provider   string    `json:"provider"`
 	ProviderID string    `json:"providerId"`
 	JoinDate   time.Time `json:"joinDate"`

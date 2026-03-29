@@ -23,10 +23,10 @@ func NewSessionService(repo SessionRepository, ttl time.Duration) SessionService
 }
 
 // Create creates a new session for a user.
-func (s *sessionService) Create(ctx context.Context, userID int64) (*Session, error) {
+func (s *sessionService) Create(ctx context.Context, userID int64, userUID string) (*Session, error) {
 	now := time.Now()
 	id := SessionID(generateSessionID())
-	session := NewSession(id, userID, now.Add(s.ttl), now)
+	session := NewSession(id, userID, userUID, now.Add(s.ttl), now)
 
 	if err := s.repo.Save(ctx, session); err != nil {
 		return nil, err

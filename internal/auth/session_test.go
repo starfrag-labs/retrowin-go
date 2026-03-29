@@ -10,13 +10,15 @@ import (
 func TestNewSession(t *testing.T) {
 	id := SessionID("test-session-id")
 	userID := int64(123)
+	userUID := "user-uid-123"
 	expiresAt := time.Now().Add(24 * time.Hour)
 	createdAt := time.Now()
 
-	session := NewSession(id, userID, expiresAt, createdAt)
+	session := NewSession(id, userID, userUID, expiresAt, createdAt)
 
 	assert.Equal(t, id, session.ID())
 	assert.Equal(t, userID, session.UserID())
+	assert.Equal(t, userUID, session.UserUID())
 	assert.Equal(t, expiresAt.Unix(), session.ExpiresAt().Unix())
 	assert.Equal(t, createdAt.Unix(), session.CreatedAt().Unix())
 }
@@ -25,6 +27,7 @@ func TestSession_IsExpired_NotExpired(t *testing.T) {
 	session := NewSession(
 		SessionID("test-id"),
 		123,
+		"user-uid-123",
 		time.Now().Add(1*time.Hour),
 		time.Now(),
 	)
@@ -36,6 +39,7 @@ func TestSession_IsExpired_Expired(t *testing.T) {
 	session := NewSession(
 		SessionID("test-id"),
 		123,
+		"user-uid-123",
 		time.Now().Add(-1*time.Hour),
 		time.Now(),
 	)
@@ -48,6 +52,7 @@ func TestSession_IsExpired_ExactlyNow(t *testing.T) {
 	session := NewSession(
 		SessionID("test-id"),
 		123,
+		"user-uid-123",
 		time.Now().Add(-1*time.Millisecond),
 		time.Now(),
 	)

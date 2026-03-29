@@ -24,10 +24,13 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
-	"github.com/starfrag-lab/retrowin-go/internal/file"
+	"github.com/starfrag-lab/retrowin-go/internal/directory"
+	"github.com/starfrag-lab/retrowin-go/internal/fs"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
+	"github.com/starfrag-lab/retrowin-go/internal/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/storage"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/storage/s3"
+	"github.com/starfrag-lab/retrowin-go/internal/symlink"
 	"github.com/starfrag-lab/retrowin-go/internal/upload"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 )
@@ -272,12 +275,12 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			ProvideLogger,
 			NewEntClient,
 			ProvideValkeyClient,
-			// Repositories - provide individually for fx to resolve dependencies
+			// Repositories
 			user.NewEntRepository,
-			file.NewEntRepository,
-			file.NewEntFileInfoRepository,
-			file.NewEntFilePathRepository,
-			file.NewEntFileRoleRepository,
+			inode.NewEntRepository,
+			inode.NewEntFileDataRepository,
+			directory.NewEntRepository,
+			symlink.NewEntRepository,
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
@@ -288,7 +291,10 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			ProvideOIDCService,
 			// Domain services
 			user.NewService,
-			file.NewService,
+			inode.NewService,
+			directory.NewService,
+			symlink.NewService,
+			fs.NewService,
 			ProvideStorage,
 			upload.NewService,
 			// HTTP layer

@@ -13,6 +13,9 @@ type Service interface {
 	// GetByID retrieves a user by ID.
 	GetByID(ctx context.Context, id int64) (*User, error)
 
+	// GetByUID retrieves a user by UID.
+	GetByUID(ctx context.Context, uid string) (*User, error)
+
 	// Create creates a new user.
 	Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 
@@ -20,7 +23,8 @@ type Service interface {
 	Delete(ctx context.Context, provider, providerID string) error
 
 	// FindOrCreateByOIDC finds an existing user by OIDC subject or creates a new one.
-	FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, error)
+	// Returns userID (int64) and userUID (string).
+	FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, string, error)
 }
 
 // Errors
@@ -54,6 +58,17 @@ func (s *service) Get(ctx context.Context, provider, providerID string) (*User, 
 
 func (s *service) GetByID(ctx context.Context, id int64) (*User, error) {
 	user, err := s.userRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
+	return user, nil
+}
+
+func (s *service) GetByUID(ctx context.Context, uid string) (*User, error) {
+	user, err := s.userRepo.GetByUID(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -110,15 +125,15 @@ func (s *service) Delete(ctx context.Context, provider, providerID string) error
 	return nil
 }
 
-func (s *service) FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, error) {
+func (s *service) FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, string, error) {
 	// Try to find existing user
 	user, err := s.userRepo.GetByProvider(ctx, provider, subject)
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	if user != nil {
-		return user.ID, nil
+		return user.ID, user.UID, nil
 	}
 
 	// Create new user
@@ -129,8 +144,8 @@ func (s *service) FindOrCreateByOIDC(ctx context.Context, provider, subject, ema
 
 	newUser, err := s.Create(ctx, createCmd)
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
-	return newUser.ID, nil
+	return newUser.ID, newUser.UID, nil
 }

@@ -12,6 +12,9 @@ type Repository interface {
 	// GetByID retrieves a user by ID.
 	GetByID(ctx context.Context, id int64) (*User, error)
 
+	// GetByUID retrieves a user by UID.
+	GetByUID(ctx context.Context, uid string) (*User, error)
+
 	// GetByProvider retrieves a user by provider and provider ID.
 	GetByProvider(ctx context.Context, provider, providerID string) (*User, error)
 

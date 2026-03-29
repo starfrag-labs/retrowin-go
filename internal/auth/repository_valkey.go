@@ -12,6 +12,7 @@ import (
 // sessionData is the serializable representation of Session for Valkey storage.
 type sessionData struct {
 	UserID    int64     `json:"user_id"`
+	UserUID   string   `json:"user_uid"`
 	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -20,6 +21,7 @@ type sessionData struct {
 func toSessionData(s *Session) *sessionData {
 	return &sessionData{
 		UserID:    s.UserID(),
+		UserUID:   s.UserUID(),
 		ExpiresAt: s.ExpiresAt(),
 		CreatedAt: s.CreatedAt(),
 	}
@@ -99,7 +101,7 @@ func (r *ValkeySessionRepository) Get(ctx context.Context, id SessionID) (*Sessi
 		return nil, fmt.Errorf("unmarshal session: %w", err)
 	}
 
-	return NewSession(id, sd.UserID, sd.ExpiresAt, sd.CreatedAt), nil
+	return NewSession(id, sd.UserID, sd.UserUID, sd.ExpiresAt, sd.CreatedAt), nil
 }
 
 // Delete deletes a session by ID.

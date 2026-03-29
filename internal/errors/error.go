@@ -7,10 +7,10 @@ import (
 
 // Error represents a structured API error.
 type Error struct {
-	Code       string                 `json:"code"`
-	Message    string                 `json:"message"`
-	StatusCode int                    `json:"-"`
-	Details    map[string]interface{} `json:"details,omitempty"`
+	Code       string         `json:"code"`
+	Message    string         `json:"message"`
+	StatusCode int            `json:"-"`
+	Details    map[string]any `json:"details,omitempty"`
 }
 
 // Error implements the error interface.
@@ -28,7 +28,7 @@ func New(code, message string, statusCode int) *Error {
 }
 
 // WithDetails adds details to the error.
-func (e *Error) WithDetails(details map[string]interface{}) *Error {
+func (e *Error) WithDetails(details map[string]any) *Error {
 	e.Details = details
 	return e
 }
@@ -68,6 +68,19 @@ func IsNotFound(err error) bool {
 		return e.StatusCode == http.StatusNotFound
 	}
 	return false
+}
+
+// IsBadRequest checks if the error is a bad request error.
+func IsBadRequest(err error) bool {
+	if e, ok := err.(*Error); ok {
+		return e.StatusCode == http.StatusBadRequest
+	}
+	return false
+}
+
+// IsAlreadyExists checks if the error is a conflict error (already exists).
+func IsAlreadyExists(err error) bool {
+	return IsConflict(err)
 }
 
 // IsConflict checks if the error is a conflict error.

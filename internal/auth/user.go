@@ -13,5 +13,6 @@ type User struct {
 // UserService defines the interface for user operations.
 type UserService interface {
 	// FindOrCreate finds an existing user by OIDC subject or creates a new one.
-	FindOrCreate(ctx context.Context, subject, email, name, picture string) (int64, error)
+	// Returns userID (int64) and userUID (string).
+	FindOrCreate(ctx context.Context, subject, email, name, picture string) (int64, string, error)
 }

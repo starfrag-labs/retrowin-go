@@ -228,15 +228,17 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 
 		existingUser := &user.User{
 			ID:         123,
+			UID:        "user-uid-123",
 			Provider:   user.ProviderKeycloak,
 			ProviderID: "subject-123",
 		}
 		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "subject-123").Return(existingUser, nil)
 
-		userID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "test@example.com", "Test User", "")
+		userID, userUID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "test@example.com", "Test User", "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, int64(123), userID)
+		assert.NotEmpty(t, userUID)
 	})
 
 	t.Run("creates new user when not found", func(t *testing.T) {
@@ -247,14 +249,16 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 		userRepo.EXPECT().ExistsByProvider(mock.Anything, user.ProviderKeycloak, "subject-123").Return(false, nil)
 		newUser := &user.User{
 			ID:         456,
+			UID:        "user-uid-456",
 			Provider:   user.ProviderKeycloak,
 			ProviderID: "subject-123",
 		}
 		userRepo.EXPECT().Create(mock.Anything, user.ProviderKeycloak, "subject-123").Return(newUser, nil)
 
-		userID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "test@example.com", "Test User", "")
+	userID, userUID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "test@example.com", "Test User", "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, int64(456), userID)
+		assert.NotEmpty(t, userUID)
 	})
 }
