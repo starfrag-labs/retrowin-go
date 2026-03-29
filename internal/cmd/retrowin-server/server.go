@@ -307,7 +307,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 		fx.Supply(fx.Annotate(cfgFile, fx.ResultTags(`name:"cfgFile"`))),
 		fx.Supply(fx.Annotate(port, fx.ResultTags(`name:"port"`))),
 
-		// Core providers
+		// All providers - single fx.Provide call like serengeti
 		fx.Provide(
 			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`)),
 			ProvideLogger,
@@ -315,24 +315,17 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			ProvideValkeyClient,
 			ProvideRepositories,
 			ProvideSessionTTL,
-		),
-
-		// Services - fx resolves dependencies automatically from constructors
-		fx.Provide(
 			// Auth services
 			auth.NewSessionService,
 			auth.NewUserAdapter,
-
 			// OIDC service
 			ProvideKeycloak,
 			ProvideOIDCService,
-
 			// Domain services
 			user.NewService,
 			file.NewService,
 			ProvideStorage,
 			upload.NewService,
-
 			// HTTP layer
 			handler.NewHandler,
 			ProvideOgenServer,
