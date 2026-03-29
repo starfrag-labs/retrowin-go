@@ -2,15 +2,9 @@ package system
 
 import (
 	"context"
-	"errors"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-)
-
-// Errors
-var (
-	ErrNotFound      = errors.New("system not found")
-	ErrAlreadyExists = errors.New("system already exists")
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // CreateCommand for creating a system.
@@ -82,7 +76,7 @@ func (s *service) GetByID(ctx context.Context, id int64) (*System, error) {
 		return nil, err
 	}
 	if sys == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("system not found")
 	}
 	return sys, nil
 }
@@ -93,7 +87,7 @@ func (s *service) GetByName(ctx context.Context, name string) (*System, error) {
 		return nil, err
 	}
 	if sys == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("system not found")
 	}
 	return sys, nil
 }

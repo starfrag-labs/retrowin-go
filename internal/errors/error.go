@@ -106,3 +106,28 @@ func FromError(err error) *Error {
 	}
 	return Internal(err.Error())
 }
+
+// Wrap wraps a standard error with a new Error code and message.
+func Wrap(err error, code, message string, statusCode int) *Error {
+	return &Error{
+		Code:       code,
+		Message:    message,
+		StatusCode: statusCode,
+		Details:    map[string]any{"cause": err.Error()},
+	}
+}
+
+// WrapNotFound wraps an error as a not found error.
+func WrapNotFound(err error, message string) *Error {
+	return Wrap(err, "NOT_FOUND", message, http.StatusNotFound)
+}
+
+// WrapBadRequest wraps an error as a bad request error.
+func WrapBadRequest(err error, message string) *Error {
+	return Wrap(err, "BAD_REQUEST", message, http.StatusBadRequest)
+}
+
+// WrapInternal wraps an error as an internal error.
+func WrapInternal(err error, message string) *Error {
+	return Wrap(err, "INTERNAL_ERROR", message, http.StatusInternalServerError)
+}

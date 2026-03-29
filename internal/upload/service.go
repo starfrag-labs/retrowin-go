@@ -2,10 +2,10 @@ package upload
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/storage"
@@ -22,14 +22,6 @@ type Service interface {
 	// GetStreamURL generates a presigned download URL.
 	GetStreamURL(ctx context.Context, inodeID int64) (*StreamURL, error)
 }
-
-// Errors
-var (
-	ErrCannotUploadDirectory = errors.New("cannot upload content to a directory")
-	ErrCannotStreamDirectory = errors.New("cannot stream a directory")
-	ErrFileNotFound          = errors.New("file not found")
-	ErrContentNotFound       = errors.New("file content not found in storage")
-)
 
 type service struct {
 	fsSvc   fs.Service
@@ -52,7 +44,7 @@ func (s *service) GetUploadURL(ctx context.Context, inodeID int64) (*UploadURL, 
 	}
 
 	if f.FileType != inode.FileTypeRegular {
-		return nil, ErrCannotUploadDirectory
+		return nil, errors.BadRequest("cannot upload content to a directory")
 	}
 
 	storageKey := s.getStorageKey(f.OwnerUID, inodeID)
@@ -82,7 +74,7 @@ func (s *service) CompleteUpload(ctx context.Context, inodeID int64, byteSize in
 		return nil, fmt.Errorf("failed to check object existence: %w", err)
 	}
 	if !exists {
-		return nil, ErrContentNotFound
+		return nil, errors.NotFound("file content not found in storage")
 	}
 
 	if byteSize == 0 {
@@ -108,11 +100,11 @@ func (s *service) GetStreamURL(ctx context.Context, inodeID int64) (*StreamURL, 
 	}
 
 	if f.FileType != inode.FileTypeRegular {
-		return nil, ErrCannotStreamDirectory
+		return nil, errors.BadRequest("cannot stream a directory")
 	}
 
 	if f.ByteSize == 0 {
-		return nil, ErrContentNotFound
+		return nil, errors.NotFound("file content not found in storage")
 	}
 
 	storageKey := s.getStorageKey(f.OwnerUID, inodeID)

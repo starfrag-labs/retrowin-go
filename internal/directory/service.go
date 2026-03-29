@@ -2,15 +2,9 @@ package directory
 
 import (
 	"context"
-	"errors"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-)
-
-// Errors
-var (
-	ErrNotFound      = errors.New("directory entry not found")
-	ErrAlreadyExists = errors.New("directory entry already exists")
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // CreateCommand for creating a directory entry.
@@ -79,7 +73,7 @@ func (s *service) GetByID(ctx context.Context, id int64) (*Entry, error) {
 		return nil, err
 	}
 	if entry == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("directory entry not found")
 	}
 	return entry, nil
 }

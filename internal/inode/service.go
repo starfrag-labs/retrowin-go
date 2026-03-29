@@ -2,15 +2,10 @@ package inode
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-)
-
-// Errors
-var (
-	ErrNotFound = errors.New("inode not found")
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // CreateCommand for creating a new inode.
@@ -115,7 +110,7 @@ func (s *service) GetByID(ctx context.Context, id int64) (*Inode, error) {
 		return nil, err
 	}
 	if inode == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("inode not found")
 	}
 	return inode, nil
 }
@@ -143,7 +138,7 @@ func (s *service) FindByOwnerAndSystemType(ctx context.Context, ownerUID, system
 		return nil, err
 	}
 	if inode == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("inode not found")
 	}
 	return inode, nil
 }

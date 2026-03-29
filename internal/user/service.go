@@ -2,7 +2,8 @@ package user
 
 import (
 	"context"
-	"errors"
+
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // Service defines the interface for user operations.
@@ -27,13 +28,6 @@ type Service interface {
 	FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, string, error)
 }
 
-// Errors
-var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user already exists")
-	ErrInvalidProvider   = errors.New("invalid provider")
-)
-
 type service struct {
 	userRepo Repository
 }
@@ -51,7 +45,7 @@ func (s *service) Get(ctx context.Context, provider, providerID string) (*User, 
 		return nil, err
 	}
 	if user == nil {
-		return nil, ErrUserNotFound
+		return nil, errors.NotFound("user not found")
 	}
 	return user, nil
 }
@@ -62,7 +56,7 @@ func (s *service) GetByID(ctx context.Context, id int64) (*User, error) {
 		return nil, err
 	}
 	if user == nil {
-		return nil, ErrUserNotFound
+		return nil, errors.NotFound("user not found")
 	}
 	return user, nil
 }
@@ -73,7 +67,7 @@ func (s *service) GetByUID(ctx context.Context, uid string) (*User, error) {
 		return nil, err
 	}
 	if user == nil {
-		return nil, ErrUserNotFound
+		return nil, errors.NotFound("user not found")
 	}
 	return user, nil
 }
@@ -81,13 +75,13 @@ func (s *service) GetByUID(ctx context.Context, uid string) (*User, error) {
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error) {
 	// Validate input
 	if cmd.Provider == "" {
-		return nil, errors.New("provider is required")
+		return nil, errors.BadRequest("provider is required")
 	}
 	if cmd.ProviderID == "" {
-		return nil, errors.New("providerId is required")
+		return nil, errors.BadRequest("providerId is required")
 	}
 	if !IsValidProvider(cmd.Provider) {
-		return nil, ErrInvalidProvider
+		return nil, errors.BadRequest("invalid provider")
 	}
 
 	// Check if user already exists
@@ -96,7 +90,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 		return nil, err
 	}
 	if exists {
-		return nil, ErrUserAlreadyExists
+		return nil, errors.Conflict("user already exists")
 	}
 
 	// Create user
@@ -114,7 +108,7 @@ func (s *service) Delete(ctx context.Context, provider, providerID string) error
 		return err
 	}
 	if user == nil {
-		return ErrUserNotFound
+		return errors.NotFound("user not found")
 	}
 
 	// Delete user

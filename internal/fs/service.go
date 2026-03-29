@@ -2,26 +2,12 @@ package fs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/starfrag-lab/retrowin-go/internal/directory"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/symlink"
-)
-
-// Errors
-var (
-	ErrNotFound           = errors.New("file not found")
-	ErrParentNotFound     = errors.New("parent directory not found")
-	ErrNotDirectory       = errors.New("not a directory")
-	ErrNotRegularFile     = errors.New("not a regular file")
-	ErrAccessDenied       = errors.New("access denied")
-	ErrAlreadyExists      = errors.New("file already exists")
-	ErrCannotDeleteRoot   = errors.New("cannot delete root directory")
-	ErrCannotMoveIntoSelf = errors.New("cannot move directory into itself")
-	ErrInvalidPath        = errors.New("invalid path")
-	ErrNotEmptyDirectory  = errors.New("directory not empty")
 )
 
 // System file types
@@ -171,7 +157,7 @@ func (s *service) GetByPath(ctx context.Context, ownerUID, path string) (*File, 
 	current := root.Inode
 	for _, name := range components {
 		if current.FileType != inode.FileTypeDirectory {
-			return nil, ErrNotDirectory
+			return nil, errors.BadRequest("not a directory")
 		}
 
 		entry, err := s.dirSvc.FindByParentAndName(ctx, current.ID, name)
@@ -179,7 +165,7 @@ func (s *service) GetByPath(ctx context.Context, ownerUID, path string) (*File, 
 			return nil, err
 		}
 		if entry == nil {
-			return nil, ErrNotFound
+			return nil, errors.NotFound("file not found")
 		}
 
 		current, err = s.inodeSvc.GetByID(ctx, entry.ChildID)
@@ -245,7 +231,7 @@ func (s *service) ListDirectory(ctx context.Context, dirInodeID int64) ([]*File,
 		return nil, err
 	}
 	if in.FileType != inode.FileTypeDirectory {
-		return nil, ErrNotDirectory
+		return nil, errors.BadRequest("not a directory")
 	}
 
 	entries, err := s.dirSvc.FindByParent(ctx, dirInodeID)
@@ -272,7 +258,7 @@ func (s *service) ListDirectory(ctx context.Context, dirInodeID int64) ([]*File,
 // CreateFile creates a new regular file.
 func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*File, error) {
 	if cmd.Name == "" {
-		return nil, errors.New("name is required")
+		return nil, errors.BadRequest("name is required")
 	}
 
 	var parentID int64
@@ -291,7 +277,7 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*File
 		return nil, err
 	}
 	if exists {
-		return nil, ErrAlreadyExists
+		return nil, errors.Conflict("file already exists")
 	}
 
 	parentInode, err := s.inodeSvc.GetByID(ctx, parentID)
@@ -299,7 +285,7 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*File
 		return nil, err
 	}
 	if parentInode.FileType != inode.FileTypeDirectory {
-		return nil, ErrNotDirectory
+		return nil, errors.BadRequest("not a directory")
 	}
 
 	inodeCmd := &inode.CreateCommand{
@@ -345,7 +331,7 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*File
 // CreateDirectory creates a new directory.
 func (s *service) CreateDirectory(ctx context.Context, parentID int64, name, ownerUID string) (*File, error) {
 	if name == "" {
-		return nil, errors.New("name is required")
+		return nil, errors.BadRequest("name is required")
 	}
 
 	exists, err := s.dirSvc.Exists(ctx, parentID, name)
@@ -353,7 +339,7 @@ func (s *service) CreateDirectory(ctx context.Context, parentID int64, name, own
 		return nil, err
 	}
 	if exists {
-		return nil, ErrAlreadyExists
+		return nil, errors.Conflict("file already exists")
 	}
 
 	parentInode, err := s.inodeSvc.GetByID(ctx, parentID)
@@ -361,7 +347,7 @@ func (s *service) CreateDirectory(ctx context.Context, parentID int64, name, own
 		return nil, err
 	}
 	if parentInode.FileType != inode.FileTypeDirectory {
-		return nil, ErrNotDirectory
+		return nil, errors.BadRequest("not a directory")
 	}
 
 	inodeCmd := &inode.CreateCommand{
@@ -394,10 +380,10 @@ func (s *service) CreateDirectory(ctx context.Context, parentID int64, name, own
 // CreateSymlink creates a symbolic link.
 func (s *service) CreateSymlink(ctx context.Context, parentID int64, name, targetPath, ownerUID string) (*File, error) {
 	if name == "" {
-		return nil, errors.New("name is required")
+		return nil, errors.BadRequest("name is required")
 	}
 	if targetPath == "" {
-		return nil, errors.New("target path is required")
+		return nil, errors.BadRequest("target path is required")
 	}
 
 	exists, err := s.dirSvc.Exists(ctx, parentID, name)
@@ -405,7 +391,7 @@ func (s *service) CreateSymlink(ctx context.Context, parentID int64, name, targe
 		return nil, err
 	}
 	if exists {
-		return nil, ErrAlreadyExists
+		return nil, errors.Conflict("file already exists")
 	}
 
 	// Create symlink inode
@@ -450,7 +436,7 @@ func (s *service) CreateSymlink(ctx context.Context, parentID int64, name, targe
 // CreateHardLink creates a hard link.
 func (s *service) CreateHardLink(ctx context.Context, parentID int64, name string, targetInodeID int64) (*File, error) {
 	if name == "" {
-		return nil, errors.New("name is required")
+		return nil, errors.BadRequest("name is required")
 	}
 
 	exists, err := s.dirSvc.Exists(ctx, parentID, name)
@@ -458,7 +444,7 @@ func (s *service) CreateHardLink(ctx context.Context, parentID int64, name strin
 		return nil, err
 	}
 	if exists {
-		return nil, ErrAlreadyExists
+		return nil, errors.Conflict("file already exists")
 	}
 
 	targetInode, err := s.inodeSvc.GetByID(ctx, targetInodeID)
@@ -466,7 +452,7 @@ func (s *service) CreateHardLink(ctx context.Context, parentID int64, name strin
 		return nil, err
 	}
 	if targetInode.FileType != inode.FileTypeRegular {
-		return nil, ErrNotRegularFile
+		return nil, errors.BadRequest("not a regular file")
 	}
 
 	dirCmd := &directory.CreateCommand{
@@ -492,7 +478,7 @@ func (s *service) Move(ctx context.Context, cmd *MoveCommand) (*File, error) {
 		return nil, err
 	}
 	if exists {
-		return nil, ErrAlreadyExists
+		return nil, errors.Conflict("file already exists")
 	}
 
 	targetInode, err := s.inodeSvc.GetByID(ctx, cmd.NewParentID)
@@ -500,11 +486,11 @@ func (s *service) Move(ctx context.Context, cmd *MoveCommand) (*File, error) {
 		return nil, err
 	}
 	if targetInode.FileType != inode.FileTypeDirectory {
-		return nil, ErrNotDirectory
+		return nil, errors.BadRequest("not a directory")
 	}
 
 	if cmd.InodeID == cmd.NewParentID {
-		return nil, ErrCannotMoveIntoSelf
+		return nil, errors.BadRequest("cannot move directory into itself")
 	}
 
 	entries, err := s.dirSvc.FindByChild(ctx, cmd.InodeID)
@@ -521,7 +507,7 @@ func (s *service) Move(ctx context.Context, cmd *MoveCommand) (*File, error) {
 	}
 
 	if targetEntry == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("file not found")
 	}
 
 	targetEntry.ParentID = cmd.NewParentID
@@ -535,7 +521,7 @@ func (s *service) Move(ctx context.Context, cmd *MoveCommand) (*File, error) {
 
 // Copy copies a file (placeholder - requires more complex implementation).
 func (s *service) Copy(ctx context.Context, cmd *CopyCommand) (*File, error) {
-	return nil, errors.New("copy operation not yet implemented")
+	return nil, errors.BadRequest("copy operation not yet implemented")
 }
 
 // Delete deletes a file.
@@ -545,7 +531,7 @@ func (s *service) Delete(ctx context.Context, parentID int64, name string) error
 		return err
 	}
 	if entry == nil {
-		return ErrNotFound
+		return errors.NotFound("file not found")
 	}
 
 	in, err := s.inodeSvc.GetByID(ctx, entry.ChildID)
@@ -554,7 +540,7 @@ func (s *service) Delete(ctx context.Context, parentID int64, name string) error
 	}
 
 	if in.IsSystem {
-		return ErrCannotDeleteRoot
+		return errors.Forbidden("cannot delete root directory")
 	}
 
 	if in.FileType == inode.FileTypeDirectory {
@@ -563,7 +549,7 @@ func (s *service) Delete(ctx context.Context, parentID int64, name string) error
 			return err
 		}
 		if len(children) > 0 {
-			return ErrNotEmptyDirectory
+			return errors.BadRequest("directory not empty")
 		}
 	}
 
@@ -594,7 +580,7 @@ func (s *service) Rename(ctx context.Context, inodeID, parentID int64, newName s
 		return err
 	}
 	if exists {
-		return ErrAlreadyExists
+		return errors.Conflict("file already exists")
 	}
 
 	entries, err := s.dirSvc.FindByChild(ctx, inodeID)
@@ -611,7 +597,7 @@ func (s *service) Rename(ctx context.Context, inodeID, parentID int64, newName s
 	}
 
 	if targetEntry == nil {
-		return ErrNotFound
+		return errors.NotFound("file not found")
 	}
 
 	targetEntry.Name = newName

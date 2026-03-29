@@ -2,14 +2,9 @@ package symlink
 
 import (
 	"context"
-	"errors"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-)
-
-// Errors
-var (
-	ErrNotFound = errors.New("symlink not found")
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // CreateCommand for creating a symlink.
@@ -52,7 +47,7 @@ func (s *service) GetByInodeID(ctx context.Context, inodeID int64) (*Symlink, er
 		return nil, err
 	}
 	if sl == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("symlink not found")
 	}
 	return sl, nil
 }

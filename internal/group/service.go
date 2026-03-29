@@ -2,15 +2,9 @@ package group
 
 import (
 	"context"
-	"errors"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-)
-
-// Errors
-var (
-	ErrNotFound      = errors.New("group not found")
-	ErrAlreadyExists = errors.New("group already exists")
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // CreateCommand for creating a group.
@@ -83,7 +77,7 @@ func (s *service) GetByID(ctx context.Context, id int64) (*Group, error) {
 		return nil, err
 	}
 	if g == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("group not found")
 	}
 	return g, nil
 }
@@ -94,7 +88,7 @@ func (s *service) GetBySystemIDAndGID(ctx context.Context, systemID int64, gid s
 		return nil, err
 	}
 	if g == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("group not found")
 	}
 	return g, nil
 }
@@ -105,7 +99,7 @@ func (s *service) GetBySystemIDAndGroupname(ctx context.Context, systemID int64,
 		return nil, err
 	}
 	if g == nil {
-		return nil, ErrNotFound
+		return nil, errors.NotFound("group not found")
 	}
 	return g, nil
 }
