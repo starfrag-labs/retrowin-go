@@ -152,16 +152,16 @@ func ProvideHTTPMux(
 		w.Write([]byte(`{"status":"healthy"}`))
 	})
 
-	// Serve OpenAPI spec and Swagger UI - register BEFORE /v1/ catchall
+	// API routes with /v1 prefix
+	mux.Handle("/v1/", http.StripPrefix("/v1", ogenServer))
+
+	// Serve OpenAPI spec and Swagger UI
 	mux.HandleFunc("/v1/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, cfg.HTTP.OpenAPIPath)
 	})
 	mux.HandleFunc("/v1/swagger", httpSwagger.Handler(
 		httpSwagger.URL("/v1/openapi.json"),
 	))
-
-	// API routes with /v1 prefix - must be last to catch remaining /v1/* routes
-	mux.Handle("/v1/", http.StripPrefix("/v1", ogenServer))
 
 	return mux
 }
