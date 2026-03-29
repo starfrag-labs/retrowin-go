@@ -16,18 +16,76 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// UID holds the value of the "uid" field.
+	UID string `json:"uid,omitempty"`
+	// Username holds the value of the "username" field.
+	Username string `json:"username,omitempty"`
 	// Provider holds the value of the "provider" field.
 	Provider string `json:"provider,omitempty"`
 	// ProviderID holds the value of the "provider_id" field.
 	ProviderID string `json:"provider_id,omitempty"`
 	// JoinDate holds the value of the "join_date" field.
-	JoinDate     time.Time `json:"join_date,omitempty"`
+	JoinDate time.Time `json:"join_date,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Groups holds the value of the groups edge.
+	Groups []*Group `json:"groups,omitempty"`
+	// Systems holds the value of the systems edge.
+	Systems []*System `json:"systems,omitempty"`
+	// UserGroups holds the value of the user_groups edge.
+	UserGroups []*UserGroup `json:"user_groups,omitempty"`
+	// UserSystems holds the value of the user_systems edge.
+	UserSystems []*UserSystem `json:"user_systems,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// GroupsOrErr returns the Groups value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) GroupsOrErr() ([]*Group, error) {
+	if e.loadedTypes[0] {
+		return e.Groups, nil
+	}
+	return nil, &NotLoadedError{edge: "groups"}
+}
+
+// SystemsOrErr returns the Systems value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SystemsOrErr() ([]*System, error) {
+	if e.loadedTypes[1] {
+		return e.Systems, nil
+	}
+	return nil, &NotLoadedError{edge: "systems"}
+}
+
+// UserGroupsOrErr returns the UserGroups value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UserGroupsOrErr() ([]*UserGroup, error) {
+	if e.loadedTypes[2] {
+		return e.UserGroups, nil
+	}
+	return nil, &NotLoadedError{edge: "user_groups"}
+}
+
+// UserSystemsOrErr returns the UserSystems value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UserSystemsOrErr() ([]*UserSystem, error) {
+	if e.loadedTypes[3] {
+		return e.UserSystems, nil
+	}
+	return nil, &NotLoadedError{edge: "user_systems"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,7 +95,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldProvider, user.FieldProviderID:
+		case user.FieldUID, user.FieldUsername, user.FieldProvider, user.FieldProviderID:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime, user.FieldJoinDate:
 			values[i] = new(sql.NullTime)
@@ -61,7 +119,7 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			_m.ID = int(value.Int64)
+			_m.ID = int64(value.Int64)
 		case user.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
@@ -73,6 +131,18 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				_m.UpdateTime = value.Time
+			}
+		case user.FieldUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field uid", values[i])
+			} else if value.Valid {
+				_m.UID = value.String
+			}
+		case user.FieldUsername:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value.Valid {
+				_m.Username = value.String
 			}
 		case user.FieldProvider:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -105,6 +175,26 @@ func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryGroups queries the "groups" edge of the User entity.
+func (_m *User) QueryGroups() *GroupQuery {
+	return NewUserClient(_m.config).QueryGroups(_m)
+}
+
+// QuerySystems queries the "systems" edge of the User entity.
+func (_m *User) QuerySystems() *SystemQuery {
+	return NewUserClient(_m.config).QuerySystems(_m)
+}
+
+// QueryUserGroups queries the "user_groups" edge of the User entity.
+func (_m *User) QueryUserGroups() *UserGroupQuery {
+	return NewUserClient(_m.config).QueryUserGroups(_m)
+}
+
+// QueryUserSystems queries the "user_systems" edge of the User entity.
+func (_m *User) QueryUserSystems() *UserSystemQuery {
+	return NewUserClient(_m.config).QueryUserSystems(_m)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -133,6 +223,12 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("uid=")
+	builder.WriteString(_m.UID)
+	builder.WriteString(", ")
+	builder.WriteString("username=")
+	builder.WriteString(_m.Username)
 	builder.WriteString(", ")
 	builder.WriteString("provider=")
 	builder.WriteString(_m.Provider)

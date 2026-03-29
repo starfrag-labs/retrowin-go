@@ -9,64 +9,76 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
-// The FileFunc type is an adapter to allow the use of ordinary
-// function as File mutator.
-type FileFunc func(context.Context, *ent.FileMutation) (ent.Value, error)
+// The DirectoryEntryFunc type is an adapter to allow the use of ordinary
+// function as DirectoryEntry mutator.
+type DirectoryEntryFunc func(context.Context, *ent.DirectoryEntryMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileMutation); ok {
+func (f DirectoryEntryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DirectoryEntryMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DirectoryEntryMutation", m)
 }
 
-// The FileInfoFunc type is an adapter to allow the use of ordinary
-// function as FileInfo mutator.
-type FileInfoFunc func(context.Context, *ent.FileInfoMutation) (ent.Value, error)
+// The FileDataFunc type is an adapter to allow the use of ordinary
+// function as FileData mutator.
+type FileDataFunc func(context.Context, *ent.FileDataMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FileInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileInfoMutation); ok {
+func (f FileDataFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FileDataMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileInfoMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileDataMutation", m)
 }
 
-// The FileLinkFunc type is an adapter to allow the use of ordinary
-// function as FileLink mutator.
-type FileLinkFunc func(context.Context, *ent.FileLinkMutation) (ent.Value, error)
+// The GroupFunc type is an adapter to allow the use of ordinary
+// function as Group mutator.
+type GroupFunc func(context.Context, *ent.GroupMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FileLinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileLinkMutation); ok {
+func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.GroupMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileLinkMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
 }
 
-// The FilePathFunc type is an adapter to allow the use of ordinary
-// function as FilePath mutator.
-type FilePathFunc func(context.Context, *ent.FilePathMutation) (ent.Value, error)
+// The InodeFunc type is an adapter to allow the use of ordinary
+// function as Inode mutator.
+type InodeFunc func(context.Context, *ent.InodeMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FilePathFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FilePathMutation); ok {
+func (f InodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InodeMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FilePathMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InodeMutation", m)
 }
 
-// The FileRoleFunc type is an adapter to allow the use of ordinary
-// function as FileRole mutator.
-type FileRoleFunc func(context.Context, *ent.FileRoleMutation) (ent.Value, error)
+// The SymlinkFunc type is an adapter to allow the use of ordinary
+// function as Symlink mutator.
+type SymlinkFunc func(context.Context, *ent.SymlinkMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FileRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileRoleMutation); ok {
+func (f SymlinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SymlinkMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileRoleMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SymlinkMutation", m)
+}
+
+// The SystemFunc type is an adapter to allow the use of ordinary
+// function as System mutator.
+type SystemFunc func(context.Context, *ent.SystemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -79,6 +91,30 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserGroupFunc type is an adapter to allow the use of ordinary
+// function as UserGroup mutator.
+type UserGroupFunc func(context.Context, *ent.UserGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserGroupMutation", m)
+}
+
+// The UserSystemFunc type is an adapter to allow the use of ordinary
+// function as UserSystem mutator.
+type UserSystemFunc func(context.Context, *ent.UserSystemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserSystemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserSystemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserSystemMutation", m)
 }
 
 // Condition is a hook condition function.

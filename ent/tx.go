@@ -12,18 +12,24 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// File is the client for interacting with the File builders.
-	File *FileClient
-	// FileInfo is the client for interacting with the FileInfo builders.
-	FileInfo *FileInfoClient
-	// FileLink is the client for interacting with the FileLink builders.
-	FileLink *FileLinkClient
-	// FilePath is the client for interacting with the FilePath builders.
-	FilePath *FilePathClient
-	// FileRole is the client for interacting with the FileRole builders.
-	FileRole *FileRoleClient
+	// DirectoryEntry is the client for interacting with the DirectoryEntry builders.
+	DirectoryEntry *DirectoryEntryClient
+	// FileData is the client for interacting with the FileData builders.
+	FileData *FileDataClient
+	// Group is the client for interacting with the Group builders.
+	Group *GroupClient
+	// Inode is the client for interacting with the Inode builders.
+	Inode *InodeClient
+	// Symlink is the client for interacting with the Symlink builders.
+	Symlink *SymlinkClient
+	// System is the client for interacting with the System builders.
+	System *SystemClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserGroup is the client for interacting with the UserGroup builders.
+	UserGroup *UserGroupClient
+	// UserSystem is the client for interacting with the UserSystem builders.
+	UserSystem *UserSystemClient
 
 	// lazily loaded.
 	client     *Client
@@ -155,12 +161,15 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.File = NewFileClient(tx.config)
-	tx.FileInfo = NewFileInfoClient(tx.config)
-	tx.FileLink = NewFileLinkClient(tx.config)
-	tx.FilePath = NewFilePathClient(tx.config)
-	tx.FileRole = NewFileRoleClient(tx.config)
+	tx.DirectoryEntry = NewDirectoryEntryClient(tx.config)
+	tx.FileData = NewFileDataClient(tx.config)
+	tx.Group = NewGroupClient(tx.config)
+	tx.Inode = NewInodeClient(tx.config)
+	tx.Symlink = NewSymlinkClient(tx.config)
+	tx.System = NewSystemClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserGroup = NewUserGroupClient(tx.config)
+	tx.UserSystem = NewUserSystemClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -170,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: File.QueryXXX(), the query will be executed
+// applies a query, for example: DirectoryEntry.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

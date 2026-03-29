@@ -14,12 +14,16 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/starfrag-lab/retrowin-go/ent/file"
-	"github.com/starfrag-lab/retrowin-go/ent/fileinfo"
-	"github.com/starfrag-lab/retrowin-go/ent/filelink"
-	"github.com/starfrag-lab/retrowin-go/ent/filepath"
-	"github.com/starfrag-lab/retrowin-go/ent/filerole"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/starfrag-lab/retrowin-go/ent/directoryentry"
+	"github.com/starfrag-lab/retrowin-go/ent/filedata"
+	"github.com/starfrag-lab/retrowin-go/ent/group"
+	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/symlink"
+	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
+	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
 // Client is the client that holds all ent builders.
@@ -27,18 +31,24 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// File is the client for interacting with the File builders.
-	File *FileClient
-	// FileInfo is the client for interacting with the FileInfo builders.
-	FileInfo *FileInfoClient
-	// FileLink is the client for interacting with the FileLink builders.
-	FileLink *FileLinkClient
-	// FilePath is the client for interacting with the FilePath builders.
-	FilePath *FilePathClient
-	// FileRole is the client for interacting with the FileRole builders.
-	FileRole *FileRoleClient
+	// DirectoryEntry is the client for interacting with the DirectoryEntry builders.
+	DirectoryEntry *DirectoryEntryClient
+	// FileData is the client for interacting with the FileData builders.
+	FileData *FileDataClient
+	// Group is the client for interacting with the Group builders.
+	Group *GroupClient
+	// Inode is the client for interacting with the Inode builders.
+	Inode *InodeClient
+	// Symlink is the client for interacting with the Symlink builders.
+	Symlink *SymlinkClient
+	// System is the client for interacting with the System builders.
+	System *SystemClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserGroup is the client for interacting with the UserGroup builders.
+	UserGroup *UserGroupClient
+	// UserSystem is the client for interacting with the UserSystem builders.
+	UserSystem *UserSystemClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -50,12 +60,15 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.File = NewFileClient(c.config)
-	c.FileInfo = NewFileInfoClient(c.config)
-	c.FileLink = NewFileLinkClient(c.config)
-	c.FilePath = NewFilePathClient(c.config)
-	c.FileRole = NewFileRoleClient(c.config)
+	c.DirectoryEntry = NewDirectoryEntryClient(c.config)
+	c.FileData = NewFileDataClient(c.config)
+	c.Group = NewGroupClient(c.config)
+	c.Inode = NewInodeClient(c.config)
+	c.Symlink = NewSymlinkClient(c.config)
+	c.System = NewSystemClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserGroup = NewUserGroupClient(c.config)
+	c.UserSystem = NewUserSystemClient(c.config)
 }
 
 type (
@@ -146,14 +159,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:      ctx,
-		config:   cfg,
-		File:     NewFileClient(cfg),
-		FileInfo: NewFileInfoClient(cfg),
-		FileLink: NewFileLinkClient(cfg),
-		FilePath: NewFilePathClient(cfg),
-		FileRole: NewFileRoleClient(cfg),
-		User:     NewUserClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		DirectoryEntry: NewDirectoryEntryClient(cfg),
+		FileData:       NewFileDataClient(cfg),
+		Group:          NewGroupClient(cfg),
+		Inode:          NewInodeClient(cfg),
+		Symlink:        NewSymlinkClient(cfg),
+		System:         NewSystemClient(cfg),
+		User:           NewUserClient(cfg),
+		UserGroup:      NewUserGroupClient(cfg),
+		UserSystem:     NewUserSystemClient(cfg),
 	}, nil
 }
 
@@ -171,21 +187,24 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:      ctx,
-		config:   cfg,
-		File:     NewFileClient(cfg),
-		FileInfo: NewFileInfoClient(cfg),
-		FileLink: NewFileLinkClient(cfg),
-		FilePath: NewFilePathClient(cfg),
-		FileRole: NewFileRoleClient(cfg),
-		User:     NewUserClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		DirectoryEntry: NewDirectoryEntryClient(cfg),
+		FileData:       NewFileDataClient(cfg),
+		Group:          NewGroupClient(cfg),
+		Inode:          NewInodeClient(cfg),
+		Symlink:        NewSymlinkClient(cfg),
+		System:         NewSystemClient(cfg),
+		User:           NewUserClient(cfg),
+		UserGroup:      NewUserGroupClient(cfg),
+		UserSystem:     NewUserSystemClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		File.
+//		DirectoryEntry.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -208,7 +227,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.File, c.FileInfo, c.FileLink, c.FilePath, c.FileRole, c.User,
+		c.DirectoryEntry, c.FileData, c.Group, c.Inode, c.Symlink, c.System, c.User,
+		c.UserGroup, c.UserSystem,
 	} {
 		n.Use(hooks...)
 	}
@@ -218,7 +238,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.File, c.FileInfo, c.FileLink, c.FilePath, c.FileRole, c.User,
+		c.DirectoryEntry, c.FileData, c.Group, c.Inode, c.Symlink, c.System, c.User,
+		c.UserGroup, c.UserSystem,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -227,124 +248,130 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *FileMutation:
-		return c.File.mutate(ctx, m)
-	case *FileInfoMutation:
-		return c.FileInfo.mutate(ctx, m)
-	case *FileLinkMutation:
-		return c.FileLink.mutate(ctx, m)
-	case *FilePathMutation:
-		return c.FilePath.mutate(ctx, m)
-	case *FileRoleMutation:
-		return c.FileRole.mutate(ctx, m)
+	case *DirectoryEntryMutation:
+		return c.DirectoryEntry.mutate(ctx, m)
+	case *FileDataMutation:
+		return c.FileData.mutate(ctx, m)
+	case *GroupMutation:
+		return c.Group.mutate(ctx, m)
+	case *InodeMutation:
+		return c.Inode.mutate(ctx, m)
+	case *SymlinkMutation:
+		return c.Symlink.mutate(ctx, m)
+	case *SystemMutation:
+		return c.System.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserGroupMutation:
+		return c.UserGroup.mutate(ctx, m)
+	case *UserSystemMutation:
+		return c.UserSystem.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
 }
 
-// FileClient is a client for the File schema.
-type FileClient struct {
+// DirectoryEntryClient is a client for the DirectoryEntry schema.
+type DirectoryEntryClient struct {
 	config
 }
 
-// NewFileClient returns a client for the File from the given config.
-func NewFileClient(c config) *FileClient {
-	return &FileClient{config: c}
+// NewDirectoryEntryClient returns a client for the DirectoryEntry from the given config.
+func NewDirectoryEntryClient(c config) *DirectoryEntryClient {
+	return &DirectoryEntryClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `file.Hooks(f(g(h())))`.
-func (c *FileClient) Use(hooks ...Hook) {
-	c.hooks.File = append(c.hooks.File, hooks...)
+// A call to `Use(f, g, h)` equals to `directoryentry.Hooks(f(g(h())))`.
+func (c *DirectoryEntryClient) Use(hooks ...Hook) {
+	c.hooks.DirectoryEntry = append(c.hooks.DirectoryEntry, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `file.Intercept(f(g(h())))`.
-func (c *FileClient) Intercept(interceptors ...Interceptor) {
-	c.inters.File = append(c.inters.File, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `directoryentry.Intercept(f(g(h())))`.
+func (c *DirectoryEntryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DirectoryEntry = append(c.inters.DirectoryEntry, interceptors...)
 }
 
-// Create returns a builder for creating a File entity.
-func (c *FileClient) Create() *FileCreate {
-	mutation := newFileMutation(c.config, OpCreate)
-	return &FileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a DirectoryEntry entity.
+func (c *DirectoryEntryClient) Create() *DirectoryEntryCreate {
+	mutation := newDirectoryEntryMutation(c.config, OpCreate)
+	return &DirectoryEntryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of File entities.
-func (c *FileClient) CreateBulk(builders ...*FileCreate) *FileCreateBulk {
-	return &FileCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of DirectoryEntry entities.
+func (c *DirectoryEntryClient) CreateBulk(builders ...*DirectoryEntryCreate) *DirectoryEntryCreateBulk {
+	return &DirectoryEntryCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *FileClient) MapCreateBulk(slice any, setFunc func(*FileCreate, int)) *FileCreateBulk {
+func (c *DirectoryEntryClient) MapCreateBulk(slice any, setFunc func(*DirectoryEntryCreate, int)) *DirectoryEntryCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &FileCreateBulk{err: fmt.Errorf("calling to FileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &DirectoryEntryCreateBulk{err: fmt.Errorf("calling to DirectoryEntryClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*FileCreate, rv.Len())
+	builders := make([]*DirectoryEntryCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &FileCreateBulk{config: c.config, builders: builders}
+	return &DirectoryEntryCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for File.
-func (c *FileClient) Update() *FileUpdate {
-	mutation := newFileMutation(c.config, OpUpdate)
-	return &FileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for DirectoryEntry.
+func (c *DirectoryEntryClient) Update() *DirectoryEntryUpdate {
+	mutation := newDirectoryEntryMutation(c.config, OpUpdate)
+	return &DirectoryEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *FileClient) UpdateOne(_m *File) *FileUpdateOne {
-	mutation := newFileMutation(c.config, OpUpdateOne, withFile(_m))
-	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *DirectoryEntryClient) UpdateOne(_m *DirectoryEntry) *DirectoryEntryUpdateOne {
+	mutation := newDirectoryEntryMutation(c.config, OpUpdateOne, withDirectoryEntry(_m))
+	return &DirectoryEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *FileClient) UpdateOneID(id int) *FileUpdateOne {
-	mutation := newFileMutation(c.config, OpUpdateOne, withFileID(id))
-	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *DirectoryEntryClient) UpdateOneID(id int64) *DirectoryEntryUpdateOne {
+	mutation := newDirectoryEntryMutation(c.config, OpUpdateOne, withDirectoryEntryID(id))
+	return &DirectoryEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for File.
-func (c *FileClient) Delete() *FileDelete {
-	mutation := newFileMutation(c.config, OpDelete)
-	return &FileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for DirectoryEntry.
+func (c *DirectoryEntryClient) Delete() *DirectoryEntryDelete {
+	mutation := newDirectoryEntryMutation(c.config, OpDelete)
+	return &DirectoryEntryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *FileClient) DeleteOne(_m *File) *FileDeleteOne {
+func (c *DirectoryEntryClient) DeleteOne(_m *DirectoryEntry) *DirectoryEntryDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *FileClient) DeleteOneID(id int) *FileDeleteOne {
-	builder := c.Delete().Where(file.ID(id))
+func (c *DirectoryEntryClient) DeleteOneID(id int64) *DirectoryEntryDeleteOne {
+	builder := c.Delete().Where(directoryentry.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &FileDeleteOne{builder}
+	return &DirectoryEntryDeleteOne{builder}
 }
 
-// Query returns a query builder for File.
-func (c *FileClient) Query() *FileQuery {
-	return &FileQuery{
+// Query returns a query builder for DirectoryEntry.
+func (c *DirectoryEntryClient) Query() *DirectoryEntryQuery {
+	return &DirectoryEntryQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeFile},
+		ctx:    &QueryContext{Type: TypeDirectoryEntry},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a File entity by its id.
-func (c *FileClient) Get(ctx context.Context, id int) (*File, error) {
-	return c.Query().Where(file.ID(id)).Only(ctx)
+// Get returns a DirectoryEntry entity by its id.
+func (c *DirectoryEntryClient) Get(ctx context.Context, id int64) (*DirectoryEntry, error) {
+	return c.Query().Where(directoryentry.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *FileClient) GetX(ctx context.Context, id int) *File {
+func (c *DirectoryEntryClient) GetX(ctx context.Context, id int64) *DirectoryEntry {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -352,132 +379,164 @@ func (c *FileClient) GetX(ctx context.Context, id int) *File {
 	return obj
 }
 
+// QueryParent queries the parent edge of a DirectoryEntry.
+func (c *DirectoryEntryClient) QueryParent(_m *DirectoryEntry) *InodeQuery {
+	query := (&InodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(directoryentry.Table, directoryentry.FieldID, id),
+			sqlgraph.To(inode.Table, inode.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, directoryentry.ParentTable, directoryentry.ParentColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChild queries the child edge of a DirectoryEntry.
+func (c *DirectoryEntryClient) QueryChild(_m *DirectoryEntry) *InodeQuery {
+	query := (&InodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(directoryentry.Table, directoryentry.FieldID, id),
+			sqlgraph.To(inode.Table, inode.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, directoryentry.ChildTable, directoryentry.ChildColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *FileClient) Hooks() []Hook {
-	return c.hooks.File
+func (c *DirectoryEntryClient) Hooks() []Hook {
+	return c.hooks.DirectoryEntry
 }
 
 // Interceptors returns the client interceptors.
-func (c *FileClient) Interceptors() []Interceptor {
-	return c.inters.File
+func (c *DirectoryEntryClient) Interceptors() []Interceptor {
+	return c.inters.DirectoryEntry
 }
 
-func (c *FileClient) mutate(ctx context.Context, m *FileMutation) (Value, error) {
+func (c *DirectoryEntryClient) mutate(ctx context.Context, m *DirectoryEntryMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&FileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&DirectoryEntryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&FileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&DirectoryEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&DirectoryEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&FileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&DirectoryEntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown File mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown DirectoryEntry mutation op: %q", m.Op())
 	}
 }
 
-// FileInfoClient is a client for the FileInfo schema.
-type FileInfoClient struct {
+// FileDataClient is a client for the FileData schema.
+type FileDataClient struct {
 	config
 }
 
-// NewFileInfoClient returns a client for the FileInfo from the given config.
-func NewFileInfoClient(c config) *FileInfoClient {
-	return &FileInfoClient{config: c}
+// NewFileDataClient returns a client for the FileData from the given config.
+func NewFileDataClient(c config) *FileDataClient {
+	return &FileDataClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `fileinfo.Hooks(f(g(h())))`.
-func (c *FileInfoClient) Use(hooks ...Hook) {
-	c.hooks.FileInfo = append(c.hooks.FileInfo, hooks...)
+// A call to `Use(f, g, h)` equals to `filedata.Hooks(f(g(h())))`.
+func (c *FileDataClient) Use(hooks ...Hook) {
+	c.hooks.FileData = append(c.hooks.FileData, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `fileinfo.Intercept(f(g(h())))`.
-func (c *FileInfoClient) Intercept(interceptors ...Interceptor) {
-	c.inters.FileInfo = append(c.inters.FileInfo, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `filedata.Intercept(f(g(h())))`.
+func (c *FileDataClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FileData = append(c.inters.FileData, interceptors...)
 }
 
-// Create returns a builder for creating a FileInfo entity.
-func (c *FileInfoClient) Create() *FileInfoCreate {
-	mutation := newFileInfoMutation(c.config, OpCreate)
-	return &FileInfoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a FileData entity.
+func (c *FileDataClient) Create() *FileDataCreate {
+	mutation := newFileDataMutation(c.config, OpCreate)
+	return &FileDataCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of FileInfo entities.
-func (c *FileInfoClient) CreateBulk(builders ...*FileInfoCreate) *FileInfoCreateBulk {
-	return &FileInfoCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of FileData entities.
+func (c *FileDataClient) CreateBulk(builders ...*FileDataCreate) *FileDataCreateBulk {
+	return &FileDataCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *FileInfoClient) MapCreateBulk(slice any, setFunc func(*FileInfoCreate, int)) *FileInfoCreateBulk {
+func (c *FileDataClient) MapCreateBulk(slice any, setFunc func(*FileDataCreate, int)) *FileDataCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &FileInfoCreateBulk{err: fmt.Errorf("calling to FileInfoClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &FileDataCreateBulk{err: fmt.Errorf("calling to FileDataClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*FileInfoCreate, rv.Len())
+	builders := make([]*FileDataCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &FileInfoCreateBulk{config: c.config, builders: builders}
+	return &FileDataCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for FileInfo.
-func (c *FileInfoClient) Update() *FileInfoUpdate {
-	mutation := newFileInfoMutation(c.config, OpUpdate)
-	return &FileInfoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for FileData.
+func (c *FileDataClient) Update() *FileDataUpdate {
+	mutation := newFileDataMutation(c.config, OpUpdate)
+	return &FileDataUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *FileInfoClient) UpdateOne(_m *FileInfo) *FileInfoUpdateOne {
-	mutation := newFileInfoMutation(c.config, OpUpdateOne, withFileInfo(_m))
-	return &FileInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *FileDataClient) UpdateOne(_m *FileData) *FileDataUpdateOne {
+	mutation := newFileDataMutation(c.config, OpUpdateOne, withFileData(_m))
+	return &FileDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *FileInfoClient) UpdateOneID(id int) *FileInfoUpdateOne {
-	mutation := newFileInfoMutation(c.config, OpUpdateOne, withFileInfoID(id))
-	return &FileInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *FileDataClient) UpdateOneID(id int) *FileDataUpdateOne {
+	mutation := newFileDataMutation(c.config, OpUpdateOne, withFileDataID(id))
+	return &FileDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for FileInfo.
-func (c *FileInfoClient) Delete() *FileInfoDelete {
-	mutation := newFileInfoMutation(c.config, OpDelete)
-	return &FileInfoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for FileData.
+func (c *FileDataClient) Delete() *FileDataDelete {
+	mutation := newFileDataMutation(c.config, OpDelete)
+	return &FileDataDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *FileInfoClient) DeleteOne(_m *FileInfo) *FileInfoDeleteOne {
+func (c *FileDataClient) DeleteOne(_m *FileData) *FileDataDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *FileInfoClient) DeleteOneID(id int) *FileInfoDeleteOne {
-	builder := c.Delete().Where(fileinfo.ID(id))
+func (c *FileDataClient) DeleteOneID(id int) *FileDataDeleteOne {
+	builder := c.Delete().Where(filedata.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &FileInfoDeleteOne{builder}
+	return &FileDataDeleteOne{builder}
 }
 
-// Query returns a query builder for FileInfo.
-func (c *FileInfoClient) Query() *FileInfoQuery {
-	return &FileInfoQuery{
+// Query returns a query builder for FileData.
+func (c *FileDataClient) Query() *FileDataQuery {
+	return &FileDataQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeFileInfo},
+		ctx:    &QueryContext{Type: TypeFileData},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a FileInfo entity by its id.
-func (c *FileInfoClient) Get(ctx context.Context, id int) (*FileInfo, error) {
-	return c.Query().Where(fileinfo.ID(id)).Only(ctx)
+// Get returns a FileData entity by its id.
+func (c *FileDataClient) Get(ctx context.Context, id int) (*FileData, error) {
+	return c.Query().Where(filedata.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *FileInfoClient) GetX(ctx context.Context, id int) *FileInfo {
+func (c *FileDataClient) GetX(ctx context.Context, id int) *FileData {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -485,132 +544,148 @@ func (c *FileInfoClient) GetX(ctx context.Context, id int) *FileInfo {
 	return obj
 }
 
+// QueryInode queries the inode edge of a FileData.
+func (c *FileDataClient) QueryInode(_m *FileData) *InodeQuery {
+	query := (&InodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(filedata.Table, filedata.FieldID, id),
+			sqlgraph.To(inode.Table, inode.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, filedata.InodeTable, filedata.InodeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *FileInfoClient) Hooks() []Hook {
-	return c.hooks.FileInfo
+func (c *FileDataClient) Hooks() []Hook {
+	return c.hooks.FileData
 }
 
 // Interceptors returns the client interceptors.
-func (c *FileInfoClient) Interceptors() []Interceptor {
-	return c.inters.FileInfo
+func (c *FileDataClient) Interceptors() []Interceptor {
+	return c.inters.FileData
 }
 
-func (c *FileInfoClient) mutate(ctx context.Context, m *FileInfoMutation) (Value, error) {
+func (c *FileDataClient) mutate(ctx context.Context, m *FileDataMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&FileInfoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&FileDataCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&FileInfoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&FileDataUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&FileInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&FileDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&FileInfoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&FileDataDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown FileInfo mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown FileData mutation op: %q", m.Op())
 	}
 }
 
-// FileLinkClient is a client for the FileLink schema.
-type FileLinkClient struct {
+// GroupClient is a client for the Group schema.
+type GroupClient struct {
 	config
 }
 
-// NewFileLinkClient returns a client for the FileLink from the given config.
-func NewFileLinkClient(c config) *FileLinkClient {
-	return &FileLinkClient{config: c}
+// NewGroupClient returns a client for the Group from the given config.
+func NewGroupClient(c config) *GroupClient {
+	return &GroupClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `filelink.Hooks(f(g(h())))`.
-func (c *FileLinkClient) Use(hooks ...Hook) {
-	c.hooks.FileLink = append(c.hooks.FileLink, hooks...)
+// A call to `Use(f, g, h)` equals to `group.Hooks(f(g(h())))`.
+func (c *GroupClient) Use(hooks ...Hook) {
+	c.hooks.Group = append(c.hooks.Group, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `filelink.Intercept(f(g(h())))`.
-func (c *FileLinkClient) Intercept(interceptors ...Interceptor) {
-	c.inters.FileLink = append(c.inters.FileLink, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `group.Intercept(f(g(h())))`.
+func (c *GroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Group = append(c.inters.Group, interceptors...)
 }
 
-// Create returns a builder for creating a FileLink entity.
-func (c *FileLinkClient) Create() *FileLinkCreate {
-	mutation := newFileLinkMutation(c.config, OpCreate)
-	return &FileLinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Group entity.
+func (c *GroupClient) Create() *GroupCreate {
+	mutation := newGroupMutation(c.config, OpCreate)
+	return &GroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of FileLink entities.
-func (c *FileLinkClient) CreateBulk(builders ...*FileLinkCreate) *FileLinkCreateBulk {
-	return &FileLinkCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Group entities.
+func (c *GroupClient) CreateBulk(builders ...*GroupCreate) *GroupCreateBulk {
+	return &GroupCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *FileLinkClient) MapCreateBulk(slice any, setFunc func(*FileLinkCreate, int)) *FileLinkCreateBulk {
+func (c *GroupClient) MapCreateBulk(slice any, setFunc func(*GroupCreate, int)) *GroupCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &FileLinkCreateBulk{err: fmt.Errorf("calling to FileLinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &GroupCreateBulk{err: fmt.Errorf("calling to GroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*FileLinkCreate, rv.Len())
+	builders := make([]*GroupCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &FileLinkCreateBulk{config: c.config, builders: builders}
+	return &GroupCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for FileLink.
-func (c *FileLinkClient) Update() *FileLinkUpdate {
-	mutation := newFileLinkMutation(c.config, OpUpdate)
-	return &FileLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Group.
+func (c *GroupClient) Update() *GroupUpdate {
+	mutation := newGroupMutation(c.config, OpUpdate)
+	return &GroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *FileLinkClient) UpdateOne(_m *FileLink) *FileLinkUpdateOne {
-	mutation := newFileLinkMutation(c.config, OpUpdateOne, withFileLink(_m))
-	return &FileLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *GroupClient) UpdateOne(_m *Group) *GroupUpdateOne {
+	mutation := newGroupMutation(c.config, OpUpdateOne, withGroup(_m))
+	return &GroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *FileLinkClient) UpdateOneID(id int) *FileLinkUpdateOne {
-	mutation := newFileLinkMutation(c.config, OpUpdateOne, withFileLinkID(id))
-	return &FileLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *GroupClient) UpdateOneID(id int64) *GroupUpdateOne {
+	mutation := newGroupMutation(c.config, OpUpdateOne, withGroupID(id))
+	return &GroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for FileLink.
-func (c *FileLinkClient) Delete() *FileLinkDelete {
-	mutation := newFileLinkMutation(c.config, OpDelete)
-	return &FileLinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Group.
+func (c *GroupClient) Delete() *GroupDelete {
+	mutation := newGroupMutation(c.config, OpDelete)
+	return &GroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *FileLinkClient) DeleteOne(_m *FileLink) *FileLinkDeleteOne {
+func (c *GroupClient) DeleteOne(_m *Group) *GroupDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *FileLinkClient) DeleteOneID(id int) *FileLinkDeleteOne {
-	builder := c.Delete().Where(filelink.ID(id))
+func (c *GroupClient) DeleteOneID(id int64) *GroupDeleteOne {
+	builder := c.Delete().Where(group.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &FileLinkDeleteOne{builder}
+	return &GroupDeleteOne{builder}
 }
 
-// Query returns a query builder for FileLink.
-func (c *FileLinkClient) Query() *FileLinkQuery {
-	return &FileLinkQuery{
+// Query returns a query builder for Group.
+func (c *GroupClient) Query() *GroupQuery {
+	return &GroupQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeFileLink},
+		ctx:    &QueryContext{Type: TypeGroup},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a FileLink entity by its id.
-func (c *FileLinkClient) Get(ctx context.Context, id int) (*FileLink, error) {
-	return c.Query().Where(filelink.ID(id)).Only(ctx)
+// Get returns a Group entity by its id.
+func (c *GroupClient) Get(ctx context.Context, id int64) (*Group, error) {
+	return c.Query().Where(group.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *FileLinkClient) GetX(ctx context.Context, id int) *FileLink {
+func (c *GroupClient) GetX(ctx context.Context, id int64) *Group {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -618,132 +693,164 @@ func (c *FileLinkClient) GetX(ctx context.Context, id int) *FileLink {
 	return obj
 }
 
+// QuerySystem queries the system edge of a Group.
+func (c *GroupClient) QuerySystem(_m *Group) *SystemQuery {
+	query := (&SystemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, id),
+			sqlgraph.To(system.Table, system.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, group.SystemTable, group.SystemColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUsers queries the users edge of a Group.
+func (c *GroupClient) QueryUsers(_m *Group) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, group.UsersTable, group.UsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *FileLinkClient) Hooks() []Hook {
-	return c.hooks.FileLink
+func (c *GroupClient) Hooks() []Hook {
+	return c.hooks.Group
 }
 
 // Interceptors returns the client interceptors.
-func (c *FileLinkClient) Interceptors() []Interceptor {
-	return c.inters.FileLink
+func (c *GroupClient) Interceptors() []Interceptor {
+	return c.inters.Group
 }
 
-func (c *FileLinkClient) mutate(ctx context.Context, m *FileLinkMutation) (Value, error) {
+func (c *GroupClient) mutate(ctx context.Context, m *GroupMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&FileLinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&GroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&FileLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&GroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&FileLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&GroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&FileLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&GroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown FileLink mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Group mutation op: %q", m.Op())
 	}
 }
 
-// FilePathClient is a client for the FilePath schema.
-type FilePathClient struct {
+// InodeClient is a client for the Inode schema.
+type InodeClient struct {
 	config
 }
 
-// NewFilePathClient returns a client for the FilePath from the given config.
-func NewFilePathClient(c config) *FilePathClient {
-	return &FilePathClient{config: c}
+// NewInodeClient returns a client for the Inode from the given config.
+func NewInodeClient(c config) *InodeClient {
+	return &InodeClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `filepath.Hooks(f(g(h())))`.
-func (c *FilePathClient) Use(hooks ...Hook) {
-	c.hooks.FilePath = append(c.hooks.FilePath, hooks...)
+// A call to `Use(f, g, h)` equals to `inode.Hooks(f(g(h())))`.
+func (c *InodeClient) Use(hooks ...Hook) {
+	c.hooks.Inode = append(c.hooks.Inode, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `filepath.Intercept(f(g(h())))`.
-func (c *FilePathClient) Intercept(interceptors ...Interceptor) {
-	c.inters.FilePath = append(c.inters.FilePath, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `inode.Intercept(f(g(h())))`.
+func (c *InodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Inode = append(c.inters.Inode, interceptors...)
 }
 
-// Create returns a builder for creating a FilePath entity.
-func (c *FilePathClient) Create() *FilePathCreate {
-	mutation := newFilePathMutation(c.config, OpCreate)
-	return &FilePathCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Inode entity.
+func (c *InodeClient) Create() *InodeCreate {
+	mutation := newInodeMutation(c.config, OpCreate)
+	return &InodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of FilePath entities.
-func (c *FilePathClient) CreateBulk(builders ...*FilePathCreate) *FilePathCreateBulk {
-	return &FilePathCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Inode entities.
+func (c *InodeClient) CreateBulk(builders ...*InodeCreate) *InodeCreateBulk {
+	return &InodeCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *FilePathClient) MapCreateBulk(slice any, setFunc func(*FilePathCreate, int)) *FilePathCreateBulk {
+func (c *InodeClient) MapCreateBulk(slice any, setFunc func(*InodeCreate, int)) *InodeCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &FilePathCreateBulk{err: fmt.Errorf("calling to FilePathClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &InodeCreateBulk{err: fmt.Errorf("calling to InodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*FilePathCreate, rv.Len())
+	builders := make([]*InodeCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &FilePathCreateBulk{config: c.config, builders: builders}
+	return &InodeCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for FilePath.
-func (c *FilePathClient) Update() *FilePathUpdate {
-	mutation := newFilePathMutation(c.config, OpUpdate)
-	return &FilePathUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Inode.
+func (c *InodeClient) Update() *InodeUpdate {
+	mutation := newInodeMutation(c.config, OpUpdate)
+	return &InodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *FilePathClient) UpdateOne(_m *FilePath) *FilePathUpdateOne {
-	mutation := newFilePathMutation(c.config, OpUpdateOne, withFilePath(_m))
-	return &FilePathUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *InodeClient) UpdateOne(_m *Inode) *InodeUpdateOne {
+	mutation := newInodeMutation(c.config, OpUpdateOne, withInode(_m))
+	return &InodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *FilePathClient) UpdateOneID(id int) *FilePathUpdateOne {
-	mutation := newFilePathMutation(c.config, OpUpdateOne, withFilePathID(id))
-	return &FilePathUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *InodeClient) UpdateOneID(id int64) *InodeUpdateOne {
+	mutation := newInodeMutation(c.config, OpUpdateOne, withInodeID(id))
+	return &InodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for FilePath.
-func (c *FilePathClient) Delete() *FilePathDelete {
-	mutation := newFilePathMutation(c.config, OpDelete)
-	return &FilePathDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Inode.
+func (c *InodeClient) Delete() *InodeDelete {
+	mutation := newInodeMutation(c.config, OpDelete)
+	return &InodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *FilePathClient) DeleteOne(_m *FilePath) *FilePathDeleteOne {
+func (c *InodeClient) DeleteOne(_m *Inode) *InodeDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *FilePathClient) DeleteOneID(id int) *FilePathDeleteOne {
-	builder := c.Delete().Where(filepath.ID(id))
+func (c *InodeClient) DeleteOneID(id int64) *InodeDeleteOne {
+	builder := c.Delete().Where(inode.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &FilePathDeleteOne{builder}
+	return &InodeDeleteOne{builder}
 }
 
-// Query returns a query builder for FilePath.
-func (c *FilePathClient) Query() *FilePathQuery {
-	return &FilePathQuery{
+// Query returns a query builder for Inode.
+func (c *InodeClient) Query() *InodeQuery {
+	return &InodeQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeFilePath},
+		ctx:    &QueryContext{Type: TypeInode},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a FilePath entity by its id.
-func (c *FilePathClient) Get(ctx context.Context, id int) (*FilePath, error) {
-	return c.Query().Where(filepath.ID(id)).Only(ctx)
+// Get returns a Inode entity by its id.
+func (c *InodeClient) Get(ctx context.Context, id int64) (*Inode, error) {
+	return c.Query().Where(inode.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *FilePathClient) GetX(ctx context.Context, id int) *FilePath {
+func (c *InodeClient) GetX(ctx context.Context, id int64) *Inode {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -751,132 +858,164 @@ func (c *FilePathClient) GetX(ctx context.Context, id int) *FilePath {
 	return obj
 }
 
+// QuerySystem queries the system edge of a Inode.
+func (c *InodeClient) QuerySystem(_m *Inode) *SystemQuery {
+	query := (&SystemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inode.Table, inode.FieldID, id),
+			sqlgraph.To(system.Table, system.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, inode.SystemTable, inode.SystemColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEntries queries the entries edge of a Inode.
+func (c *InodeClient) QueryEntries(_m *Inode) *DirectoryEntryQuery {
+	query := (&DirectoryEntryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inode.Table, inode.FieldID, id),
+			sqlgraph.To(directoryentry.Table, directoryentry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, inode.EntriesTable, inode.EntriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *FilePathClient) Hooks() []Hook {
-	return c.hooks.FilePath
+func (c *InodeClient) Hooks() []Hook {
+	return c.hooks.Inode
 }
 
 // Interceptors returns the client interceptors.
-func (c *FilePathClient) Interceptors() []Interceptor {
-	return c.inters.FilePath
+func (c *InodeClient) Interceptors() []Interceptor {
+	return c.inters.Inode
 }
 
-func (c *FilePathClient) mutate(ctx context.Context, m *FilePathMutation) (Value, error) {
+func (c *InodeClient) mutate(ctx context.Context, m *InodeMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&FilePathCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&InodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&FilePathUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&InodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&FilePathUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&InodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&FilePathDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&InodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown FilePath mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Inode mutation op: %q", m.Op())
 	}
 }
 
-// FileRoleClient is a client for the FileRole schema.
-type FileRoleClient struct {
+// SymlinkClient is a client for the Symlink schema.
+type SymlinkClient struct {
 	config
 }
 
-// NewFileRoleClient returns a client for the FileRole from the given config.
-func NewFileRoleClient(c config) *FileRoleClient {
-	return &FileRoleClient{config: c}
+// NewSymlinkClient returns a client for the Symlink from the given config.
+func NewSymlinkClient(c config) *SymlinkClient {
+	return &SymlinkClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `filerole.Hooks(f(g(h())))`.
-func (c *FileRoleClient) Use(hooks ...Hook) {
-	c.hooks.FileRole = append(c.hooks.FileRole, hooks...)
+// A call to `Use(f, g, h)` equals to `symlink.Hooks(f(g(h())))`.
+func (c *SymlinkClient) Use(hooks ...Hook) {
+	c.hooks.Symlink = append(c.hooks.Symlink, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `filerole.Intercept(f(g(h())))`.
-func (c *FileRoleClient) Intercept(interceptors ...Interceptor) {
-	c.inters.FileRole = append(c.inters.FileRole, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `symlink.Intercept(f(g(h())))`.
+func (c *SymlinkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Symlink = append(c.inters.Symlink, interceptors...)
 }
 
-// Create returns a builder for creating a FileRole entity.
-func (c *FileRoleClient) Create() *FileRoleCreate {
-	mutation := newFileRoleMutation(c.config, OpCreate)
-	return &FileRoleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Symlink entity.
+func (c *SymlinkClient) Create() *SymlinkCreate {
+	mutation := newSymlinkMutation(c.config, OpCreate)
+	return &SymlinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of FileRole entities.
-func (c *FileRoleClient) CreateBulk(builders ...*FileRoleCreate) *FileRoleCreateBulk {
-	return &FileRoleCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Symlink entities.
+func (c *SymlinkClient) CreateBulk(builders ...*SymlinkCreate) *SymlinkCreateBulk {
+	return &SymlinkCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *FileRoleClient) MapCreateBulk(slice any, setFunc func(*FileRoleCreate, int)) *FileRoleCreateBulk {
+func (c *SymlinkClient) MapCreateBulk(slice any, setFunc func(*SymlinkCreate, int)) *SymlinkCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &FileRoleCreateBulk{err: fmt.Errorf("calling to FileRoleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &SymlinkCreateBulk{err: fmt.Errorf("calling to SymlinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*FileRoleCreate, rv.Len())
+	builders := make([]*SymlinkCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &FileRoleCreateBulk{config: c.config, builders: builders}
+	return &SymlinkCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for FileRole.
-func (c *FileRoleClient) Update() *FileRoleUpdate {
-	mutation := newFileRoleMutation(c.config, OpUpdate)
-	return &FileRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Symlink.
+func (c *SymlinkClient) Update() *SymlinkUpdate {
+	mutation := newSymlinkMutation(c.config, OpUpdate)
+	return &SymlinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *FileRoleClient) UpdateOne(_m *FileRole) *FileRoleUpdateOne {
-	mutation := newFileRoleMutation(c.config, OpUpdateOne, withFileRole(_m))
-	return &FileRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SymlinkClient) UpdateOne(_m *Symlink) *SymlinkUpdateOne {
+	mutation := newSymlinkMutation(c.config, OpUpdateOne, withSymlink(_m))
+	return &SymlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *FileRoleClient) UpdateOneID(id int) *FileRoleUpdateOne {
-	mutation := newFileRoleMutation(c.config, OpUpdateOne, withFileRoleID(id))
-	return &FileRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SymlinkClient) UpdateOneID(id int) *SymlinkUpdateOne {
+	mutation := newSymlinkMutation(c.config, OpUpdateOne, withSymlinkID(id))
+	return &SymlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for FileRole.
-func (c *FileRoleClient) Delete() *FileRoleDelete {
-	mutation := newFileRoleMutation(c.config, OpDelete)
-	return &FileRoleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Symlink.
+func (c *SymlinkClient) Delete() *SymlinkDelete {
+	mutation := newSymlinkMutation(c.config, OpDelete)
+	return &SymlinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *FileRoleClient) DeleteOne(_m *FileRole) *FileRoleDeleteOne {
+func (c *SymlinkClient) DeleteOne(_m *Symlink) *SymlinkDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *FileRoleClient) DeleteOneID(id int) *FileRoleDeleteOne {
-	builder := c.Delete().Where(filerole.ID(id))
+func (c *SymlinkClient) DeleteOneID(id int) *SymlinkDeleteOne {
+	builder := c.Delete().Where(symlink.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &FileRoleDeleteOne{builder}
+	return &SymlinkDeleteOne{builder}
 }
 
-// Query returns a query builder for FileRole.
-func (c *FileRoleClient) Query() *FileRoleQuery {
-	return &FileRoleQuery{
+// Query returns a query builder for Symlink.
+func (c *SymlinkClient) Query() *SymlinkQuery {
+	return &SymlinkQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeFileRole},
+		ctx:    &QueryContext{Type: TypeSymlink},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a FileRole entity by its id.
-func (c *FileRoleClient) Get(ctx context.Context, id int) (*FileRole, error) {
-	return c.Query().Where(filerole.ID(id)).Only(ctx)
+// Get returns a Symlink entity by its id.
+func (c *SymlinkClient) Get(ctx context.Context, id int) (*Symlink, error) {
+	return c.Query().Where(symlink.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *FileRoleClient) GetX(ctx context.Context, id int) *FileRole {
+func (c *SymlinkClient) GetX(ctx context.Context, id int) *Symlink {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -884,28 +1023,225 @@ func (c *FileRoleClient) GetX(ctx context.Context, id int) *FileRole {
 	return obj
 }
 
+// QueryInode queries the inode edge of a Symlink.
+func (c *SymlinkClient) QueryInode(_m *Symlink) *InodeQuery {
+	query := (&InodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(symlink.Table, symlink.FieldID, id),
+			sqlgraph.To(inode.Table, inode.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, symlink.InodeTable, symlink.InodeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *FileRoleClient) Hooks() []Hook {
-	return c.hooks.FileRole
+func (c *SymlinkClient) Hooks() []Hook {
+	return c.hooks.Symlink
 }
 
 // Interceptors returns the client interceptors.
-func (c *FileRoleClient) Interceptors() []Interceptor {
-	return c.inters.FileRole
+func (c *SymlinkClient) Interceptors() []Interceptor {
+	return c.inters.Symlink
 }
 
-func (c *FileRoleClient) mutate(ctx context.Context, m *FileRoleMutation) (Value, error) {
+func (c *SymlinkClient) mutate(ctx context.Context, m *SymlinkMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&FileRoleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SymlinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&FileRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SymlinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&FileRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SymlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&FileRoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&SymlinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown FileRole mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Symlink mutation op: %q", m.Op())
+	}
+}
+
+// SystemClient is a client for the System schema.
+type SystemClient struct {
+	config
+}
+
+// NewSystemClient returns a client for the System from the given config.
+func NewSystemClient(c config) *SystemClient {
+	return &SystemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `system.Hooks(f(g(h())))`.
+func (c *SystemClient) Use(hooks ...Hook) {
+	c.hooks.System = append(c.hooks.System, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `system.Intercept(f(g(h())))`.
+func (c *SystemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.System = append(c.inters.System, interceptors...)
+}
+
+// Create returns a builder for creating a System entity.
+func (c *SystemClient) Create() *SystemCreate {
+	mutation := newSystemMutation(c.config, OpCreate)
+	return &SystemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of System entities.
+func (c *SystemClient) CreateBulk(builders ...*SystemCreate) *SystemCreateBulk {
+	return &SystemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SystemClient) MapCreateBulk(slice any, setFunc func(*SystemCreate, int)) *SystemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SystemCreateBulk{err: fmt.Errorf("calling to SystemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SystemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SystemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for System.
+func (c *SystemClient) Update() *SystemUpdate {
+	mutation := newSystemMutation(c.config, OpUpdate)
+	return &SystemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SystemClient) UpdateOne(_m *System) *SystemUpdateOne {
+	mutation := newSystemMutation(c.config, OpUpdateOne, withSystem(_m))
+	return &SystemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SystemClient) UpdateOneID(id int64) *SystemUpdateOne {
+	mutation := newSystemMutation(c.config, OpUpdateOne, withSystemID(id))
+	return &SystemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for System.
+func (c *SystemClient) Delete() *SystemDelete {
+	mutation := newSystemMutation(c.config, OpDelete)
+	return &SystemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SystemClient) DeleteOne(_m *System) *SystemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SystemClient) DeleteOneID(id int64) *SystemDeleteOne {
+	builder := c.Delete().Where(system.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SystemDeleteOne{builder}
+}
+
+// Query returns a query builder for System.
+func (c *SystemClient) Query() *SystemQuery {
+	return &SystemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSystem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a System entity by its id.
+func (c *SystemClient) Get(ctx context.Context, id int64) (*System, error) {
+	return c.Query().Where(system.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SystemClient) GetX(ctx context.Context, id int64) *System {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryInodes queries the inodes edge of a System.
+func (c *SystemClient) QueryInodes(_m *System) *InodeQuery {
+	query := (&InodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(system.Table, system.FieldID, id),
+			sqlgraph.To(inode.Table, inode.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, system.InodesTable, system.InodesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGroups queries the groups edge of a System.
+func (c *SystemClient) QueryGroups(_m *System) *GroupQuery {
+	query := (&GroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(system.Table, system.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, system.GroupsTable, system.GroupsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUsers queries the users edge of a System.
+func (c *SystemClient) QueryUsers(_m *System) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(system.Table, system.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, system.UsersTable, system.UsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SystemClient) Hooks() []Hook {
+	return c.hooks.System
+}
+
+// Interceptors returns the client interceptors.
+func (c *SystemClient) Interceptors() []Interceptor {
+	return c.inters.System
+}
+
+func (c *SystemClient) mutate(ctx context.Context, m *SystemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SystemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SystemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SystemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SystemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown System mutation op: %q", m.Op())
 	}
 }
 
@@ -970,7 +1306,7 @@ func (c *UserClient) UpdateOne(_m *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id int64) *UserUpdateOne {
 	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -987,7 +1323,7 @@ func (c *UserClient) DeleteOne(_m *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id int64) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1004,17 +1340,81 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id int64) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id int) *User {
+func (c *UserClient) GetX(ctx context.Context, id int64) *User {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryGroups queries the groups edge of a User.
+func (c *UserClient) QueryGroups(_m *User) *GroupQuery {
+	query := (&GroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.GroupsTable, user.GroupsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySystems queries the systems edge of a User.
+func (c *UserClient) QuerySystems(_m *User) *SystemQuery {
+	query := (&SystemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(system.Table, system.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.SystemsTable, user.SystemsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserGroups queries the user_groups edge of a User.
+func (c *UserClient) QueryUserGroups(_m *User) *UserGroupQuery {
+	query := (&UserGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(usergroup.Table, usergroup.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.UserGroupsTable, user.UserGroupsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserSystems queries the user_systems edge of a User.
+func (c *UserClient) QueryUserSystems(_m *User) *UserSystemQuery {
+	query := (&UserSystemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(usersystem.Table, usersystem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.UserSystemsTable, user.UserSystemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1042,12 +1442,344 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// UserGroupClient is a client for the UserGroup schema.
+type UserGroupClient struct {
+	config
+}
+
+// NewUserGroupClient returns a client for the UserGroup from the given config.
+func NewUserGroupClient(c config) *UserGroupClient {
+	return &UserGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usergroup.Hooks(f(g(h())))`.
+func (c *UserGroupClient) Use(hooks ...Hook) {
+	c.hooks.UserGroup = append(c.hooks.UserGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usergroup.Intercept(f(g(h())))`.
+func (c *UserGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserGroup = append(c.inters.UserGroup, interceptors...)
+}
+
+// Create returns a builder for creating a UserGroup entity.
+func (c *UserGroupClient) Create() *UserGroupCreate {
+	mutation := newUserGroupMutation(c.config, OpCreate)
+	return &UserGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserGroup entities.
+func (c *UserGroupClient) CreateBulk(builders ...*UserGroupCreate) *UserGroupCreateBulk {
+	return &UserGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserGroupClient) MapCreateBulk(slice any, setFunc func(*UserGroupCreate, int)) *UserGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserGroupCreateBulk{err: fmt.Errorf("calling to UserGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserGroup.
+func (c *UserGroupClient) Update() *UserGroupUpdate {
+	mutation := newUserGroupMutation(c.config, OpUpdate)
+	return &UserGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserGroupClient) UpdateOne(_m *UserGroup) *UserGroupUpdateOne {
+	mutation := newUserGroupMutation(c.config, OpUpdateOne, withUserGroup(_m))
+	return &UserGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserGroupClient) UpdateOneID(id int) *UserGroupUpdateOne {
+	mutation := newUserGroupMutation(c.config, OpUpdateOne, withUserGroupID(id))
+	return &UserGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserGroup.
+func (c *UserGroupClient) Delete() *UserGroupDelete {
+	mutation := newUserGroupMutation(c.config, OpDelete)
+	return &UserGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserGroupClient) DeleteOne(_m *UserGroup) *UserGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserGroupClient) DeleteOneID(id int) *UserGroupDeleteOne {
+	builder := c.Delete().Where(usergroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for UserGroup.
+func (c *UserGroupClient) Query() *UserGroupQuery {
+	return &UserGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserGroup entity by its id.
+func (c *UserGroupClient) Get(ctx context.Context, id int) (*UserGroup, error) {
+	return c.Query().Where(usergroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserGroupClient) GetX(ctx context.Context, id int) *UserGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserGroup.
+func (c *UserGroupClient) QueryUser(_m *UserGroup) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usergroup.Table, usergroup.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, usergroup.UserTable, usergroup.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGroup queries the group edge of a UserGroup.
+func (c *UserGroupClient) QueryGroup(_m *UserGroup) *GroupQuery {
+	query := (&GroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usergroup.Table, usergroup.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, usergroup.GroupTable, usergroup.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserGroupClient) Hooks() []Hook {
+	return c.hooks.UserGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserGroupClient) Interceptors() []Interceptor {
+	return c.inters.UserGroup
+}
+
+func (c *UserGroupClient) mutate(ctx context.Context, m *UserGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserGroup mutation op: %q", m.Op())
+	}
+}
+
+// UserSystemClient is a client for the UserSystem schema.
+type UserSystemClient struct {
+	config
+}
+
+// NewUserSystemClient returns a client for the UserSystem from the given config.
+func NewUserSystemClient(c config) *UserSystemClient {
+	return &UserSystemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usersystem.Hooks(f(g(h())))`.
+func (c *UserSystemClient) Use(hooks ...Hook) {
+	c.hooks.UserSystem = append(c.hooks.UserSystem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usersystem.Intercept(f(g(h())))`.
+func (c *UserSystemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserSystem = append(c.inters.UserSystem, interceptors...)
+}
+
+// Create returns a builder for creating a UserSystem entity.
+func (c *UserSystemClient) Create() *UserSystemCreate {
+	mutation := newUserSystemMutation(c.config, OpCreate)
+	return &UserSystemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserSystem entities.
+func (c *UserSystemClient) CreateBulk(builders ...*UserSystemCreate) *UserSystemCreateBulk {
+	return &UserSystemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserSystemClient) MapCreateBulk(slice any, setFunc func(*UserSystemCreate, int)) *UserSystemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserSystemCreateBulk{err: fmt.Errorf("calling to UserSystemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserSystemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserSystemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserSystem.
+func (c *UserSystemClient) Update() *UserSystemUpdate {
+	mutation := newUserSystemMutation(c.config, OpUpdate)
+	return &UserSystemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserSystemClient) UpdateOne(_m *UserSystem) *UserSystemUpdateOne {
+	mutation := newUserSystemMutation(c.config, OpUpdateOne, withUserSystem(_m))
+	return &UserSystemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserSystemClient) UpdateOneID(id int) *UserSystemUpdateOne {
+	mutation := newUserSystemMutation(c.config, OpUpdateOne, withUserSystemID(id))
+	return &UserSystemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserSystem.
+func (c *UserSystemClient) Delete() *UserSystemDelete {
+	mutation := newUserSystemMutation(c.config, OpDelete)
+	return &UserSystemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserSystemClient) DeleteOne(_m *UserSystem) *UserSystemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserSystemClient) DeleteOneID(id int) *UserSystemDeleteOne {
+	builder := c.Delete().Where(usersystem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserSystemDeleteOne{builder}
+}
+
+// Query returns a query builder for UserSystem.
+func (c *UserSystemClient) Query() *UserSystemQuery {
+	return &UserSystemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserSystem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserSystem entity by its id.
+func (c *UserSystemClient) Get(ctx context.Context, id int) (*UserSystem, error) {
+	return c.Query().Where(usersystem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserSystemClient) GetX(ctx context.Context, id int) *UserSystem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserSystem.
+func (c *UserSystemClient) QueryUser(_m *UserSystem) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersystem.Table, usersystem.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, usersystem.UserTable, usersystem.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySystem queries the system edge of a UserSystem.
+func (c *UserSystemClient) QuerySystem(_m *UserSystem) *SystemQuery {
+	query := (&SystemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersystem.Table, usersystem.FieldID, id),
+			sqlgraph.To(system.Table, system.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, usersystem.SystemTable, usersystem.SystemColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserSystemClient) Hooks() []Hook {
+	return c.hooks.UserSystem
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserSystemClient) Interceptors() []Interceptor {
+	return c.inters.UserSystem
+}
+
+func (c *UserSystemClient) mutate(ctx context.Context, m *UserSystemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserSystemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserSystemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserSystemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserSystemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserSystem mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		File, FileInfo, FileLink, FilePath, FileRole, User []ent.Hook
+		DirectoryEntry, FileData, Group, Inode, Symlink, System, User, UserGroup,
+		UserSystem []ent.Hook
 	}
 	inters struct {
-		File, FileInfo, FileLink, FilePath, FileRole, User []ent.Interceptor
+		DirectoryEntry, FileData, Group, Inode, Symlink, System, User, UserGroup,
+		UserSystem []ent.Interceptor
 	}
 )

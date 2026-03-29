@@ -4,6 +4,9 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"entgo.io/ent/schema/mixin"
@@ -12,6 +15,13 @@ import (
 // User holds the schema definition for the User entity.
 type User struct {
 	ent.Schema
+}
+
+// Annotations of the User.
+func (User) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Annotation{Table: "users"},
+	}
 }
 
 // Mixin of the User.
@@ -24,8 +34,26 @@ func (User) Mixin() []ent.Mixin {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("provider"),
-		field.String("provider_id"),
+		field.Int64("id").
+			StorageKey("id"),
+
+		// External user ID (e.g., UUID) - for API exposure
+		field.String("uid").
+			Unique().
+			MaxLen(64),
+
+		// Username for display
+		field.String("username").
+			Unique().
+			MaxLen(32),
+
+		// OIDC provider info
+		field.String("provider").
+			MaxLen(32),
+		field.String("provider_id").
+			MaxLen(255),
+
+		// Join date
 		field.Time("join_date").
 			Default(time.Now),
 	}
@@ -35,5 +63,20 @@ func (User) Fields() []ent.Field {
 func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("provider", "provider_id").Unique(),
+		index.Fields("uid"),
+		index.Fields("username"),
+	}
+}
+
+// Edges of the User.
+func (User) Edges() []ent.Edge {
+	return []ent.Edge{
+		// User belongs to many groups (M2M through user_groups)
+		edge.To("groups", Group.Type).
+			Through("user_groups", UserGroup.Type),
+
+		// User has access to many systems (M2M through user_systems)
+		edge.To("systems", System.Type).
+			Through("user_systems", UserSystem.Type),
 	}
 }
