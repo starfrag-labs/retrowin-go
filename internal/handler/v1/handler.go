@@ -8,6 +8,7 @@ import (
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
+	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/file"
 	"github.com/starfrag-lab/retrowin-go/internal/upload"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
@@ -18,6 +19,7 @@ type Handler struct {
 	userSvc   user.Service
 	fileSvc   file.Service
 	uploadSvc upload.Service
+	authSvc   auth.Service
 }
 
 // NewHandler creates a new Handler.
@@ -25,11 +27,13 @@ func NewHandler(
 	userSvc user.Service,
 	fileSvc file.Service,
 	uploadSvc upload.Service,
+	authSvc auth.Service,
 ) *Handler {
 	return &Handler{
 		userSvc:   userSvc,
 		fileSvc:   fileSvc,
 		uploadSvc: uploadSvc,
+		authSvc:   authSvc,
 	}
 }
 

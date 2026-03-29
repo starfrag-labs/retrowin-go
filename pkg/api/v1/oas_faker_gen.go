@@ -10,6 +10,39 @@ import (
 )
 
 // SetFake set fake values.
+func (s *CallbackRequest) SetFake() {
+	{
+		{
+			s.Code = "string"
+		}
+	}
+	{
+		{
+			s.State = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *CallbackResponse) SetFake() {
+	{
+		{
+			s.SessionId = "string"
+		}
+	}
+	{
+		{
+			s.UserId = int64(0)
+		}
+	}
+	{
+		{
+			s.ExpiresAt.SetFake()
+		}
+	}
+}
+
+// SetFake set fake values.
 func (s *CompleteUploadBadRequest) SetFake() {
 	var unwrapped Error
 	{
@@ -556,6 +589,24 @@ func (s *GetUserUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *HandleCallbackBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = HandleCallbackBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *HandleCallbackUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = HandleCallbackUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *HealthStatus) SetFake() {
 	{
 		{
@@ -572,6 +623,20 @@ func (s *HealthStatus) SetFake() {
 // SetFake set fake values.
 func (s *HealthStatusStatus) SetFake() {
 	*s = HealthStatusStatusHealthy
+}
+
+// SetFake set fake values.
+func (s *LoginResponse) SetFake() {
+	{
+		{
+			s.AuthorizationUrl = url.URL{Scheme: "https", Host: "github.com", Path: "/ogen-go/ogen"}
+		}
+	}
+	{
+		{
+			s.State = "string"
+		}
+	}
 }
 
 // SetFake set fake values.

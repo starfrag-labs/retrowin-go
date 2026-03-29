@@ -104,6 +104,24 @@ type Handler interface {
 	//
 	// GET /user
 	GetUser(ctx context.Context) (GetUserRes, error)
+	// HandleCallback implements handleCallback operation.
+	//
+	// Handle OAuth callback from Keycloak.
+	//
+	// POST /auth/callback
+	HandleCallback(ctx context.Context, req *CallbackRequest) (HandleCallbackRes, error)
+	// InitiateLogin implements initiateLogin operation.
+	//
+	// Start OIDC login flow and return authorization URL.
+	//
+	// GET /auth/login
+	InitiateLogin(ctx context.Context) (*LoginResponse, error)
+	// Logout implements logout operation.
+	//
+	// Logout and delete session.
+	//
+	// POST /auth/logout
+	Logout(ctx context.Context) (LogoutRes, error)
 	// MoveFile implements moveFile operation.
 	//
 	// Move a file to a different container.

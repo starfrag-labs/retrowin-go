@@ -9,24 +9,6 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-// SessionService defines the session service interface.
-type SessionService interface {
-	// Create creates a new session for a user.
-	Create(ctx context.Context, userID int64) (*Session, error)
-
-	// Get retrieves a session by ID.
-	Get(ctx context.Context, id SessionID) (*Session, error)
-
-	// Validate validates if session is still valid.
-	Validate(ctx context.Context, id SessionID) (*Session, error)
-
-	// Delete deletes a session (logout).
-	Delete(ctx context.Context, id SessionID) error
-
-	// DeleteByUserID deletes all sessions for a user.
-	DeleteByUserID(ctx context.Context, userID int64) error
-}
-
 type sessionService struct {
 	repo SessionRepository
 	ttl  time.Duration

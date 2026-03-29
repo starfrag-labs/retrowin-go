@@ -138,6 +138,11 @@ func ProvideSessionTTL(cfg *config.Config) time.Duration {
 	return time.Duration(cfg.Auth.Session.TTL) * time.Second
 }
 
+// ProvideAuthUserService provides the auth user service.
+func ProvideAuthUserService(userSvc user.Service) auth.UserService {
+	return auth.NewUserService(userSvc)
+}
+
 // ProvideHTTPMux provides the HTTP mux with all routes.
 func ProvideHTTPMux(
 	ogenServer *apiv1.Server,
@@ -278,7 +283,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			ProvideSessionTTL,
 			// Auth services
 			auth.NewSessionService,
-			auth.NewUserAdapter,
+			ProvideAuthUserService,
 			// OIDC service
 			ProvideKeycloak,
 			ProvideOIDCService,
@@ -350,9 +355,6 @@ func ProvideOIDCService(
 	sessionSvc auth.SessionService,
 	userSvc auth.UserService,
 	client valkey.Client,
-	repos struct {
-		SessionRepo auth.SessionRepository
-	},
 	cfg *config.Config,
 ) (auth.Service, error) {
 	stateTTL := time.Duration(cfg.Auth.Session.StateTTL) * time.Second

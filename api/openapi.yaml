@@ -36,6 +36,14 @@ components:
     Provider:
       $ref: "./schemas/user.yaml#/Provider"
 
+    # Auth schemas
+    LoginResponse:
+      $ref: "./schemas/auth.yaml#/LoginResponse"
+    CallbackRequest:
+      $ref: "./schemas/auth.yaml#/CallbackRequest"
+    CallbackResponse:
+      $ref: "./schemas/auth.yaml#/CallbackResponse"
+
     # User schemas
     User:
       $ref: "./schemas/user.yaml#/User"
@@ -79,6 +87,14 @@ components:
       $ref: "./schemas/file.yaml#/CopyFileRequest"
 
 paths:
+  # Auth endpoints
+  /auth/login:
+    $ref: "./paths/auth.yaml#/~1auth~1login"
+  /auth/callback:
+    $ref: "./paths/auth.yaml#/~1auth~1callback"
+  /auth/logout:
+    $ref: "./paths/auth.yaml#/~1auth~1logout"
+
   # Health
   /health:
     $ref: "./paths/file.yaml#/~1health"

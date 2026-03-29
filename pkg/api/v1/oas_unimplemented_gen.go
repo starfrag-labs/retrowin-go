@@ -157,6 +157,33 @@ func (UnimplementedHandler) GetUser(ctx context.Context) (r GetUserRes, _ error)
 	return r, ht.ErrNotImplemented
 }
 
+// HandleCallback implements handleCallback operation.
+//
+// Handle OAuth callback from Keycloak.
+//
+// POST /auth/callback
+func (UnimplementedHandler) HandleCallback(ctx context.Context, req *CallbackRequest) (r HandleCallbackRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// InitiateLogin implements initiateLogin operation.
+//
+// Start OIDC login flow and return authorization URL.
+//
+// GET /auth/login
+func (UnimplementedHandler) InitiateLogin(ctx context.Context) (r *LoginResponse, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// Logout implements logout operation.
+//
+// Logout and delete session.
+//
+// POST /auth/logout
+func (UnimplementedHandler) Logout(ctx context.Context) (r LogoutRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // MoveFile implements moveFile operation.
 //
 // Move a file to a different container.

@@ -15,6 +15,75 @@ func (s *ErrorStatusCode) Error() string {
 	return fmt.Sprintf("code %d: %+v", s.StatusCode, s.Response)
 }
 
+// Ref: #/components/schemas/CallbackRequest
+type CallbackRequest struct {
+	// Authorization code from Keycloak.
+	Code string `json:"code"`
+	// OAuth state parameter.
+	State string `json:"state"`
+}
+
+// GetCode returns the value of Code.
+func (s *CallbackRequest) GetCode() string {
+	return s.Code
+}
+
+// GetState returns the value of State.
+func (s *CallbackRequest) GetState() string {
+	return s.State
+}
+
+// SetCode sets the value of Code.
+func (s *CallbackRequest) SetCode(val string) {
+	s.Code = val
+}
+
+// SetState sets the value of State.
+func (s *CallbackRequest) SetState(val string) {
+	s.State = val
+}
+
+// Ref: #/components/schemas/CallbackResponse
+type CallbackResponse struct {
+	// Session ID for the authenticated user.
+	SessionId string `json:"sessionId"`
+	// User ID.
+	UserId    int64        `json:"userId"`
+	ExpiresAt OptTimestamp `json:"expiresAt"`
+}
+
+// GetSessionId returns the value of SessionId.
+func (s *CallbackResponse) GetSessionId() string {
+	return s.SessionId
+}
+
+// GetUserId returns the value of UserId.
+func (s *CallbackResponse) GetUserId() int64 {
+	return s.UserId
+}
+
+// GetExpiresAt returns the value of ExpiresAt.
+func (s *CallbackResponse) GetExpiresAt() OptTimestamp {
+	return s.ExpiresAt
+}
+
+// SetSessionId sets the value of SessionId.
+func (s *CallbackResponse) SetSessionId(val string) {
+	s.SessionId = val
+}
+
+// SetUserId sets the value of UserId.
+func (s *CallbackResponse) SetUserId(val int64) {
+	s.UserId = val
+}
+
+// SetExpiresAt sets the value of ExpiresAt.
+func (s *CallbackResponse) SetExpiresAt(val OptTimestamp) {
+	s.ExpiresAt = val
+}
+
+func (*CallbackResponse) handleCallbackRes() {}
+
 type CompleteUploadBadRequest Error
 
 func (*CompleteUploadBadRequest) completeUploadRes() {}
@@ -213,6 +282,8 @@ func (s *Error) GetError() ErrorError {
 func (s *Error) SetError(val ErrorError) {
 	s.Error = val
 }
+
+func (*Error) logoutRes() {}
 
 type ErrorError struct {
 	// Error type.
@@ -573,6 +644,14 @@ type GetUserUnauthorized Error
 
 func (*GetUserUnauthorized) getUserRes() {}
 
+type HandleCallbackBadRequest Error
+
+func (*HandleCallbackBadRequest) handleCallbackRes() {}
+
+type HandleCallbackUnauthorized Error
+
+func (*HandleCallbackUnauthorized) handleCallbackRes() {}
+
 // Ref: #/components/schemas/HealthStatus
 type HealthStatus struct {
 	// Health status.
@@ -642,6 +721,39 @@ func (s *HealthStatusStatus) UnmarshalText(data []byte) error {
 		return errors.Errorf("invalid value: %q", data)
 	}
 }
+
+// Ref: #/components/schemas/LoginResponse
+type LoginResponse struct {
+	// Keycloak authorization URL.
+	AuthorizationUrl url.URL `json:"authorizationUrl"`
+	// OAuth state parameter.
+	State string `json:"state"`
+}
+
+// GetAuthorizationUrl returns the value of AuthorizationUrl.
+func (s *LoginResponse) GetAuthorizationUrl() url.URL {
+	return s.AuthorizationUrl
+}
+
+// GetState returns the value of State.
+func (s *LoginResponse) GetState() string {
+	return s.State
+}
+
+// SetAuthorizationUrl sets the value of AuthorizationUrl.
+func (s *LoginResponse) SetAuthorizationUrl(val url.URL) {
+	s.AuthorizationUrl = val
+}
+
+// SetState sets the value of State.
+func (s *LoginResponse) SetState(val string) {
+	s.State = val
+}
+
+// LogoutNoContent is response for Logout operation.
+type LogoutNoContent struct{}
+
+func (*LogoutNoContent) logoutRes() {}
 
 type MoveFileBadRequest Error
 

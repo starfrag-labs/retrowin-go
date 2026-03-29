@@ -11,10 +11,32 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-// UserService defines the interface for user operations.
-type UserService interface {
-	// FindOrCreate finds an existing user by OIDC subject or creates a new one.
-	FindOrCreate(ctx context.Context, subject, email, name, picture string) (int64, error)
+// LoginRequest represents a Keycloak login request.
+type LoginRequest struct {
+	RedirectURI  string `json:"redirectUri"`
+	State        string `json:"state"`
+	CodeVerifier string `json:"codeVerifier"`
+}
+
+// LoginResponse contains the authorization URL for login.
+type LoginResponse struct {
+	AuthorizationURL string    `json:"authorizationUrl"`
+	State            string    `json:"state"`
+	CodeVerifier     string    `json:"codeVerifier"`
+	ExpiresAt        time.Time `json:"expiresAt"`
+}
+
+// CallbackRequest represents a Keycloak callback request.
+type CallbackRequest struct {
+	Code  string `json:"code"`
+	State string `json:"state"`
+}
+
+// CallbackResponse contains the session after successful login.
+type CallbackResponse struct {
+	SessionID string    `json:"sessionId"`
+	UserID    int64     `json:"userId"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }
 
 // Service defines the authentication service interface.
@@ -33,6 +55,9 @@ type Service interface {
 
 	// ValidateState validates the OAuth state parameter.
 	ValidateState(ctx context.Context, state string) (*LoginRequest, error)
+
+	// Logout deletes the session.
+	Logout(ctx context.Context, sessionID string) error
 }
 
 type authService struct {
@@ -218,4 +243,9 @@ func (s *authService) deleteLoginRequest(ctx context.Context, state string) {
 
 func (s *authService) getStateKey(state string) string {
 	return fmt.Sprintf("%s:auth:state:%s", s.valkeyPrefix, state)
+}
+
+// Logout deletes the session.
+func (s *authService) Logout(ctx context.Context, sessionID string) error {
+	return s.sessionSvc.Delete(ctx, SessionID(sessionID))
 }

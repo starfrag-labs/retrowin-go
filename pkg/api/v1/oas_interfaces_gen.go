@@ -61,6 +61,14 @@ type GetUserRes interface {
 	getUserRes()
 }
 
+type HandleCallbackRes interface {
+	handleCallbackRes()
+}
+
+type LogoutRes interface {
+	logoutRes()
+}
+
 type MoveFileRes interface {
 	moveFileRes()
 }

@@ -11,6 +11,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCallbackRequest_EncodeDecode(t *testing.T) {
+	var typ CallbackRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CallbackRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCallbackResponse_EncodeDecode(t *testing.T) {
+	var typ CallbackResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CallbackResponse
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestCompleteUploadBadRequest_EncodeDecode(t *testing.T) {
 	var typ CompleteUploadBadRequest
 	typ.SetFake()
@@ -623,6 +647,30 @@ func TestGetUserUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 GetUserUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestHandleCallbackBadRequest_EncodeDecode(t *testing.T) {
+	var typ HandleCallbackBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 HandleCallbackBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestHandleCallbackUnauthorized_EncodeDecode(t *testing.T) {
+	var typ HandleCallbackUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 HandleCallbackUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestHealthStatus_EncodeDecode(t *testing.T) {
 	var typ HealthStatus
 	typ.SetFake()
@@ -645,6 +693,18 @@ func TestHealthStatusStatus_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 HealthStatusStatus
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestLoginResponse_EncodeDecode(t *testing.T) {
+	var typ LoginResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 LoginResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestMoveFileBadRequest_EncodeDecode(t *testing.T) {

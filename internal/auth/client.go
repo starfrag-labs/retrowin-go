@@ -8,6 +8,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// UserInfo contains user information from Keycloak.
+type UserInfo struct {
+	Subject       string
+	Email         string
+	EmailVerified bool
+	Name          string
+	GivenName     string
+	FamilyName    string
+	Picture       string
+}
+
 // Client wraps OIDC/OAuth2 operations for Keycloak.
 type Client struct {
 	keycloak     *Keycloak

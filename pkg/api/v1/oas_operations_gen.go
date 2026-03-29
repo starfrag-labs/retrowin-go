@@ -22,6 +22,9 @@ const (
 	GetTrashContainerOperation OperationName = "GetTrashContainer"
 	GetUploadTokenOperation    OperationName = "GetUploadToken"
 	GetUserOperation           OperationName = "GetUser"
+	HandleCallbackOperation    OperationName = "HandleCallback"
+	InitiateLoginOperation     OperationName = "InitiateLogin"
+	LogoutOperation            OperationName = "Logout"
 	MoveFileOperation          OperationName = "MoveFile"
 	UpdateFileOperation        OperationName = "UpdateFile"
 )
