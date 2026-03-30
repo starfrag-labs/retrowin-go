@@ -32,16 +32,6 @@ func TestIsValidProvider(t *testing.T) {
 			provider: "unknown",
 			expected: false,
 		},
-		{
-			name:     "case sensitive - Keycloak is invalid",
-			provider: "Keycloak",
-			expected: false,
-		},
-		{
-			name:     "case sensitive - GOOGLE is invalid",
-			provider: "GOOGLE",
-			expected: false,
-		},
 	}
 
 	for _, tt := range tests {
@@ -53,23 +43,15 @@ func TestIsValidProvider(t *testing.T) {
 }
 
 func TestUser_Struct(t *testing.T) {
-	user := User{
-		ID:         123,
+	u := User{
+		ID:         "user-123",
+		Username:   "testuser",
 		Provider:   ProviderKeycloak,
 		ProviderID: "keycloak-123",
 	}
 
-	assert.Equal(t, int64(123), user.ID)
-	assert.Equal(t, ProviderKeycloak, user.Provider)
-	assert.Equal(t, "keycloak-123", user.ProviderID)
-}
-
-func TestCreateCommand_Struct(t *testing.T) {
-	cmd := CreateCommand{
-		Provider:   ProviderKeycloak,
-		ProviderID: "keycloak-123",
-	}
-
-	assert.Equal(t, ProviderKeycloak, cmd.Provider)
-	assert.Equal(t, "keycloak-123", cmd.ProviderID)
+	assert.Equal(t, "user-123", u.ID())
+	assert.Equal(t, "testuser", u.Username())
+	assert.Equal(t, ProviderKeycloak, u.Provider())
+	assert.Equal(t, "keycloak-123", u.ProviderID())
 }

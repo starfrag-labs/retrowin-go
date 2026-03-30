@@ -13,8 +13,6 @@ type ContextKey string
 const (
 	// UserIDKey is the context key for user ID.
 	UserIDKey ContextKey = "user_id"
-	// UserUIDKey is the context key for user UID.
-	UserUIDKey ContextKey = "user_uid"
 	// SessionIDKey is the context key for session ID.
 	SessionIDKey ContextKey = "session_id"
 )
@@ -23,14 +21,6 @@ const (
 func GetUserID(ctx context.Context) string {
 	if id, ok := ctx.Value(UserIDKey).(string); ok {
 		return id
-	}
-	return ""
-}
-
-// GetUserUID extracts user UID from context.
-func GetUserUID(ctx context.Context) string {
-	if uid, ok := ctx.Value(UserUIDKey).(string); ok {
-		return uid
 	}
 	return ""
 }
@@ -46,11 +36,6 @@ func GetSessionID(ctx context.Context) string {
 // SetUserID adds user ID to context.
 func SetUserID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, UserIDKey, id)
-}
-
-// SetUserUID adds user UID to context.
-func SetUserUID(ctx context.Context, uid string) context.Context {
-	return context.WithValue(ctx, UserUIDKey, uid)
 }
 
 // SetSessionID adds session ID to context.
