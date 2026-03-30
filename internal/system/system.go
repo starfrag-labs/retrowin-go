@@ -15,7 +15,7 @@ const (
 
 // System represents a system/node in the cluster.
 type System struct {
-	id          int64
+	id          string
 	name        string
 	description *string
 	status      Status
@@ -25,7 +25,7 @@ type System struct {
 
 // NewSystem creates a new System.
 func NewSystem(
-	id int64,
+	id string,
 	name string,
 	description *string,
 	status Status,
@@ -43,9 +43,9 @@ func NewSystem(
 }
 
 // Getters
-func (s *System) ID() int64            { return s.id }
-func (s *System) Name() string         { return s.name }
-func (s *System) Description() *string { return s.description }
-func (s *System) Status() Status       { return s.status }
-func (s *System) CreatedAt() time.Time { return s.createdAt }
-func (s *System) UpdatedAt() time.Time { return s.updatedAt }
+func (s *System) ID() string            { return s.id }
+func (s *System) Name() string          { return s.name }
+func (s *System) Description() *string  { return s.description }
+func (s *System) Status() Status        { return s.status }
+func (s *System) CreatedAt() time.Time  { return s.createdAt }
+func (s *System) UpdatedAt() time.Time  { return s.updatedAt }

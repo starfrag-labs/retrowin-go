@@ -10,10 +10,10 @@ import (
 // Service defines the interface for system operations.
 type Service interface {
 	Create(ctx context.Context, cmd *CreateCommand) (*System, error)
-	GetByID(ctx context.Context, id int64) (*System, error)
+	GetByID(ctx context.Context, id string) (*System, error)
 	GetByName(ctx context.Context, name string) (*System, error)
 	Update(ctx context.Context, cmd *UpdateCommand) error
-	Delete(ctx context.Context, id int64) error
+	Delete(ctx context.Context, id string) error
 	Find(ctx context.Context, filter Filter) ([]*System, error)
 	FindOne(ctx context.Context, filter Filter) (*System, error)
 }
@@ -27,7 +27,7 @@ type CreateCommand struct {
 
 // UpdateCommand for updating a system (service layer).
 type UpdateCommand struct {
-	ID          int64
+	ID          string
 	Name        *string
 	Description *string
 	Status      *Status
@@ -35,13 +35,13 @@ type UpdateCommand struct {
 
 // Filter for querying systems (service layer).
 type Filter struct {
-	ID     *int64
+	ID     *string
 	Name   *string
 	Status *Status
 }
 
 // Filter helpers
-func ByID(id int64) Filter {
+func ByID(id string) Filter {
 	return Filter{ID: &id}
 }
 
@@ -88,7 +88,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*System, erro
 	return s.repo.Create(ctx, s.client, params)
 }
 
-func (s *service) GetByID(ctx context.Context, id int64) (*System, error) {
+func (s *service) GetByID(ctx context.Context, id string) (*System, error) {
 	sys, err := s.repo.GetByID(ctx, s.client, id)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
 	return s.repo.Update(ctx, s.client, params)
 }
 
-func (s *service) Delete(ctx context.Context, id int64) error {
+func (s *service) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, s.client, id)
 }
 

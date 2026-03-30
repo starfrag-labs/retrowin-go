@@ -9,10 +9,10 @@ import (
 // Repository defines the interface for system data access.
 type Repository interface {
 	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*System, error)
-	GetByID(ctx context.Context, client *ent.Client, id int64) (*System, error)
+	GetByID(ctx context.Context, client *ent.Client, id string) (*System, error)
 	GetByName(ctx context.Context, client *ent.Client, name string) (*System, error)
 	Update(ctx context.Context, client *ent.Client, params *UpdateParams) error
-	Delete(ctx context.Context, client *ent.Client, id int64) error
+	Delete(ctx context.Context, client *ent.Client, id string) error
 	Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*System, error)
 	FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*System, error)
 	Exists(ctx context.Context, client *ent.Client, filter *QueryFilter) (bool, error)
@@ -27,7 +27,7 @@ type CreateParams struct {
 
 // UpdateParams for updating a system (repository layer).
 type UpdateParams struct {
-	ID          int64
+	ID          string
 	Name        *string
 	Description *string
 	Status      *Status
@@ -35,7 +35,7 @@ type UpdateParams struct {
 
 // QueryFilter for querying systems (repository layer).
 type QueryFilter struct {
-	ID     *int64
+	ID     *string
 	Name   *string
 	Status *Status
 }

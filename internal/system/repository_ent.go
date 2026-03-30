@@ -29,10 +29,10 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system: %w", err)
 	}
-	return fromEnt(entSystem), nil
+	return systemFromEnt(entSystem), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*System, error) {
+func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*System, error) {
 	entSystem, err := client.System.Query().
 		Where(entsystem.ID(id)).
 		Only(ctx)
@@ -42,7 +42,7 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int6
 		}
 		return nil, fmt.Errorf("failed to get system: %w", err)
 	}
-	return fromEnt(entSystem), nil
+	return systemFromEnt(entSystem), nil
 }
 
 func (r *EntRepository) GetByName(ctx context.Context, client *ent.Client, name string) (*System, error) {
@@ -55,7 +55,7 @@ func (r *EntRepository) GetByName(ctx context.Context, client *ent.Client, name 
 		}
 		return nil, fmt.Errorf("failed to get system by name: %w", err)
 	}
-	return fromEnt(entSystem), nil
+	return systemFromEnt(entSystem), nil
 }
 
 func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *UpdateParams) error {
@@ -74,24 +74,24 @@ func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *
 	return builder.Exec(ctx)
 }
 
-func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id int64) error {
+func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id string) error {
 	return client.System.DeleteOneID(id).Exec(ctx)
 }
 
 func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*System, error) {
 	query := client.System.Query()
-	query = applyFilter(query, filter)
+	query = applySystemFilter(query, filter)
 
 	entSystems, err := query.All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find systems: %w", err)
 	}
-	return fromEntSlice(entSystems), nil
+	return systemFromEntSlice(entSystems), nil
 }
 
 func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*System, error) {
 	query := client.System.Query()
-	query = applyFilter(query, filter)
+	query = applySystemFilter(query, filter)
 
 	entSystem, err := query.Only(ctx)
 	if err != nil {
@@ -100,16 +100,16 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 		}
 		return nil, fmt.Errorf("failed to find system: %w", err)
 	}
-	return fromEnt(entSystem), nil
+	return systemFromEnt(entSystem), nil
 }
 
 func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter *QueryFilter) (bool, error) {
 	query := client.System.Query()
-	query = applyFilter(query, filter)
+	query = applySystemFilter(query, filter)
 	return query.Exist(ctx)
 }
 
-func applyFilter(query *ent.SystemQuery, filter *QueryFilter) *ent.SystemQuery {
+func applySystemFilter(query *ent.SystemQuery, filter *QueryFilter) *ent.SystemQuery {
 	if filter == nil {
 		return query
 	}
@@ -125,7 +125,7 @@ func applyFilter(query *ent.SystemQuery, filter *QueryFilter) *ent.SystemQuery {
 	return query
 }
 
-func fromEnt(e *ent.System) *System {
+func systemFromEnt(e *ent.System) *System {
 	return NewSystem(
 		e.ID,
 		e.Name,
@@ -136,10 +136,10 @@ func fromEnt(e *ent.System) *System {
 	)
 }
 
-func fromEntSlice(systems []*ent.System) []*System {
+func systemFromEntSlice(systems []*ent.System) []*System {
 	result := make([]*System, len(systems))
 	for i, e := range systems {
-		result[i] = fromEnt(e)
+		result[i] = systemFromEnt(e)
 	}
 	return result
 }
