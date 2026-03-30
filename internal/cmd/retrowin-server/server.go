@@ -25,7 +25,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
-	authRepo "github.com/starfrag-lab/retrowin-go/internal/auth/repository"
+	"github.com/starfrag-lab/retrowin-go/internal/session"
+	sessionRepo "github.com/starfrag-lab/retrowin-go/internal/session/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
@@ -263,7 +264,7 @@ func WaitForShutdown(lc fx.Lifecycle) {
 // ProvideOgenServer provides the ogen server.
 func ProvideOgenServer(
 	h *handler.Handler,
-	sessionSvc auth.SessionService,
+	sessionSvc session.SessionService,
 ) (*apiv1.Server, error) {
 	securityHandler := handler.NewSecurityHandler(sessionSvc)
 	return apiv1.NewServer(h, securityHandler)
@@ -289,7 +290,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
-			auth.NewSessionService,
+			session.NewSessionService,
 			ProvideAuthUserService,
 			// OIDC service
 			ProvideKeycloak,
@@ -342,11 +343,11 @@ func newValkeyClient(cfg *config.ValkeyConfig) (valkey.Client, error) {
 }
 
 // NewValkeySessionRepository provides the Valkey session repository.
-func NewValkeySessionRepository(client valkey.Client) auth.SessionRepository {
+func NewValkeySessionRepository(client valkey.Client) session.SessionRepository {
 	if client == nil {
 		return nil
 	}
-	return authRepo.NewValkeySessionRepository(client, "retrowin:session:")
+	return sessionRepo.NewValkeySessionRepository(client, "retrowin:session:")
 }
 
 // ProvideKeycloak provides the Keycloak OIDC client.
@@ -363,7 +364,7 @@ func ProvideKeycloak(cfg *config.Config) *auth.Keycloak {
 // ProvideOIDCService provides the OIDC service.
 func ProvideOIDCService(
 	keycloak *auth.Keycloak,
-	sessionSvc auth.SessionService,
+	sessionSvc session.SessionService,
 	userSvc auth.UserService,
 	client valkey.Client,
 	cfg *config.Config,

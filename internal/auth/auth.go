@@ -9,6 +9,7 @@ import (
 	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
+	"github.com/starfrag-lab/retrowin-go/internal/session"
 )
 
 // LoginRequest represents a Keycloak login request.
@@ -63,7 +64,7 @@ type AuthService interface {
 type authService struct {
 	keycloak     *Keycloak
 	client       *Client
-	sessionSvc   SessionService
+	sessionSvc   session.SessionService
 	userSvc      UserService
 	valkey       valkey.Client
 	valkeyPrefix string
@@ -73,7 +74,7 @@ type authService struct {
 // NewService creates a new authentication service.
 func NewService(
 	keycloak *Keycloak,
-	sessionSvc SessionService,
+	sessionSvc session.SessionService,
 	userSvc UserService,
 	valkey valkey.Client,
 	valkeyPrefix string,
@@ -192,7 +193,7 @@ func (s *authService) ValidateState(ctx context.Context, state string) (*LoginRe
 
 // Logout deletes the session.
 func (s *authService) Logout(ctx context.Context, sessionID string) error {
-	return s.sessionSvc.Delete(ctx, SessionID(sessionID))
+	return s.sessionSvc.Delete(ctx, session.SessionID(sessionID))
 }
 
 func (s *authService) storeLoginRequest(ctx context.Context, req *LoginRequest) error {
