@@ -25,12 +25,15 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/application/upload"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
+	authRepo "github.com/starfrag-lab/retrowin-go/internal/auth/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
+	inoderepo "github.com/starfrag-lab/retrowin-go/internal/inode/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/storage"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/storage/s3"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
+	userrepo "github.com/starfrag-lab/retrowin-go/internal/user/repository"
 )
 
 // ProvideConfig provides the config from file.
@@ -279,8 +282,8 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			NewEntClient,
 			ProvideValkeyClient,
 			// Repositories
-			user.NewEntRepository,
-			inode.NewEntRepository,
+			userrepo.NewRepository,
+			inoderepo.NewRepository,
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
@@ -340,7 +343,7 @@ func NewValkeySessionRepository(client valkey.Client) auth.SessionRepository {
 	if client == nil {
 		return nil
 	}
-	return auth.NewValkeySessionRepository(client, "retrowin:session:")
+	return authRepo.NewValkeySessionRepository(client, "retrowin:session:")
 }
 
 // ProvideKeycloak provides the Keycloak OIDC client.

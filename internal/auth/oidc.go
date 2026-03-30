@@ -2,11 +2,52 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
+
+// KeycloakConfig holds Keycloak configuration.
+type KeycloakConfig struct {
+	Issuer       string
+	ClientID     string
+	ClientSecret string
+	RedirectURI  string
+}
+
+// Keycloak represents the Keycloak OIDC provider.
+type Keycloak struct {
+	config KeycloakConfig
+}
+
+// NewKeycloak creates a new Keycloak provider.
+func NewKeycloak(config KeycloakConfig) *Keycloak {
+	return &Keycloak{config: config}
+}
+
+// Issuer returns the issuer URL.
+func (k *Keycloak) Issuer() string {
+	return k.config.Issuer
+}
+
+// ClientID returns the client ID.
+func (k *Keycloak) ClientID() string {
+	return k.config.ClientID
+}
+
+// ClientSecret returns the client secret.
+func (k *Keycloak) ClientSecret() string {
+	return k.config.ClientSecret
+}
+
+// RedirectURI returns the redirect URI.
+func (k *Keycloak) RedirectURI() string {
+	return k.config.RedirectURI
+}
 
 // UserInfo contains user information from Keycloak.
 type UserInfo struct {
@@ -39,7 +80,6 @@ func NewClient(ctx context.Context, keycloak *Keycloak) (*Client, error) {
 		Endpoint:    oidcProvider.Endpoint(),
 		Scopes:      []string{oidc.ScopeOpenID, "profile", "email"},
 	}
-	// ClientSecret is optional when using PKCE (public clients)
 	if keycloak.ClientSecret() != "" {
 		oauth2Config.ClientSecret = keycloak.ClientSecret()
 	}
@@ -104,4 +144,19 @@ func (c *Client) GetUserInfo(ctx context.Context, token *oauth2.Token) (*UserInf
 // VerifyToken verifies an ID token.
 func (c *Client) VerifyToken(ctx context.Context, rawIDToken string) (*oidc.IDToken, error) {
 	return c.oidcProvider.Verifier(&oidc.Config{ClientID: c.keycloak.ClientID()}).Verify(ctx, rawIDToken)
+}
+
+// GenerateCodeVerifier generates a PKCE code verifier.
+func GenerateCodeVerifier() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to generate random bytes: %w", err)
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+// GenerateCodeChallenge generates a PKCE code challenge from verifier.
+func GenerateCodeChallenge(verifier string) string {
+	h := sha256.Sum256([]byte(verifier))
+	return base64.RawURLEncoding.EncodeToString(h[:])
 }

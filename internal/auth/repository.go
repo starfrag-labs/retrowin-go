@@ -1,8 +1,6 @@
 package auth
 
-import (
-	"context"
-)
+import "context"
 
 // SessionRepository defines the interface for session data access.
 type SessionRepository interface {

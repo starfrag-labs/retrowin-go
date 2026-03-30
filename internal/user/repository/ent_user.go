@@ -1,4 +1,4 @@
-package user
+package repository
 
 import (
 	"context"
@@ -6,17 +6,18 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entuser "github.com/starfrag-lab/retrowin-go/ent/user"
+	domain "github.com/starfrag-lab/retrowin-go/internal/user"
 )
 
-// EntRepository implements Repository using Ent.
+// EntRepository implements domain.UserRepository using Ent.
 type EntRepository struct{}
 
-// NewEntRepository creates a new EntRepository.
-func NewEntRepository() Repository {
+// NewRepository creates a new EntRepository.
+func NewRepository() domain.UserRepository {
 	return &EntRepository{}
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *CreateParams) (*User, error) {
+func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.User, error) {
 	entUser, err := client.User.
 		Create().
 		SetUsername(params.Username).
@@ -29,7 +30,7 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return fromEnt(entUser), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*User, error) {
+func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*domain.User, error) {
 	entUser, err := client.User.
 		Query().
 		Where(entuser.ID(id)).
@@ -43,7 +44,7 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id stri
 	return fromEnt(entUser), nil
 }
 
-func (r *EntRepository) GetByUsername(ctx context.Context, client *ent.Client, username string) (*User, error) {
+func (r *EntRepository) GetByUsername(ctx context.Context, client *ent.Client, username string) (*domain.User, error) {
 	entUser, err := client.User.
 		Query().
 		Where(entuser.Username(username)).
@@ -57,7 +58,7 @@ func (r *EntRepository) GetByUsername(ctx context.Context, client *ent.Client, u
 	return fromEnt(entUser), nil
 }
 
-func (r *EntRepository) GetByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (*User, error) {
+func (r *EntRepository) GetByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (*domain.User, error) {
 	entUser, err := client.User.
 		Query().
 		Where(
@@ -88,8 +89,8 @@ func (r *EntRepository) ExistsByProvider(ctx context.Context, client *ent.Client
 		Exist(ctx)
 }
 
-func fromEnt(e *ent.User) *User {
-	return NewUser(
+func fromEnt(e *ent.User) *domain.User {
+	return domain.NewUser(
 		e.ID,
 		e.Username,
 		e.Provider,

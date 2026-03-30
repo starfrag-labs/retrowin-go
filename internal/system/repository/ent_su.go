@@ -1,4 +1,4 @@
-package system
+package repository
 
 import (
 	"context"
@@ -6,17 +6,18 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entusersystem "github.com/starfrag-lab/retrowin-go/ent/usersystem"
+	domain "github.com/starfrag-lab/retrowin-go/internal/system"
 )
 
-// EntSystemUserRepository implements SystemUserRepository using Ent.
+// EntSystemUserRepository implements domain.SystemUserRepository using Ent.
 type EntSystemUserRepository struct{}
 
-// NewEntSystemUserRepository creates a new EntSystemUserRepository.
-func NewEntSystemUserRepository() SystemUserRepository {
+// NewSystemUserRepository creates a new EntSystemUserRepository.
+func NewSystemUserRepository() domain.SystemUserRepository {
 	return &EntSystemUserRepository{}
 }
 
-func (r *EntSystemUserRepository) Create(ctx context.Context, client *ent.Client, params *SystemUserCreateParams) (*SystemUser, error) {
+func (r *EntSystemUserRepository) Create(ctx context.Context, client *ent.Client, params *domain.SystemUserCreateParams) (*domain.SystemUser, error) {
 	entUserSystem, err := client.UserSystem.Create().
 		SetUserID(params.UserID).
 		SetSystemID(params.SystemID).
@@ -28,7 +29,7 @@ func (r *EntSystemUserRepository) Create(ctx context.Context, client *ent.Client
 	return systemUserFromEnt(entUserSystem), nil
 }
 
-func (r *EntSystemUserRepository) GetByID(ctx context.Context, client *ent.Client, id int) (*SystemUser, error) {
+func (r *EntSystemUserRepository) GetByID(ctx context.Context, client *ent.Client, id int) (*domain.SystemUser, error) {
 	entUserSystem, err := client.UserSystem.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -43,7 +44,7 @@ func (r *EntSystemUserRepository) Delete(ctx context.Context, client *ent.Client
 	return client.UserSystem.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntSystemUserRepository) Find(ctx context.Context, client *ent.Client, filter *SystemUserQueryFilter) ([]*SystemUser, error) {
+func (r *EntSystemUserRepository) Find(ctx context.Context, client *ent.Client, filter *domain.SystemUserQueryFilter) ([]*domain.SystemUser, error) {
 	query := client.UserSystem.Query()
 	query = applySystemUserFilter(query, filter)
 
@@ -54,7 +55,7 @@ func (r *EntSystemUserRepository) Find(ctx context.Context, client *ent.Client, 
 	return systemUserFromEntSlice(entUserSystems), nil
 }
 
-func (r *EntSystemUserRepository) FindOne(ctx context.Context, client *ent.Client, filter *SystemUserQueryFilter) (*SystemUser, error) {
+func (r *EntSystemUserRepository) FindOne(ctx context.Context, client *ent.Client, filter *domain.SystemUserQueryFilter) (*domain.SystemUser, error) {
 	query := client.UserSystem.Query()
 	query = applySystemUserFilter(query, filter)
 
@@ -68,7 +69,7 @@ func (r *EntSystemUserRepository) FindOne(ctx context.Context, client *ent.Clien
 	return systemUserFromEnt(entUserSystem), nil
 }
 
-func applySystemUserFilter(query *ent.UserSystemQuery, filter *SystemUserQueryFilter) *ent.UserSystemQuery {
+func applySystemUserFilter(query *ent.UserSystemQuery, filter *domain.SystemUserQueryFilter) *ent.UserSystemQuery {
 	if filter == nil {
 		return query
 	}
@@ -84,8 +85,8 @@ func applySystemUserFilter(query *ent.UserSystemQuery, filter *SystemUserQueryFi
 	return query
 }
 
-func systemUserFromEnt(e *ent.UserSystem) *SystemUser {
-	return NewSystemUser(
+func systemUserFromEnt(e *ent.UserSystem) *domain.SystemUser {
+	return domain.NewSystemUser(
 		e.ID,
 		e.UserID,
 		e.SystemID,
@@ -93,8 +94,8 @@ func systemUserFromEnt(e *ent.UserSystem) *SystemUser {
 	)
 }
 
-func systemUserFromEntSlice(items []*ent.UserSystem) []*SystemUser {
-	result := make([]*SystemUser, len(items))
+func systemUserFromEntSlice(items []*ent.UserSystem) []*domain.SystemUser {
+	result := make([]*domain.SystemUser, len(items))
 	for i, e := range items {
 		result[i] = systemUserFromEnt(e)
 	}

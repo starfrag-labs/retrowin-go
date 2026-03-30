@@ -107,7 +107,6 @@ func (s *authService) GetClient() *Client {
 
 // InitiateLogin starts the OIDC login flow.
 func (s *authService) InitiateLogin(ctx context.Context) (*LoginResponse, error) {
-	// Generate PKCE verifier and challenge
 	codeVerifier, err := GenerateCodeVerifier()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate code verifier: %w", err)
@@ -115,13 +114,11 @@ func (s *authService) InitiateLogin(ctx context.Context) (*LoginResponse, error)
 
 	codeChallenge := GenerateCodeChallenge(codeVerifier)
 
-	// Generate state
 	state, err := GenerateCodeVerifier()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate state: %w", err)
 	}
 
-	// Store login request in Valkey
 	loginReq := &LoginRequest{
 		RedirectURI:  s.keycloak.RedirectURI(),
 		State:        state,
@@ -132,7 +129,6 @@ func (s *authService) InitiateLogin(ctx context.Context) (*LoginResponse, error)
 		return nil, fmt.Errorf("failed to store login request: %w", err)
 	}
 
-	// Generate authorization URL
 	authURL := s.client.AuthURL(state, codeChallenge)
 
 	return &LoginResponse{
@@ -145,25 +141,21 @@ func (s *authService) InitiateLogin(ctx context.Context) (*LoginResponse, error)
 
 // HandleCallback handles the OIDC callback.
 func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) (*CallbackResponse, error) {
-	// Validate state
 	loginReq, err := s.ValidateState(ctx, req.State)
 	if err != nil {
 		return nil, err
 	}
 
-	// Exchange code for tokens
 	token, err := s.client.Exchange(ctx, req.Code, loginReq.CodeVerifier)
 	if err != nil {
 		return nil, errors.Unauthorized(fmt.Sprintf("failed to exchange code: %v", err))
 	}
 
-	// Get user info
 	userInfo, err := s.client.GetUserInfo(ctx, token)
 	if err != nil {
 		return nil, errors.Internal(fmt.Sprintf("failed to get user info: %v", err))
 	}
 
-	// Find or create user
 	userID, err := s.userSvc.FindOrCreate(
 		ctx,
 		userInfo.Subject,
@@ -175,13 +167,11 @@ func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) 
 		return nil, err
 	}
 
-	// Create session
 	sess, err := s.sessionSvc.Create(ctx, userID)
 	if err != nil {
 		return nil, errors.Internal(fmt.Sprintf("failed to create session: %v", err))
 	}
 
-	// Delete used login request
 	s.deleteLoginRequest(ctx, req.State)
 
 	return &CallbackResponse{
@@ -200,7 +190,11 @@ func (s *authService) ValidateState(ctx context.Context, state string) (*LoginRe
 	return loginReq, nil
 }
 
-// storeLoginRequest stores the login request in Valkey.
+// Logout deletes the session.
+func (s *authService) Logout(ctx context.Context, sessionID string) error {
+	return s.sessionSvc.Delete(ctx, SessionID(sessionID))
+}
+
 func (s *authService) storeLoginRequest(ctx context.Context, req *LoginRequest) error {
 	key := s.getStateKey(req.State)
 	data, err := json.Marshal(req)
@@ -214,7 +208,6 @@ func (s *authService) storeLoginRequest(ctx context.Context, req *LoginRequest) 
 		Build()).Error()
 }
 
-// getLoginRequest retrieves the login request from Valkey.
 func (s *authService) getLoginRequest(ctx context.Context, state string) (*LoginRequest, error) {
 	key := s.getStateKey(state)
 	result := s.valkey.Do(ctx, s.valkey.B().Get().Key(key).Build())
@@ -235,7 +228,6 @@ func (s *authService) getLoginRequest(ctx context.Context, state string) (*Login
 	return &req, nil
 }
 
-// deleteLoginRequest deletes the login request from Valkey.
 func (s *authService) deleteLoginRequest(ctx context.Context, state string) {
 	key := s.getStateKey(state)
 	_ = s.valkey.Do(ctx, s.valkey.B().Del().Key(key).Build()).Error()
@@ -243,9 +235,4 @@ func (s *authService) deleteLoginRequest(ctx context.Context, state string) {
 
 func (s *authService) getStateKey(state string) string {
 	return fmt.Sprintf("%s:auth:state:%s", s.valkeyPrefix, state)
-}
-
-// Logout deletes the session.
-func (s *authService) Logout(ctx context.Context, sessionID string) error {
-	return s.sessionSvc.Delete(ctx, SessionID(sessionID))
 }

@@ -1,4 +1,4 @@
-package inode
+package repository
 
 import (
 	"context"
@@ -7,20 +7,21 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entinode "github.com/starfrag-lab/retrowin-go/ent/inode"
+	domain "github.com/starfrag-lab/retrowin-go/internal/inode"
 )
 
 // timeNow returns the current time. Extracted for testability.
 var timeNow = time.Now
 
-// EntRepository implements Repository using Ent.
+// EntRepository implements domain.InodeRepository using Ent.
 type EntRepository struct{}
 
-// NewEntRepository creates a new EntRepository.
-func NewEntRepository() Repository {
+// NewRepository creates a new EntRepository.
+func NewRepository() domain.InodeRepository {
 	return &EntRepository{}
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Inode, error) {
+func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.Inode, error) {
 	now := timeNow()
 
 	builder := client.Inode.Create().
@@ -47,7 +48,7 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*Inode, error) {
+func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*domain.Inode, error) {
 	entInode, err := client.Inode.Query().
 		Where(entinode.ID(id)).
 		Only(ctx)
@@ -60,7 +61,7 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int6
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *UpdateParams) error {
+func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *domain.UpdateParams) error {
 	builder := client.Inode.UpdateOneID(params.ID)
 
 	if params.Mode != nil {
@@ -95,7 +96,7 @@ func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id int64
 	return client.Inode.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Inode, error) {
+func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) ([]*domain.Inode, error) {
 	query := client.Inode.Query()
 	query = applyFilter(query, filter)
 
@@ -106,7 +107,7 @@ func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *Qu
 	return fromEntSlice(entInodes), nil
 }
 
-func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Inode, error) {
+func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) (*domain.Inode, error) {
 	query := client.Inode.Query()
 	query = applyFilter(query, filter)
 
@@ -126,7 +127,7 @@ func (r *EntRepository) UpdateLinkCount(ctx context.Context, client *ent.Client,
 		Exec(ctx)
 }
 
-func applyFilter(query *ent.InodeQuery, filter *QueryFilter) *ent.InodeQuery {
+func applyFilter(query *ent.InodeQuery, filter *domain.QueryFilter) *ent.InodeQuery {
 	if filter == nil {
 		return query
 	}
@@ -145,13 +146,13 @@ func applyFilter(query *ent.InodeQuery, filter *QueryFilter) *ent.InodeQuery {
 	return query
 }
 
-func fromEnt(e *ent.Inode) *Inode {
+func fromEnt(e *ent.Inode) *domain.Inode {
 	var content []byte
 	if e.Content != nil {
 		content = e.Content
 	}
 
-	return NewInode(
+	return domain.NewInode(
 		e.ID,
 		e.SystemID,
 		e.Mode,
@@ -169,8 +170,8 @@ func fromEnt(e *ent.Inode) *Inode {
 	)
 }
 
-func fromEntSlice(inodes []*ent.Inode) []*Inode {
-	result := make([]*Inode, len(inodes))
+func fromEntSlice(inodes []*ent.Inode) []*domain.Inode {
+	result := make([]*domain.Inode, len(inodes))
 	for i, e := range inodes {
 		result[i] = fromEnt(e)
 	}

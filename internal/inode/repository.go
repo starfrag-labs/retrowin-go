@@ -7,8 +7,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
-// Repository defines the interface for inode data access.
-type Repository interface {
+// InodeRepository defines the interface for inode data access.
+type InodeRepository interface {
 	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Inode, error)
 	GetByID(ctx context.Context, client *ent.Client, id int64) (*Inode, error)
 	Update(ctx context.Context, client *ent.Client, params *UpdateParams) error

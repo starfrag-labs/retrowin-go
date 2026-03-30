@@ -6,8 +6,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
-// Repository defines the interface for user data access.
-type Repository interface {
+// UserRepository defines the interface for user data access.
+type UserRepository interface {
 	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*User, error)
 	GetByID(ctx context.Context, client *ent.Client, id string) (*User, error)
 	GetByUsername(ctx context.Context, client *ent.Client, username string) (*User, error)

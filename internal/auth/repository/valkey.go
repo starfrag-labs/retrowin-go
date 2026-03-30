@@ -1,4 +1,4 @@
-package auth
+package repository
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	domain "github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/valkey-io/valkey-go"
 )
 
@@ -17,7 +18,7 @@ type sessionData struct {
 }
 
 // toSessionData converts Session to sessionData.
-func toSessionData(s *Session) *sessionData {
+func toSessionData(s *domain.Session) *sessionData {
 	return &sessionData{
 		UserID:    s.UserID(),
 		ExpiresAt: s.ExpiresAt(),
@@ -32,14 +33,14 @@ type ValkeySessionRepository struct {
 }
 
 // NewValkeySessionRepository creates a new ValkeySessionRepository.
-func NewValkeySessionRepository(client valkey.Client, prefix string) SessionRepository {
+func NewValkeySessionRepository(client valkey.Client, prefix string) domain.SessionRepository {
 	return &ValkeySessionRepository{
 		client: client,
 		prefix: prefix,
 	}
 }
 
-func (r *ValkeySessionRepository) sessionKey(id SessionID) string {
+func (r *ValkeySessionRepository) sessionKey(id domain.SessionID) string {
 	return fmt.Sprintf("%s:session:%s", r.prefix, id)
 }
 
@@ -48,19 +49,17 @@ func (r *ValkeySessionRepository) userSessionsKey(userID string) string {
 }
 
 // Save saves a session.
-func (r *ValkeySessionRepository) Save(ctx context.Context, session *Session) error {
+func (r *ValkeySessionRepository) Save(ctx context.Context, session *domain.Session) error {
 	data, err := json.Marshal(toSessionData(session))
 	if err != nil {
 		return fmt.Errorf("marshal session: %w", err)
 	}
 
-	// Calculate TTL from session expiration
 	ttl := time.Until(session.ExpiresAt())
 	if ttl <= 0 {
-		ttl = 24 * time.Hour // Default TTL
+		ttl = 24 * time.Hour
 	}
 
-	// Store session data with expiration
 	err = r.client.Do(ctx, r.client.B().Set().
 		Key(r.sessionKey(session.ID())).
 		Value(string(data)).
@@ -70,7 +69,6 @@ func (r *ValkeySessionRepository) Save(ctx context.Context, session *Session) er
 		return fmt.Errorf("save session: %w", err)
 	}
 
-	// Add to user's session set for DeleteByUserID support
 	err = r.client.Do(ctx, r.client.B().Sadd().
 		Key(r.userSessionsKey(session.UserID())).
 		Member(string(session.ID())).
@@ -83,10 +81,10 @@ func (r *ValkeySessionRepository) Save(ctx context.Context, session *Session) er
 }
 
 // Get retrieves a session by ID.
-func (r *ValkeySessionRepository) Get(ctx context.Context, id SessionID) (*Session, error) {
+func (r *ValkeySessionRepository) Get(ctx context.Context, id domain.SessionID) (*domain.Session, error) {
 	result := r.client.Do(ctx, r.client.B().Get().Key(r.sessionKey(id)).Build())
 	if result.Error() != nil {
-		return nil, nil // Key not found
+		return nil, nil
 	}
 
 	data, err := result.ToString()
@@ -99,12 +97,11 @@ func (r *ValkeySessionRepository) Get(ctx context.Context, id SessionID) (*Sessi
 		return nil, fmt.Errorf("unmarshal session: %w", err)
 	}
 
-	return NewSession(id, sd.UserID, sd.ExpiresAt, sd.CreatedAt), nil
+	return domain.NewSession(id, sd.UserID, sd.ExpiresAt, sd.CreatedAt), nil
 }
 
 // Delete deletes a session by ID.
-func (r *ValkeySessionRepository) Delete(ctx context.Context, id SessionID) error {
-	// Get session first to remove from user's set
+func (r *ValkeySessionRepository) Delete(ctx context.Context, id domain.SessionID) error {
 	s, _ := r.Get(ctx, id)
 
 	if s != nil {
@@ -123,7 +120,6 @@ func (r *ValkeySessionRepository) Delete(ctx context.Context, id SessionID) erro
 
 // DeleteByUserID deletes all sessions for a user.
 func (r *ValkeySessionRepository) DeleteByUserID(ctx context.Context, userID string) error {
-	// Get all session IDs for user
 	result := r.client.Do(ctx, r.client.B().Smembers().Key(r.userSessionsKey(userID)).Build())
 	if result.Error() != nil {
 		return fmt.Errorf("get user sessions: %w", result.Error())
@@ -134,11 +130,10 @@ func (r *ValkeySessionRepository) DeleteByUserID(ctx context.Context, userID str
 		return fmt.Errorf("parse user sessions: %w", err)
 	}
 
-	// Delete all sessions
 	if len(members) > 0 {
 		keys := make([]string, 0, len(members))
 		for _, sid := range members {
-			keys = append(keys, r.sessionKey(SessionID(sid)))
+			keys = append(keys, r.sessionKey(domain.SessionID(sid)))
 		}
 
 		if err := r.client.Do(ctx, r.client.B().Del().Key(keys...).Build()).Error(); err != nil {
@@ -146,7 +141,6 @@ func (r *ValkeySessionRepository) DeleteByUserID(ctx context.Context, userID str
 		}
 	}
 
-	// Delete user's session set
 	if err := r.client.Do(ctx, r.client.B().Del().Key(r.userSessionsKey(userID)).Build()).Error(); err != nil {
 		return fmt.Errorf("delete user sessions set: %w", err)
 	}
