@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/starfrag-lab/retrowin-go/internal/user"
+	"github.com/starfrag-lab/retrowin-go/internal/core/user"
 )
 
 // UserService defines the interface for user operations.

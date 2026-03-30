@@ -7,7 +7,7 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entinode "github.com/starfrag-lab/retrowin-go/ent/inode"
-	domain "github.com/starfrag-lab/retrowin-go/internal/inode"
+	domain "github.com/starfrag-lab/retrowin-go/internal/core/inode"
 )
 
 // timeNow returns the current time. Extracted for testability.

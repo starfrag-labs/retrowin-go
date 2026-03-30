@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
-	"github.com/starfrag-lab/retrowin-go/internal/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 )
 
 func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inode.Inode, error) {

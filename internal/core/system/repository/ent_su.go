@@ -6,7 +6,7 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entusersystem "github.com/starfrag-lab/retrowin-go/ent/usersystem"
-	domain "github.com/starfrag-lab/retrowin-go/internal/system"
+	domain "github.com/starfrag-lab/retrowin-go/internal/core/system"
 )
 
 // EntSystemUserRepository implements domain.SystemUserRepository using Ent.

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/internal/user"
-	userMocks "github.com/starfrag-lab/retrowin-go/internal/user/mocks"
+	"github.com/starfrag-lab/retrowin-go/internal/core/user"
+	userMocks "github.com/starfrag-lab/retrowin-go/internal/core/user/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

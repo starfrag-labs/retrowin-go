@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/starfrag-lab/retrowin-go/internal/auth"
+	"github.com/starfrag-lab/retrowin-go/internal/core/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 

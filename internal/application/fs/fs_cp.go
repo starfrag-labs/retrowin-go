@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
-	"github.com/starfrag-lab/retrowin-go/internal/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 )
 
 func (s *service) Copy(ctx context.Context, id string, systemID string) (*inode.Inode, error) {

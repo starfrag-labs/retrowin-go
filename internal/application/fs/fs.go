@@ -3,9 +3,9 @@ package fs
 import (
 	"context"
 
-	"github.com/starfrag-lab/retrowin-go/internal/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/inode/content"
-	"github.com/starfrag-lab/retrowin-go/internal/object"
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 )
 
 // FsService defines the interface for filesystem operations.

@@ -6,7 +6,7 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entobject "github.com/starfrag-lab/retrowin-go/ent/object"
-	domain "github.com/starfrag-lab/retrowin-go/internal/object"
+	domain "github.com/starfrag-lab/retrowin-go/internal/core/object"
 )
 
 // EntRepository implements domain.ObjectRepository using Ent.

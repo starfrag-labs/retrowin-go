@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
-	"github.com/starfrag-lab/retrowin-go/internal/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 )
 
 func (s *service) Delete(ctx context.Context, id string) error {
