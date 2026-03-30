@@ -11,6 +11,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
+	"github.com/starfrag-lab/retrowin-go/internal/middleware"
+	"github.com/starfrag-lab/retrowin-go/internal/system"
 )
 
 // StorageService defines the interface for file storage operations.
@@ -22,8 +24,6 @@ type StorageService interface {
 // UploadCommand for uploading a file.
 type UploadCommand struct {
 	SystemID string
-	UID      int
-	GID      int
 	Mode     int
 	Flags    int
 	Bucket   string
@@ -42,19 +42,40 @@ type UploadResult struct {
 type service struct {
 	fsSvc     fs.FsService
 	objectSvc object.ObjectService
+	suSvc     system.SystemUserService
 }
 
 // NewService creates a new storage service.
-func NewService(fsSvc fs.FsService, objectSvc object.ObjectService) StorageService {
+func NewService(fsSvc fs.FsService, objectSvc object.ObjectService, suSvc system.SystemUserService) StorageService {
 	return &service{
 		fsSvc:     fsSvc,
 		objectSvc: objectSvc,
+		suSvc:     suSvc,
 	}
+}
+
+// resolveUID gets the uid for the current user in the given system.
+func (s *service) resolveUID(ctx context.Context, systemID string) (int, error) {
+	userID := middleware.GetUserID(ctx)
+	if userID == "" {
+		return 0, nil // No user in context, skip permission check
+	}
+
+	su, err := s.suSvc.FindByUserAndSystem(ctx, userID, systemID)
+	if err != nil {
+		return 0, errors.WrapInternal(err, "failed to resolve uid")
+	}
+	return su.UID(), nil
 }
 
 func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult, error) {
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
+	}
+
+	uid, err := s.resolveUID(ctx, cmd.SystemID)
+	if err != nil {
+		return nil, err
 	}
 
 	storageKey := fmt.Sprintf("%s/%s", cmd.SystemID, cmd.Filename)
@@ -84,10 +105,10 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		mode = inode.ModeObject | inode.PermOwnerRW | inode.PermGroupRX | inode.PermOtherR
 	}
 
-	createdInode, err := s.fsSvc.CreateFile(ctx, &fs.CreateFileCommand{
+	createdInode, err := s.fsSvc.CreateFile(ctx, uid, &fs.CreateFileCommand{
 		SystemID: cmd.SystemID,
-		UID:      cmd.UID,
-		GID:      cmd.GID,
+		UID:      uid,
+		GID:      uid,
 		Mode:     mode,
 		Flags:    cmd.Flags,
 		Content:  cBytes,
@@ -103,7 +124,7 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 }
 
 func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error) {
-	in, err := s.fsSvc.Get(ctx, id)
+	in, err := s.fsSvc.Get(ctx, 0, id)
 	if err != nil {
 		return "", err
 	}

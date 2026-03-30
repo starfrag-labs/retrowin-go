@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inode.Inode, error) {
+func (s *service) CreateFile(ctx context.Context, uid int, cmd *CreateFileCommand) (*inode.Inode, error) {
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
 	}
@@ -22,14 +22,14 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inod
 	return s.inodeSvc.Create(ctx, &inode.CreateCommand{
 		SystemID: cmd.SystemID,
 		Mode:     mode,
-		UID:      cmd.UID,
+		UID:      uid,
 		GID:      cmd.GID,
 		Flags:    cmd.Flags,
 		Content:  cmd.Content,
 	})
 }
 
-func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryCommand) (*inode.Inode, error) {
+func (s *service) CreateDirectory(ctx context.Context, uid int, cmd *CreateDirectoryCommand) (*inode.Inode, error) {
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
 	}
@@ -39,7 +39,6 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 		mode = inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherR
 	}
 
-	// Initialize with empty DirContent
 	dirContent := content.DirContent{Entries: []content.DirEntry{}}
 	raw, err := json.Marshal(dirContent)
 	if err != nil {
@@ -49,14 +48,14 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 	return s.inodeSvc.Create(ctx, &inode.CreateCommand{
 		SystemID: cmd.SystemID,
 		Mode:     mode,
-		UID:      cmd.UID,
+		UID:      uid,
 		GID:      cmd.GID,
 		Flags:    cmd.Flags,
 		Content:  raw,
 	})
 }
 
-func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) (*inode.Inode, error) {
+func (s *service) CreateSymlink(ctx context.Context, uid int, cmd *CreateSymlinkCommand) (*inode.Inode, error) {
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
 	}
@@ -69,7 +68,6 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 		mode = inode.ModeSymlink | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherR
 	}
 
-	// Store symlink target in content
 	symContent := content.SymlinkContent{Target: cmd.Target}
 	raw, err := json.Marshal(symContent)
 	if err != nil {
@@ -79,7 +77,7 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 	return s.inodeSvc.Create(ctx, &inode.CreateCommand{
 		SystemID: cmd.SystemID,
 		Mode:     mode,
-		UID:      cmd.UID,
+		UID:      uid,
 		GID:      cmd.GID,
 		Flags:    cmd.Flags,
 		Content:  raw,

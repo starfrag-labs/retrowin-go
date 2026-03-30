@@ -4,19 +4,23 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // Link adds a directory entry to a directory inode.
-func (s *service) Link(ctx context.Context, dirID string, entry content.DirEntry) error {
+func (s *service) Link(ctx context.Context, uid int, dirID string, entry content.DirEntry) error {
 	dir, err := s.inodeSvc.GetByID(ctx, dirID)
 	if err != nil {
 		return err
 	}
 	if !dir.IsDir() {
 		return errors.BadRequest("not a directory")
+	}
+
+	if err := s.checkPerm(dir, uid, AccessWrite); err != nil {
+		return err
 	}
 
 	var c content.DirContent
@@ -46,13 +50,17 @@ func (s *service) Link(ctx context.Context, dirID string, entry content.DirEntry
 }
 
 // Unlink removes a directory entry from a directory inode.
-func (s *service) Unlink(ctx context.Context, dirID string, name string) error {
+func (s *service) Unlink(ctx context.Context, uid int, dirID string, name string) error {
 	dir, err := s.inodeSvc.GetByID(ctx, dirID)
 	if err != nil {
 		return err
 	}
 	if !dir.IsDir() {
 		return errors.BadRequest("not a directory")
+	}
+
+	if err := s.checkPerm(dir, uid, AccessWrite); err != nil {
+		return err
 	}
 
 	var c content.DirContent

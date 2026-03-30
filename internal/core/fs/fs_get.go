@@ -4,16 +4,25 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-func (s *service) Get(ctx context.Context, id string) (*inode.Inode, error) {
-	return s.inodeSvc.GetByID(ctx, id)
+func (s *service) Get(ctx context.Context, uid int, id string) (*inode.Inode, error) {
+	in, err := s.inodeSvc.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.checkPerm(in, uid, AccessRead); err != nil {
+		return nil, err
+	}
+
+	return in, nil
 }
 
-func (s *service) List(ctx context.Context, filter *ListFilter) ([]*inode.Inode, error) {
+func (s *service) List(ctx context.Context, uid int, filter *ListFilter) ([]*inode.Inode, error) {
 	f := inode.Filter{}
 	if filter.SystemID != nil {
 		f = inode.BySystemID(*filter.SystemID)
@@ -24,13 +33,17 @@ func (s *service) List(ctx context.Context, filter *ListFilter) ([]*inode.Inode,
 	return s.inodeSvc.Find(ctx, f)
 }
 
-func (s *service) ReadDir(ctx context.Context, id string) ([]content.DirEntry, error) {
+func (s *service) ReadDir(ctx context.Context, uid int, id string) ([]content.DirEntry, error) {
 	in, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	if !in.IsDir() {
 		return nil, errors.BadRequest("not a directory")
+	}
+
+	if err := s.checkPerm(in, uid, AccessRead); err != nil {
+		return nil, err
 	}
 
 	if in.Content() == nil {

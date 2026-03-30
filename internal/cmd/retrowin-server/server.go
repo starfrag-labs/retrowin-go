@@ -34,6 +34,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	objectrepo "github.com/starfrag-lab/retrowin-go/internal/core/object/repository"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
+	"github.com/starfrag-lab/retrowin-go/internal/system"
+	surepo "github.com/starfrag-lab/retrowin-go/internal/system/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 	userrepo "github.com/starfrag-lab/retrowin-go/internal/user/repository"
 )
@@ -287,6 +289,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			userrepo.NewRepository,
 			inoderepo.NewRepository,
 			objectrepo.NewRepository,
+			surepo.NewSystemUserRepository,
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
@@ -299,6 +302,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			user.NewService,
 			inode.NewService,
 			object.NewService,
+			system.NewSystemUserService,
 			// Application services
 			fs.NewService,
 			storage.NewService,

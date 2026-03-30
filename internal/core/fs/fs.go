@@ -10,18 +10,18 @@ import (
 
 // FsService defines the interface for filesystem operations.
 type FsService interface {
-	CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inode.Inode, error)
-	CreateDirectory(ctx context.Context, cmd *CreateDirectoryCommand) (*inode.Inode, error)
-	CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) (*inode.Inode, error)
-	Get(ctx context.Context, id string) (*inode.Inode, error)
-	ReadDir(ctx context.Context, id string) ([]content.DirEntry, error)
-	Link(ctx context.Context, dirID string, entry content.DirEntry) error
-	Unlink(ctx context.Context, dirID string, name string) error
-	UpdateContent(ctx context.Context, cmd *UpdateContentCommand) (*inode.Inode, error)
-	UpdateMode(ctx context.Context, cmd *UpdateModeCommand) error
-	Delete(ctx context.Context, id string) error
-	List(ctx context.Context, filter *ListFilter) ([]*inode.Inode, error)
-	Copy(ctx context.Context, id string, systemID string) (*inode.Inode, error)
+	CreateFile(ctx context.Context, uid int, cmd *CreateFileCommand) (*inode.Inode, error)
+	CreateDirectory(ctx context.Context, uid int, cmd *CreateDirectoryCommand) (*inode.Inode, error)
+	CreateSymlink(ctx context.Context, uid int, cmd *CreateSymlinkCommand) (*inode.Inode, error)
+	Get(ctx context.Context, uid int, id string) (*inode.Inode, error)
+	ReadDir(ctx context.Context, uid int, id string) ([]content.DirEntry, error)
+	Link(ctx context.Context, uid int, dirID string, entry content.DirEntry) error
+	Unlink(ctx context.Context, uid int, dirID string, name string) error
+	UpdateContent(ctx context.Context, uid int, cmd *UpdateContentCommand) (*inode.Inode, error)
+	UpdateMode(ctx context.Context, uid int, cmd *UpdateModeCommand) error
+	Delete(ctx context.Context, uid int, id string) error
+	List(ctx context.Context, uid int, filter *ListFilter) ([]*inode.Inode, error)
+	Copy(ctx context.Context, uid int, id string, systemID string) (*inode.Inode, error)
 }
 
 // CreateFileCommand for creating a regular file.

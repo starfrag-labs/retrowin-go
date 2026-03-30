@@ -4,13 +4,17 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-func (s *service) Delete(ctx context.Context, id string) error {
+func (s *service) Delete(ctx context.Context, uid int, id string) error {
 	in, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {
+		return err
+	}
+
+	if err := s.checkPerm(in, uid, AccessWrite); err != nil {
 		return err
 	}
 

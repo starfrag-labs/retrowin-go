@@ -1,6 +1,10 @@
 package fs
 
 import (
+	"context"
+	"slices"
+
+	"github.com/starfrag-lab/retrowin-go/internal/core/fs/etc"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
@@ -14,16 +18,20 @@ const (
 	AccessExecute
 )
 
-// CheckPermission verifies if a user has the requested access to an inode.
-// Returns nil if access is granted, or an error if denied.
-func CheckPermission(in *inode.Inode, uid, gid int, access AccessType) error {
+// checkPerm verifies if uid has the requested access to the inode.
+func (s *service) checkPerm(in *inode.Inode, uid int, access AccessType) error {
+	if uid == 0 {
+		return nil // uid not set, skip permission check (e.g. internal calls)
+	}
+
+	gids := s.resolveGIDs(context.Background(), in.SystemID(), uid)
 	mode := in.Permissions()
 
 	var perm int
 	switch {
 	case in.UID() == uid:
 		perm = ownerPerm(mode, access)
-	case in.GID() == gid:
+	case slices.Contains(gids, in.GID()):
 		perm = groupPerm(mode, access)
 	default:
 		perm = otherPerm(mode, access)
@@ -33,6 +41,17 @@ func CheckPermission(in *inode.Inode, uid, gid int, access AccessType) error {
 		return errors.Forbidden("permission denied")
 	}
 	return nil
+}
+
+// resolveGIDs returns all gids the given uid belongs to in the system.
+// TODO: read /etc/group inode from filesystem.
+func (s *service) resolveGIDs(_ context.Context, _ string, _ int) []int {
+	return nil
+}
+
+// resolveGIDsFromContent parses /etc/group content for the given uid.
+func resolveGIDsFromContent(data []byte, uid int) []int {
+	return etc.ResolveGIDsByUID(data, uid)
 }
 
 func ownerPerm(mode int, access AccessType) int {

@@ -3,13 +3,17 @@ package fs
 import (
 	"context"
 
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-func (s *service) Copy(ctx context.Context, id string, systemID string) (*inode.Inode, error) {
+func (s *service) Copy(ctx context.Context, uid int, id string, systemID string) (*inode.Inode, error) {
 	original, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := s.checkPerm(original, uid, AccessRead); err != nil {
 		return nil, err
 	}
 
@@ -21,7 +25,7 @@ func (s *service) Copy(ctx context.Context, id string, systemID string) (*inode.
 	return s.inodeSvc.Create(ctx, &inode.CreateCommand{
 		SystemID: systemID,
 		Mode:     original.Mode(),
-		UID:      original.UID(),
+		UID:      uid,
 		GID:      original.GID(),
 		Flags:    original.Flags(),
 		Content:  original.Content(),
