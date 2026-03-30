@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/starfrag-lab/retrowin-go/ent/group"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
@@ -86,7 +85,7 @@ func (_c *SystemCreate) SetNillableStatus(v *system.Status) *SystemCreate {
 }
 
 // SetID sets the "id" field.
-func (_c *SystemCreate) SetID(v int64) *SystemCreate {
+func (_c *SystemCreate) SetID(v string) *SystemCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
@@ -106,30 +105,15 @@ func (_c *SystemCreate) AddInodes(v ...*Inode) *SystemCreate {
 	return _c.AddInodeIDs(ids...)
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (_c *SystemCreate) AddGroupIDs(ids ...int64) *SystemCreate {
-	_c.mutation.AddGroupIDs(ids...)
-	return _c
-}
-
-// AddGroups adds the "groups" edges to the Group entity.
-func (_c *SystemCreate) AddGroups(v ...*Group) *SystemCreate {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddGroupIDs(ids...)
-}
-
 // AddUserIDs adds the "users" edge to the User entity by IDs.
-func (_c *SystemCreate) AddUserIDs(ids ...int64) *SystemCreate {
+func (_c *SystemCreate) AddUserIDs(ids ...string) *SystemCreate {
 	_c.mutation.AddUserIDs(ids...)
 	return _c
 }
 
 // AddUsers adds the "users" edges to the User entity.
 func (_c *SystemCreate) AddUsers(v ...*User) *SystemCreate {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -228,9 +212,12 @@ func (_c *SystemCreate) sqlSave(ctx context.Context) (*System, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int64(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected System.ID type: %T", _spec.ID.Value)
+		}
 	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
@@ -240,7 +227,7 @@ func (_c *SystemCreate) sqlSave(ctx context.Context) (*System, error) {
 func (_c *SystemCreate) createSpec() (*System, *sqlgraph.CreateSpec) {
 	var (
 		_node = &System{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(system.Table, sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64))
+		_spec = sqlgraph.NewCreateSpec(system.Table, sqlgraph.NewFieldSpec(system.FieldID, field.TypeString))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
@@ -282,22 +269,6 @@ func (_c *SystemCreate) createSpec() (*System, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.GroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   system.GroupsTable,
-			Columns: []string{system.GroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := _c.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -306,7 +277,7 @@ func (_c *SystemCreate) createSpec() (*System, *sqlgraph.CreateSpec) {
 			Columns: system.UsersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -362,10 +333,6 @@ func (_c *SystemCreateBulk) Save(ctx context.Context) ([]*System, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int64(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

@@ -23,29 +23,27 @@ type Inode struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// SystemID holds the value of the "system_id" field.
-	SystemID *int64 `json:"system_id,omitempty"`
-	// FileType holds the value of the "file_type" field.
-	FileType inode.FileType `json:"file_type,omitempty"`
-	// ByteSize holds the value of the "byte_size" field.
-	ByteSize int64 `json:"byte_size,omitempty"`
-	// OwnerUID holds the value of the "owner_uid" field.
-	OwnerUID string `json:"owner_uid,omitempty"`
-	// OwnerGid holds the value of the "owner_gid" field.
-	OwnerGid string `json:"owner_gid,omitempty"`
-	// PermOwner holds the value of the "perm_owner" field.
-	PermOwner string `json:"perm_owner,omitempty"`
-	// PermGroup holds the value of the "perm_group" field.
-	PermGroup string `json:"perm_group,omitempty"`
-	// PermOthers holds the value of the "perm_others" field.
-	PermOthers string `json:"perm_others,omitempty"`
+	SystemID string `json:"system_id,omitempty"`
+	// Mode holds the value of the "mode" field.
+	Mode int16 `json:"mode,omitempty"`
+	// UID holds the value of the "uid" field.
+	UID int64 `json:"uid,omitempty"`
+	// Gid holds the value of the "gid" field.
+	Gid int64 `json:"gid,omitempty"`
+	// Size holds the value of the "size" field.
+	Size int64 `json:"size,omitempty"`
 	// LinkCount holds the value of the "link_count" field.
-	LinkCount int16 `json:"link_count,omitempty"`
-	// AccessedAt holds the value of the "accessed_at" field.
-	AccessedAt *time.Time `json:"accessed_at,omitempty"`
-	// IsSystem holds the value of the "is_system" field.
-	IsSystem bool `json:"is_system,omitempty"`
-	// SystemType holds the value of the "system_type" field.
-	SystemType *string `json:"system_type,omitempty"`
+	LinkCount int `json:"link_count,omitempty"`
+	// Flags holds the value of the "flags" field.
+	Flags int16 `json:"flags,omitempty"`
+	// Atime holds the value of the "atime" field.
+	Atime time.Time `json:"atime,omitempty"`
+	// Mtime holds the value of the "mtime" field.
+	Mtime time.Time `json:"mtime,omitempty"`
+	// Ctime holds the value of the "ctime" field.
+	Ctime time.Time `json:"ctime,omitempty"`
+	// Content holds the value of the "content" field.
+	Content []byte `json:"content,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InodeQuery when eager-loading is set.
 	Edges        InodeEdges `json:"edges"`
@@ -56,11 +54,9 @@ type Inode struct {
 type InodeEdges struct {
 	// System holds the value of the system edge.
 	System *System `json:"system,omitempty"`
-	// Entries holds the value of the entries edge.
-	Entries []*DirectoryEntry `json:"entries,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
 // SystemOrErr returns the System value or an error if the edge
@@ -74,27 +70,18 @@ func (e InodeEdges) SystemOrErr() (*System, error) {
 	return nil, &NotLoadedError{edge: "system"}
 }
 
-// EntriesOrErr returns the Entries value or an error if the edge
-// was not loaded in eager-loading.
-func (e InodeEdges) EntriesOrErr() ([]*DirectoryEntry, error) {
-	if e.loadedTypes[1] {
-		return e.Entries, nil
-	}
-	return nil, &NotLoadedError{edge: "entries"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Inode) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case inode.FieldIsSystem:
-			values[i] = new(sql.NullBool)
-		case inode.FieldID, inode.FieldSystemID, inode.FieldByteSize, inode.FieldLinkCount:
+		case inode.FieldContent:
+			values[i] = new([]byte)
+		case inode.FieldID, inode.FieldMode, inode.FieldUID, inode.FieldGid, inode.FieldSize, inode.FieldLinkCount, inode.FieldFlags:
 			values[i] = new(sql.NullInt64)
-		case inode.FieldFileType, inode.FieldOwnerUID, inode.FieldOwnerGid, inode.FieldPermOwner, inode.FieldPermGroup, inode.FieldPermOthers, inode.FieldSystemType:
+		case inode.FieldSystemID:
 			values[i] = new(sql.NullString)
-		case inode.FieldCreateTime, inode.FieldUpdateTime, inode.FieldAccessedAt:
+		case inode.FieldCreateTime, inode.FieldUpdateTime, inode.FieldAtime, inode.FieldMtime, inode.FieldCtime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -130,79 +117,70 @@ func (_m *Inode) assignValues(columns []string, values []any) error {
 				_m.UpdateTime = value.Time
 			}
 		case inode.FieldSystemID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field system_id", values[i])
 			} else if value.Valid {
-				_m.SystemID = new(int64)
-				*_m.SystemID = value.Int64
+				_m.SystemID = value.String
 			}
-		case inode.FieldFileType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field file_type", values[i])
-			} else if value.Valid {
-				_m.FileType = inode.FileType(value.String)
-			}
-		case inode.FieldByteSize:
+		case inode.FieldMode:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field byte_size", values[i])
+				return fmt.Errorf("unexpected type %T for field mode", values[i])
 			} else if value.Valid {
-				_m.ByteSize = value.Int64
+				_m.Mode = int16(value.Int64)
 			}
-		case inode.FieldOwnerUID:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field owner_uid", values[i])
+		case inode.FieldUID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field uid", values[i])
 			} else if value.Valid {
-				_m.OwnerUID = value.String
+				_m.UID = value.Int64
 			}
-		case inode.FieldOwnerGid:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field owner_gid", values[i])
+		case inode.FieldGid:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gid", values[i])
 			} else if value.Valid {
-				_m.OwnerGid = value.String
+				_m.Gid = value.Int64
 			}
-		case inode.FieldPermOwner:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field perm_owner", values[i])
+		case inode.FieldSize:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field size", values[i])
 			} else if value.Valid {
-				_m.PermOwner = value.String
-			}
-		case inode.FieldPermGroup:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field perm_group", values[i])
-			} else if value.Valid {
-				_m.PermGroup = value.String
-			}
-		case inode.FieldPermOthers:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field perm_others", values[i])
-			} else if value.Valid {
-				_m.PermOthers = value.String
+				_m.Size = value.Int64
 			}
 		case inode.FieldLinkCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field link_count", values[i])
 			} else if value.Valid {
-				_m.LinkCount = int16(value.Int64)
+				_m.LinkCount = int(value.Int64)
 			}
-		case inode.FieldAccessedAt:
+		case inode.FieldFlags:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field flags", values[i])
+			} else if value.Valid {
+				_m.Flags = int16(value.Int64)
+			}
+		case inode.FieldAtime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field accessed_at", values[i])
+				return fmt.Errorf("unexpected type %T for field atime", values[i])
 			} else if value.Valid {
-				_m.AccessedAt = new(time.Time)
-				*_m.AccessedAt = value.Time
+				_m.Atime = value.Time
 			}
-		case inode.FieldIsSystem:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_system", values[i])
+		case inode.FieldMtime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field mtime", values[i])
 			} else if value.Valid {
-				_m.IsSystem = value.Bool
+				_m.Mtime = value.Time
 			}
-		case inode.FieldSystemType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field system_type", values[i])
+		case inode.FieldCtime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field ctime", values[i])
 			} else if value.Valid {
-				_m.SystemType = new(string)
-				*_m.SystemType = value.String
+				_m.Ctime = value.Time
+			}
+		case inode.FieldContent:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value != nil {
+				_m.Content = *value
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -220,11 +198,6 @@ func (_m *Inode) Value(name string) (ent.Value, error) {
 // QuerySystem queries the "system" edge of the Inode entity.
 func (_m *Inode) QuerySystem() *SystemQuery {
 	return NewInodeClient(_m.config).QuerySystem(_m)
-}
-
-// QueryEntries queries the "entries" edge of the Inode entity.
-func (_m *Inode) QueryEntries() *DirectoryEntryQuery {
-	return NewInodeClient(_m.config).QueryEntries(_m)
 }
 
 // Update returns a builder for updating this Inode.
@@ -256,47 +229,38 @@ func (_m *Inode) String() string {
 	builder.WriteString("update_time=")
 	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
-	if v := _m.SystemID; v != nil {
-		builder.WriteString("system_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("system_id=")
+	builder.WriteString(_m.SystemID)
 	builder.WriteString(", ")
-	builder.WriteString("file_type=")
-	builder.WriteString(fmt.Sprintf("%v", _m.FileType))
+	builder.WriteString("mode=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Mode))
 	builder.WriteString(", ")
-	builder.WriteString("byte_size=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ByteSize))
+	builder.WriteString("uid=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UID))
 	builder.WriteString(", ")
-	builder.WriteString("owner_uid=")
-	builder.WriteString(_m.OwnerUID)
+	builder.WriteString("gid=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Gid))
 	builder.WriteString(", ")
-	builder.WriteString("owner_gid=")
-	builder.WriteString(_m.OwnerGid)
-	builder.WriteString(", ")
-	builder.WriteString("perm_owner=")
-	builder.WriteString(_m.PermOwner)
-	builder.WriteString(", ")
-	builder.WriteString("perm_group=")
-	builder.WriteString(_m.PermGroup)
-	builder.WriteString(", ")
-	builder.WriteString("perm_others=")
-	builder.WriteString(_m.PermOthers)
+	builder.WriteString("size=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Size))
 	builder.WriteString(", ")
 	builder.WriteString("link_count=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LinkCount))
 	builder.WriteString(", ")
-	if v := _m.AccessedAt; v != nil {
-		builder.WriteString("accessed_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
+	builder.WriteString("flags=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Flags))
 	builder.WriteString(", ")
-	builder.WriteString("is_system=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsSystem))
+	builder.WriteString("atime=")
+	builder.WriteString(_m.Atime.Format(time.ANSIC))
 	builder.WriteString(", ")
-	if v := _m.SystemType; v != nil {
-		builder.WriteString("system_type=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("mtime=")
+	builder.WriteString(_m.Mtime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("ctime=")
+	builder.WriteString(_m.Ctime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("content=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Content))
 	builder.WriteByte(')')
 	return builder.String()
 }

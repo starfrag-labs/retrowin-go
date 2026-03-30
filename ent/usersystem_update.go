@@ -30,13 +30,13 @@ func (_u *UserSystemUpdate) Where(ps ...predicate.UserSystem) *UserSystemUpdate 
 }
 
 // SetUserID sets the "user_id" field.
-func (_u *UserSystemUpdate) SetUserID(v int64) *UserSystemUpdate {
+func (_u *UserSystemUpdate) SetUserID(v string) *UserSystemUpdate {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *UserSystemUpdate) SetNillableUserID(v *int64) *UserSystemUpdate {
+func (_u *UserSystemUpdate) SetNillableUserID(v *string) *UserSystemUpdate {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -44,15 +44,29 @@ func (_u *UserSystemUpdate) SetNillableUserID(v *int64) *UserSystemUpdate {
 }
 
 // SetSystemID sets the "system_id" field.
-func (_u *UserSystemUpdate) SetSystemID(v int64) *UserSystemUpdate {
+func (_u *UserSystemUpdate) SetSystemID(v string) *UserSystemUpdate {
 	_u.mutation.SetSystemID(v)
 	return _u
 }
 
 // SetNillableSystemID sets the "system_id" field if the given value is not nil.
-func (_u *UserSystemUpdate) SetNillableSystemID(v *int64) *UserSystemUpdate {
+func (_u *UserSystemUpdate) SetNillableSystemID(v *string) *UserSystemUpdate {
 	if v != nil {
 		_u.SetSystemID(*v)
+	}
+	return _u
+}
+
+// SetUsername sets the "username" field.
+func (_u *UserSystemUpdate) SetUsername(v string) *UserSystemUpdate {
+	_u.mutation.SetUsername(v)
+	return _u
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (_u *UserSystemUpdate) SetNillableUsername(v *string) *UserSystemUpdate {
+	if v != nil {
+		_u.SetUsername(*v)
 	}
 	return _u
 }
@@ -113,6 +127,11 @@ func (_u *UserSystemUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserSystemUpdate) check() error {
+	if v, ok := _u.mutation.Username(); ok {
+		if err := usersystem.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "UserSystem.username": %w`, err)}
+		}
+	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserSystem.user"`)
 	}
@@ -134,6 +153,9 @@ func (_u *UserSystemUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			}
 		}
 	}
+	if value, ok := _u.mutation.Username(); ok {
+		_spec.SetField(usersystem.FieldUsername, field.TypeString, value)
+	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -142,7 +164,7 @@ func (_u *UserSystemUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Columns: []string{usersystem.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -155,7 +177,7 @@ func (_u *UserSystemUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Columns: []string{usersystem.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -171,7 +193,7 @@ func (_u *UserSystemUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Columns: []string{usersystem.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -184,7 +206,7 @@ func (_u *UserSystemUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Columns: []string{usersystem.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -213,13 +235,13 @@ type UserSystemUpdateOne struct {
 }
 
 // SetUserID sets the "user_id" field.
-func (_u *UserSystemUpdateOne) SetUserID(v int64) *UserSystemUpdateOne {
+func (_u *UserSystemUpdateOne) SetUserID(v string) *UserSystemUpdateOne {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *UserSystemUpdateOne) SetNillableUserID(v *int64) *UserSystemUpdateOne {
+func (_u *UserSystemUpdateOne) SetNillableUserID(v *string) *UserSystemUpdateOne {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -227,15 +249,29 @@ func (_u *UserSystemUpdateOne) SetNillableUserID(v *int64) *UserSystemUpdateOne 
 }
 
 // SetSystemID sets the "system_id" field.
-func (_u *UserSystemUpdateOne) SetSystemID(v int64) *UserSystemUpdateOne {
+func (_u *UserSystemUpdateOne) SetSystemID(v string) *UserSystemUpdateOne {
 	_u.mutation.SetSystemID(v)
 	return _u
 }
 
 // SetNillableSystemID sets the "system_id" field if the given value is not nil.
-func (_u *UserSystemUpdateOne) SetNillableSystemID(v *int64) *UserSystemUpdateOne {
+func (_u *UserSystemUpdateOne) SetNillableSystemID(v *string) *UserSystemUpdateOne {
 	if v != nil {
 		_u.SetSystemID(*v)
+	}
+	return _u
+}
+
+// SetUsername sets the "username" field.
+func (_u *UserSystemUpdateOne) SetUsername(v string) *UserSystemUpdateOne {
+	_u.mutation.SetUsername(v)
+	return _u
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (_u *UserSystemUpdateOne) SetNillableUsername(v *string) *UserSystemUpdateOne {
+	if v != nil {
+		_u.SetUsername(*v)
 	}
 	return _u
 }
@@ -309,6 +345,11 @@ func (_u *UserSystemUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserSystemUpdateOne) check() error {
+	if v, ok := _u.mutation.Username(); ok {
+		if err := usersystem.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "UserSystem.username": %w`, err)}
+		}
+	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserSystem.user"`)
 	}
@@ -347,6 +388,9 @@ func (_u *UserSystemUpdateOne) sqlSave(ctx context.Context) (_node *UserSystem, 
 			}
 		}
 	}
+	if value, ok := _u.mutation.Username(); ok {
+		_spec.SetField(usersystem.FieldUsername, field.TypeString, value)
+	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -355,7 +399,7 @@ func (_u *UserSystemUpdateOne) sqlSave(ctx context.Context) (_node *UserSystem, 
 			Columns: []string{usersystem.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -368,7 +412,7 @@ func (_u *UserSystemUpdateOne) sqlSave(ctx context.Context) (_node *UserSystem, 
 			Columns: []string{usersystem.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -384,7 +428,7 @@ func (_u *UserSystemUpdateOne) sqlSave(ctx context.Context) (_node *UserSystem, 
 			Columns: []string{usersystem.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -397,7 +441,7 @@ func (_u *UserSystemUpdateOne) sqlSave(ctx context.Context) (_node *UserSystem, 
 			Columns: []string{usersystem.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

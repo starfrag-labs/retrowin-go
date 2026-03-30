@@ -11,11 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/starfrag-lab/retrowin-go/ent/group"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
-	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
@@ -35,20 +33,6 @@ func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 // SetUpdateTime sets the "update_time" field.
 func (_u *UserUpdate) SetUpdateTime(v time.Time) *UserUpdate {
 	_u.mutation.SetUpdateTime(v)
-	return _u
-}
-
-// SetUID sets the "uid" field.
-func (_u *UserUpdate) SetUID(v string) *UserUpdate {
-	_u.mutation.SetUID(v)
-	return _u
-}
-
-// SetNillableUID sets the "uid" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableUID(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetUID(*v)
-	}
 	return _u
 }
 
@@ -108,49 +92,19 @@ func (_u *UserUpdate) SetNillableJoinDate(v *time.Time) *UserUpdate {
 	return _u
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (_u *UserUpdate) AddGroupIDs(ids ...int64) *UserUpdate {
-	_u.mutation.AddGroupIDs(ids...)
-	return _u
-}
-
-// AddGroups adds the "groups" edges to the Group entity.
-func (_u *UserUpdate) AddGroups(v ...*Group) *UserUpdate {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddGroupIDs(ids...)
-}
-
 // AddSystemIDs adds the "systems" edge to the System entity by IDs.
-func (_u *UserUpdate) AddSystemIDs(ids ...int64) *UserUpdate {
+func (_u *UserUpdate) AddSystemIDs(ids ...string) *UserUpdate {
 	_u.mutation.AddSystemIDs(ids...)
 	return _u
 }
 
 // AddSystems adds the "systems" edges to the System entity.
 func (_u *UserUpdate) AddSystems(v ...*System) *UserUpdate {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.AddSystemIDs(ids...)
-}
-
-// AddUserGroupIDs adds the "user_groups" edge to the UserGroup entity by IDs.
-func (_u *UserUpdate) AddUserGroupIDs(ids ...int) *UserUpdate {
-	_u.mutation.AddUserGroupIDs(ids...)
-	return _u
-}
-
-// AddUserGroups adds the "user_groups" edges to the UserGroup entity.
-func (_u *UserUpdate) AddUserGroups(v ...*UserGroup) *UserUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddUserGroupIDs(ids...)
 }
 
 // AddUserSystemIDs adds the "user_systems" edge to the UserSystem entity by IDs.
@@ -173,27 +127,6 @@ func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearGroups clears all "groups" edges to the Group entity.
-func (_u *UserUpdate) ClearGroups() *UserUpdate {
-	_u.mutation.ClearGroups()
-	return _u
-}
-
-// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (_u *UserUpdate) RemoveGroupIDs(ids ...int64) *UserUpdate {
-	_u.mutation.RemoveGroupIDs(ids...)
-	return _u
-}
-
-// RemoveGroups removes "groups" edges to Group entities.
-func (_u *UserUpdate) RemoveGroups(v ...*Group) *UserUpdate {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveGroupIDs(ids...)
-}
-
 // ClearSystems clears all "systems" edges to the System entity.
 func (_u *UserUpdate) ClearSystems() *UserUpdate {
 	_u.mutation.ClearSystems()
@@ -201,39 +134,18 @@ func (_u *UserUpdate) ClearSystems() *UserUpdate {
 }
 
 // RemoveSystemIDs removes the "systems" edge to System entities by IDs.
-func (_u *UserUpdate) RemoveSystemIDs(ids ...int64) *UserUpdate {
+func (_u *UserUpdate) RemoveSystemIDs(ids ...string) *UserUpdate {
 	_u.mutation.RemoveSystemIDs(ids...)
 	return _u
 }
 
 // RemoveSystems removes "systems" edges to System entities.
 func (_u *UserUpdate) RemoveSystems(v ...*System) *UserUpdate {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSystemIDs(ids...)
-}
-
-// ClearUserGroups clears all "user_groups" edges to the UserGroup entity.
-func (_u *UserUpdate) ClearUserGroups() *UserUpdate {
-	_u.mutation.ClearUserGroups()
-	return _u
-}
-
-// RemoveUserGroupIDs removes the "user_groups" edge to UserGroup entities by IDs.
-func (_u *UserUpdate) RemoveUserGroupIDs(ids ...int) *UserUpdate {
-	_u.mutation.RemoveUserGroupIDs(ids...)
-	return _u
-}
-
-// RemoveUserGroups removes "user_groups" edges to UserGroup entities.
-func (_u *UserUpdate) RemoveUserGroups(v ...*UserGroup) *UserUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveUserGroupIDs(ids...)
 }
 
 // ClearUserSystems clears all "user_systems" edges to the UserSystem entity.
@@ -295,11 +207,6 @@ func (_u *UserUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserUpdate) check() error {
-	if v, ok := _u.mutation.UID(); ok {
-		if err := user.UIDValidator(v); err != nil {
-			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "User.uid": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
@@ -322,7 +229,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -332,9 +239,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.UID(); ok {
-		_spec.SetField(user.FieldUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
@@ -348,51 +252,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.JoinDate(); ok {
 		_spec.SetField(user.FieldJoinDate, field.TypeTime, value)
 	}
-	if _u.mutation.GroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !_u.mutation.GroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.GroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.SystemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -401,7 +260,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: user.SystemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -414,7 +273,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: user.SystemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -430,52 +289,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: user.SystemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.UserGroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.UserGroupsTable,
-			Columns: []string{user.UserGroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedUserGroupsIDs(); len(nodes) > 0 && !_u.mutation.UserGroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.UserGroupsTable,
-			Columns: []string{user.UserGroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserGroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.UserGroupsTable,
-			Columns: []string{user.UserGroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -554,20 +368,6 @@ func (_u *UserUpdateOne) SetUpdateTime(v time.Time) *UserUpdateOne {
 	return _u
 }
 
-// SetUID sets the "uid" field.
-func (_u *UserUpdateOne) SetUID(v string) *UserUpdateOne {
-	_u.mutation.SetUID(v)
-	return _u
-}
-
-// SetNillableUID sets the "uid" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableUID(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetUID(*v)
-	}
-	return _u
-}
-
 // SetUsername sets the "username" field.
 func (_u *UserUpdateOne) SetUsername(v string) *UserUpdateOne {
 	_u.mutation.SetUsername(v)
@@ -624,49 +424,19 @@ func (_u *UserUpdateOne) SetNillableJoinDate(v *time.Time) *UserUpdateOne {
 	return _u
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (_u *UserUpdateOne) AddGroupIDs(ids ...int64) *UserUpdateOne {
-	_u.mutation.AddGroupIDs(ids...)
-	return _u
-}
-
-// AddGroups adds the "groups" edges to the Group entity.
-func (_u *UserUpdateOne) AddGroups(v ...*Group) *UserUpdateOne {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddGroupIDs(ids...)
-}
-
 // AddSystemIDs adds the "systems" edge to the System entity by IDs.
-func (_u *UserUpdateOne) AddSystemIDs(ids ...int64) *UserUpdateOne {
+func (_u *UserUpdateOne) AddSystemIDs(ids ...string) *UserUpdateOne {
 	_u.mutation.AddSystemIDs(ids...)
 	return _u
 }
 
 // AddSystems adds the "systems" edges to the System entity.
 func (_u *UserUpdateOne) AddSystems(v ...*System) *UserUpdateOne {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.AddSystemIDs(ids...)
-}
-
-// AddUserGroupIDs adds the "user_groups" edge to the UserGroup entity by IDs.
-func (_u *UserUpdateOne) AddUserGroupIDs(ids ...int) *UserUpdateOne {
-	_u.mutation.AddUserGroupIDs(ids...)
-	return _u
-}
-
-// AddUserGroups adds the "user_groups" edges to the UserGroup entity.
-func (_u *UserUpdateOne) AddUserGroups(v ...*UserGroup) *UserUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddUserGroupIDs(ids...)
 }
 
 // AddUserSystemIDs adds the "user_systems" edge to the UserSystem entity by IDs.
@@ -689,27 +459,6 @@ func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearGroups clears all "groups" edges to the Group entity.
-func (_u *UserUpdateOne) ClearGroups() *UserUpdateOne {
-	_u.mutation.ClearGroups()
-	return _u
-}
-
-// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (_u *UserUpdateOne) RemoveGroupIDs(ids ...int64) *UserUpdateOne {
-	_u.mutation.RemoveGroupIDs(ids...)
-	return _u
-}
-
-// RemoveGroups removes "groups" edges to Group entities.
-func (_u *UserUpdateOne) RemoveGroups(v ...*Group) *UserUpdateOne {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveGroupIDs(ids...)
-}
-
 // ClearSystems clears all "systems" edges to the System entity.
 func (_u *UserUpdateOne) ClearSystems() *UserUpdateOne {
 	_u.mutation.ClearSystems()
@@ -717,39 +466,18 @@ func (_u *UserUpdateOne) ClearSystems() *UserUpdateOne {
 }
 
 // RemoveSystemIDs removes the "systems" edge to System entities by IDs.
-func (_u *UserUpdateOne) RemoveSystemIDs(ids ...int64) *UserUpdateOne {
+func (_u *UserUpdateOne) RemoveSystemIDs(ids ...string) *UserUpdateOne {
 	_u.mutation.RemoveSystemIDs(ids...)
 	return _u
 }
 
 // RemoveSystems removes "systems" edges to System entities.
 func (_u *UserUpdateOne) RemoveSystems(v ...*System) *UserUpdateOne {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSystemIDs(ids...)
-}
-
-// ClearUserGroups clears all "user_groups" edges to the UserGroup entity.
-func (_u *UserUpdateOne) ClearUserGroups() *UserUpdateOne {
-	_u.mutation.ClearUserGroups()
-	return _u
-}
-
-// RemoveUserGroupIDs removes the "user_groups" edge to UserGroup entities by IDs.
-func (_u *UserUpdateOne) RemoveUserGroupIDs(ids ...int) *UserUpdateOne {
-	_u.mutation.RemoveUserGroupIDs(ids...)
-	return _u
-}
-
-// RemoveUserGroups removes "user_groups" edges to UserGroup entities.
-func (_u *UserUpdateOne) RemoveUserGroups(v ...*UserGroup) *UserUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveUserGroupIDs(ids...)
 }
 
 // ClearUserSystems clears all "user_systems" edges to the UserSystem entity.
@@ -824,11 +552,6 @@ func (_u *UserUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserUpdateOne) check() error {
-	if v, ok := _u.mutation.UID(); ok {
-		if err := user.UIDValidator(v); err != nil {
-			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "User.uid": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
@@ -851,7 +574,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -879,9 +602,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.UID(); ok {
-		_spec.SetField(user.FieldUID, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
@@ -894,51 +614,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.JoinDate(); ok {
 		_spec.SetField(user.FieldJoinDate, field.TypeTime, value)
 	}
-	if _u.mutation.GroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !_u.mutation.GroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.GroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.SystemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -947,7 +622,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: user.SystemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -960,7 +635,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: user.SystemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -976,52 +651,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: user.SystemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.UserGroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.UserGroupsTable,
-			Columns: []string{user.UserGroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedUserGroupsIDs(); len(nodes) > 0 && !_u.mutation.UserGroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.UserGroupsTable,
-			Columns: []string{user.UserGroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserGroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.UserGroupsTable,
-			Columns: []string{user.UserGroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

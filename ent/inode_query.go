@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/starfrag-lab/retrowin-go/ent/directoryentry"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
@@ -21,12 +19,11 @@ import (
 // InodeQuery is the builder for querying Inode entities.
 type InodeQuery struct {
 	config
-	ctx         *QueryContext
-	order       []inode.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.Inode
-	withSystem  *SystemQuery
-	withEntries *DirectoryEntryQuery
+	ctx        *QueryContext
+	order      []inode.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Inode
+	withSystem *SystemQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,28 +75,6 @@ func (_q *InodeQuery) QuerySystem() *SystemQuery {
 			sqlgraph.From(inode.Table, inode.FieldID, selector),
 			sqlgraph.To(system.Table, system.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, inode.SystemTable, inode.SystemColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryEntries chains the current query on the "entries" edge.
-func (_q *InodeQuery) QueryEntries() *DirectoryEntryQuery {
-	query := (&DirectoryEntryClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(inode.Table, inode.FieldID, selector),
-			sqlgraph.To(directoryentry.Table, directoryentry.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, inode.EntriesTable, inode.EntriesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +269,12 @@ func (_q *InodeQuery) Clone() *InodeQuery {
 		return nil
 	}
 	return &InodeQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]inode.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.Inode{}, _q.predicates...),
-		withSystem:  _q.withSystem.Clone(),
-		withEntries: _q.withEntries.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]inode.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Inode{}, _q.predicates...),
+		withSystem: _q.withSystem.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -315,17 +289,6 @@ func (_q *InodeQuery) WithSystem(opts ...func(*SystemQuery)) *InodeQuery {
 		opt(query)
 	}
 	_q.withSystem = query
-	return _q
-}
-
-// WithEntries tells the query-builder to eager-load the nodes that are connected to
-// the "entries" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *InodeQuery) WithEntries(opts ...func(*DirectoryEntryQuery)) *InodeQuery {
-	query := (&DirectoryEntryClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withEntries = query
 	return _q
 }
 
@@ -407,9 +370,8 @@ func (_q *InodeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Inode,
 	var (
 		nodes       = []*Inode{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [1]bool{
 			_q.withSystem != nil,
-			_q.withEntries != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -436,24 +398,14 @@ func (_q *InodeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Inode,
 			return nil, err
 		}
 	}
-	if query := _q.withEntries; query != nil {
-		if err := _q.loadEntries(ctx, query, nodes,
-			func(n *Inode) { n.Edges.Entries = []*DirectoryEntry{} },
-			func(n *Inode, e *DirectoryEntry) { n.Edges.Entries = append(n.Edges.Entries, e) }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
 }
 
 func (_q *InodeQuery) loadSystem(ctx context.Context, query *SystemQuery, nodes []*Inode, init func(*Inode), assign func(*Inode, *System)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Inode)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Inode)
 	for i := range nodes {
-		if nodes[i].SystemID == nil {
-			continue
-		}
-		fk := *nodes[i].SystemID
+		fk := nodes[i].SystemID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -475,37 +427,6 @@ func (_q *InodeQuery) loadSystem(ctx context.Context, query *SystemQuery, nodes 
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
-	}
-	return nil
-}
-func (_q *InodeQuery) loadEntries(ctx context.Context, query *DirectoryEntryQuery, nodes []*Inode, init func(*Inode), assign func(*Inode, *DirectoryEntry)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*Inode)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.DirectoryEntry(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(inode.EntriesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.inode_entries
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "inode_entries" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "inode_entries" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
 	}
 	return nil
 }

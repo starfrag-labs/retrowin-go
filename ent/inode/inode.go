@@ -3,7 +3,6 @@
 package inode
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -21,32 +20,28 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldSystemID holds the string denoting the system_id field in the database.
 	FieldSystemID = "system_id"
-	// FieldFileType holds the string denoting the file_type field in the database.
-	FieldFileType = "file_type"
-	// FieldByteSize holds the string denoting the byte_size field in the database.
-	FieldByteSize = "byte_size"
-	// FieldOwnerUID holds the string denoting the owner_uid field in the database.
-	FieldOwnerUID = "owner_uid"
-	// FieldOwnerGid holds the string denoting the owner_gid field in the database.
-	FieldOwnerGid = "owner_gid"
-	// FieldPermOwner holds the string denoting the perm_owner field in the database.
-	FieldPermOwner = "perm_owner"
-	// FieldPermGroup holds the string denoting the perm_group field in the database.
-	FieldPermGroup = "perm_group"
-	// FieldPermOthers holds the string denoting the perm_others field in the database.
-	FieldPermOthers = "perm_others"
+	// FieldMode holds the string denoting the mode field in the database.
+	FieldMode = "mode"
+	// FieldUID holds the string denoting the uid field in the database.
+	FieldUID = "uid"
+	// FieldGid holds the string denoting the gid field in the database.
+	FieldGid = "gid"
+	// FieldSize holds the string denoting the size field in the database.
+	FieldSize = "size"
 	// FieldLinkCount holds the string denoting the link_count field in the database.
 	FieldLinkCount = "link_count"
-	// FieldAccessedAt holds the string denoting the accessed_at field in the database.
-	FieldAccessedAt = "accessed_at"
-	// FieldIsSystem holds the string denoting the is_system field in the database.
-	FieldIsSystem = "is_system"
-	// FieldSystemType holds the string denoting the system_type field in the database.
-	FieldSystemType = "system_type"
+	// FieldFlags holds the string denoting the flags field in the database.
+	FieldFlags = "flags"
+	// FieldAtime holds the string denoting the atime field in the database.
+	FieldAtime = "atime"
+	// FieldMtime holds the string denoting the mtime field in the database.
+	FieldMtime = "mtime"
+	// FieldCtime holds the string denoting the ctime field in the database.
+	FieldCtime = "ctime"
+	// FieldContent holds the string denoting the content field in the database.
+	FieldContent = "content"
 	// EdgeSystem holds the string denoting the system edge name in mutations.
 	EdgeSystem = "system"
-	// EdgeEntries holds the string denoting the entries edge name in mutations.
-	EdgeEntries = "entries"
 	// Table holds the table name of the inode in the database.
 	Table = "inodes"
 	// SystemTable is the table that holds the system relation/edge.
@@ -56,13 +51,6 @@ const (
 	SystemInverseTable = "systems"
 	// SystemColumn is the table column denoting the system relation/edge.
 	SystemColumn = "system_id"
-	// EntriesTable is the table that holds the entries relation/edge.
-	EntriesTable = "directory_entries"
-	// EntriesInverseTable is the table name for the DirectoryEntry entity.
-	// It exists in this package in order to avoid circular dependency with the "directoryentry" package.
-	EntriesInverseTable = "directory_entries"
-	// EntriesColumn is the table column denoting the entries relation/edge.
-	EntriesColumn = "inode_entries"
 )
 
 // Columns holds all SQL columns for inode fields.
@@ -71,17 +59,16 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldSystemID,
-	FieldFileType,
-	FieldByteSize,
-	FieldOwnerUID,
-	FieldOwnerGid,
-	FieldPermOwner,
-	FieldPermGroup,
-	FieldPermOthers,
+	FieldMode,
+	FieldUID,
+	FieldGid,
+	FieldSize,
 	FieldLinkCount,
-	FieldAccessedAt,
-	FieldIsSystem,
-	FieldSystemType,
+	FieldFlags,
+	FieldAtime,
+	FieldMtime,
+	FieldCtime,
+	FieldContent,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -101,62 +88,15 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// DefaultByteSize holds the default value on creation for the "byte_size" field.
-	DefaultByteSize int64
-	// OwnerUIDValidator is a validator for the "owner_uid" field. It is called by the builders before save.
-	OwnerUIDValidator func(string) error
-	// OwnerGidValidator is a validator for the "owner_gid" field. It is called by the builders before save.
-	OwnerGidValidator func(string) error
-	// DefaultPermOwner holds the default value on creation for the "perm_owner" field.
-	DefaultPermOwner string
-	// PermOwnerValidator is a validator for the "perm_owner" field. It is called by the builders before save.
-	PermOwnerValidator func(string) error
-	// DefaultPermGroup holds the default value on creation for the "perm_group" field.
-	DefaultPermGroup string
-	// PermGroupValidator is a validator for the "perm_group" field. It is called by the builders before save.
-	PermGroupValidator func(string) error
-	// DefaultPermOthers holds the default value on creation for the "perm_others" field.
-	DefaultPermOthers string
-	// PermOthersValidator is a validator for the "perm_others" field. It is called by the builders before save.
-	PermOthersValidator func(string) error
+	// DefaultUID holds the default value on creation for the "uid" field.
+	DefaultUID int64
+	// DefaultGid holds the default value on creation for the "gid" field.
+	DefaultGid int64
+	// DefaultSize holds the default value on creation for the "size" field.
+	DefaultSize int64
 	// DefaultLinkCount holds the default value on creation for the "link_count" field.
-	DefaultLinkCount int16
-	// DefaultIsSystem holds the default value on creation for the "is_system" field.
-	DefaultIsSystem bool
-	// SystemTypeValidator is a validator for the "system_type" field. It is called by the builders before save.
-	SystemTypeValidator func(string) error
+	DefaultLinkCount int
 )
-
-// FileType defines the type for the "file_type" enum field.
-type FileType string
-
-// FileTypeRegular is the default value of the FileType enum.
-const DefaultFileType = FileTypeRegular
-
-// FileType values.
-const (
-	FileTypeRegular   FileType = "regular"
-	FileTypeDirectory FileType = "directory"
-	FileTypeSymlink   FileType = "symlink"
-	FileTypeBlock     FileType = "block"
-	FileTypeChar      FileType = "char"
-	FileTypeSocket    FileType = "socket"
-	FileTypeFifo      FileType = "fifo"
-)
-
-func (ft FileType) String() string {
-	return string(ft)
-}
-
-// FileTypeValidator is a validator for the "file_type" field enum values. It is called by the builders before save.
-func FileTypeValidator(ft FileType) error {
-	switch ft {
-	case FileTypeRegular, FileTypeDirectory, FileTypeSymlink, FileTypeBlock, FileTypeChar, FileTypeSocket, FileTypeFifo:
-		return nil
-	default:
-		return fmt.Errorf("inode: invalid enum value for file_type field: %q", ft)
-	}
-}
 
 // OrderOption defines the ordering options for the Inode queries.
 type OrderOption func(*sql.Selector)
@@ -181,39 +121,24 @@ func BySystemID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSystemID, opts...).ToFunc()
 }
 
-// ByFileType orders the results by the file_type field.
-func ByFileType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileType, opts...).ToFunc()
+// ByMode orders the results by the mode field.
+func ByMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMode, opts...).ToFunc()
 }
 
-// ByByteSize orders the results by the byte_size field.
-func ByByteSize(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldByteSize, opts...).ToFunc()
+// ByUID orders the results by the uid field.
+func ByUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUID, opts...).ToFunc()
 }
 
-// ByOwnerUID orders the results by the owner_uid field.
-func ByOwnerUID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOwnerUID, opts...).ToFunc()
+// ByGid orders the results by the gid field.
+func ByGid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGid, opts...).ToFunc()
 }
 
-// ByOwnerGid orders the results by the owner_gid field.
-func ByOwnerGid(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOwnerGid, opts...).ToFunc()
-}
-
-// ByPermOwner orders the results by the perm_owner field.
-func ByPermOwner(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPermOwner, opts...).ToFunc()
-}
-
-// ByPermGroup orders the results by the perm_group field.
-func ByPermGroup(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPermGroup, opts...).ToFunc()
-}
-
-// ByPermOthers orders the results by the perm_others field.
-func ByPermOthers(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPermOthers, opts...).ToFunc()
+// BySize orders the results by the size field.
+func BySize(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSize, opts...).ToFunc()
 }
 
 // ByLinkCount orders the results by the link_count field.
@@ -221,19 +146,24 @@ func ByLinkCount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLinkCount, opts...).ToFunc()
 }
 
-// ByAccessedAt orders the results by the accessed_at field.
-func ByAccessedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAccessedAt, opts...).ToFunc()
+// ByFlags orders the results by the flags field.
+func ByFlags(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFlags, opts...).ToFunc()
 }
 
-// ByIsSystem orders the results by the is_system field.
-func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsSystem, opts...).ToFunc()
+// ByAtime orders the results by the atime field.
+func ByAtime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAtime, opts...).ToFunc()
 }
 
-// BySystemType orders the results by the system_type field.
-func BySystemType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSystemType, opts...).ToFunc()
+// ByMtime orders the results by the mtime field.
+func ByMtime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMtime, opts...).ToFunc()
+}
+
+// ByCtime orders the results by the ctime field.
+func ByCtime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCtime, opts...).ToFunc()
 }
 
 // BySystemField orders the results by system field.
@@ -242,31 +172,10 @@ func BySystemField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSystemStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByEntriesCount orders the results by entries count.
-func ByEntriesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newEntriesStep(), opts...)
-	}
-}
-
-// ByEntries orders the results by entries terms.
-func ByEntries(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newEntriesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newSystemStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SystemInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, SystemTable, SystemColumn),
-	)
-}
-func newEntriesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(EntriesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, EntriesTable, EntriesColumn),
 	)
 }

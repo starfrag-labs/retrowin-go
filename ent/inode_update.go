@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/starfrag-lab/retrowin-go/ent/directoryentry"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
@@ -37,139 +36,112 @@ func (_u *InodeUpdate) SetUpdateTime(v time.Time) *InodeUpdate {
 }
 
 // SetSystemID sets the "system_id" field.
-func (_u *InodeUpdate) SetSystemID(v int64) *InodeUpdate {
+func (_u *InodeUpdate) SetSystemID(v string) *InodeUpdate {
 	_u.mutation.SetSystemID(v)
 	return _u
 }
 
 // SetNillableSystemID sets the "system_id" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableSystemID(v *int64) *InodeUpdate {
+func (_u *InodeUpdate) SetNillableSystemID(v *string) *InodeUpdate {
 	if v != nil {
 		_u.SetSystemID(*v)
 	}
 	return _u
 }
 
-// ClearSystemID clears the value of the "system_id" field.
-func (_u *InodeUpdate) ClearSystemID() *InodeUpdate {
-	_u.mutation.ClearSystemID()
+// SetMode sets the "mode" field.
+func (_u *InodeUpdate) SetMode(v int16) *InodeUpdate {
+	_u.mutation.ResetMode()
+	_u.mutation.SetMode(v)
 	return _u
 }
 
-// SetFileType sets the "file_type" field.
-func (_u *InodeUpdate) SetFileType(v inode.FileType) *InodeUpdate {
-	_u.mutation.SetFileType(v)
-	return _u
-}
-
-// SetNillableFileType sets the "file_type" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableFileType(v *inode.FileType) *InodeUpdate {
+// SetNillableMode sets the "mode" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableMode(v *int16) *InodeUpdate {
 	if v != nil {
-		_u.SetFileType(*v)
+		_u.SetMode(*v)
 	}
 	return _u
 }
 
-// SetByteSize sets the "byte_size" field.
-func (_u *InodeUpdate) SetByteSize(v int64) *InodeUpdate {
-	_u.mutation.ResetByteSize()
-	_u.mutation.SetByteSize(v)
+// AddMode adds value to the "mode" field.
+func (_u *InodeUpdate) AddMode(v int16) *InodeUpdate {
+	_u.mutation.AddMode(v)
 	return _u
 }
 
-// SetNillableByteSize sets the "byte_size" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableByteSize(v *int64) *InodeUpdate {
+// SetUID sets the "uid" field.
+func (_u *InodeUpdate) SetUID(v int64) *InodeUpdate {
+	_u.mutation.ResetUID()
+	_u.mutation.SetUID(v)
+	return _u
+}
+
+// SetNillableUID sets the "uid" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableUID(v *int64) *InodeUpdate {
 	if v != nil {
-		_u.SetByteSize(*v)
+		_u.SetUID(*v)
 	}
 	return _u
 }
 
-// AddByteSize adds value to the "byte_size" field.
-func (_u *InodeUpdate) AddByteSize(v int64) *InodeUpdate {
-	_u.mutation.AddByteSize(v)
+// AddUID adds value to the "uid" field.
+func (_u *InodeUpdate) AddUID(v int64) *InodeUpdate {
+	_u.mutation.AddUID(v)
 	return _u
 }
 
-// SetOwnerUID sets the "owner_uid" field.
-func (_u *InodeUpdate) SetOwnerUID(v string) *InodeUpdate {
-	_u.mutation.SetOwnerUID(v)
+// SetGid sets the "gid" field.
+func (_u *InodeUpdate) SetGid(v int64) *InodeUpdate {
+	_u.mutation.ResetGid()
+	_u.mutation.SetGid(v)
 	return _u
 }
 
-// SetNillableOwnerUID sets the "owner_uid" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableOwnerUID(v *string) *InodeUpdate {
+// SetNillableGid sets the "gid" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableGid(v *int64) *InodeUpdate {
 	if v != nil {
-		_u.SetOwnerUID(*v)
+		_u.SetGid(*v)
 	}
 	return _u
 }
 
-// SetOwnerGid sets the "owner_gid" field.
-func (_u *InodeUpdate) SetOwnerGid(v string) *InodeUpdate {
-	_u.mutation.SetOwnerGid(v)
+// AddGid adds value to the "gid" field.
+func (_u *InodeUpdate) AddGid(v int64) *InodeUpdate {
+	_u.mutation.AddGid(v)
 	return _u
 }
 
-// SetNillableOwnerGid sets the "owner_gid" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableOwnerGid(v *string) *InodeUpdate {
+// SetSize sets the "size" field.
+func (_u *InodeUpdate) SetSize(v int64) *InodeUpdate {
+	_u.mutation.ResetSize()
+	_u.mutation.SetSize(v)
+	return _u
+}
+
+// SetNillableSize sets the "size" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableSize(v *int64) *InodeUpdate {
 	if v != nil {
-		_u.SetOwnerGid(*v)
+		_u.SetSize(*v)
 	}
 	return _u
 }
 
-// SetPermOwner sets the "perm_owner" field.
-func (_u *InodeUpdate) SetPermOwner(v string) *InodeUpdate {
-	_u.mutation.SetPermOwner(v)
-	return _u
-}
-
-// SetNillablePermOwner sets the "perm_owner" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillablePermOwner(v *string) *InodeUpdate {
-	if v != nil {
-		_u.SetPermOwner(*v)
-	}
-	return _u
-}
-
-// SetPermGroup sets the "perm_group" field.
-func (_u *InodeUpdate) SetPermGroup(v string) *InodeUpdate {
-	_u.mutation.SetPermGroup(v)
-	return _u
-}
-
-// SetNillablePermGroup sets the "perm_group" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillablePermGroup(v *string) *InodeUpdate {
-	if v != nil {
-		_u.SetPermGroup(*v)
-	}
-	return _u
-}
-
-// SetPermOthers sets the "perm_others" field.
-func (_u *InodeUpdate) SetPermOthers(v string) *InodeUpdate {
-	_u.mutation.SetPermOthers(v)
-	return _u
-}
-
-// SetNillablePermOthers sets the "perm_others" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillablePermOthers(v *string) *InodeUpdate {
-	if v != nil {
-		_u.SetPermOthers(*v)
-	}
+// AddSize adds value to the "size" field.
+func (_u *InodeUpdate) AddSize(v int64) *InodeUpdate {
+	_u.mutation.AddSize(v)
 	return _u
 }
 
 // SetLinkCount sets the "link_count" field.
-func (_u *InodeUpdate) SetLinkCount(v int16) *InodeUpdate {
+func (_u *InodeUpdate) SetLinkCount(v int) *InodeUpdate {
 	_u.mutation.ResetLinkCount()
 	_u.mutation.SetLinkCount(v)
 	return _u
 }
 
 // SetNillableLinkCount sets the "link_count" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableLinkCount(v *int16) *InodeUpdate {
+func (_u *InodeUpdate) SetNillableLinkCount(v *int) *InodeUpdate {
 	if v != nil {
 		_u.SetLinkCount(*v)
 	}
@@ -177,83 +149,89 @@ func (_u *InodeUpdate) SetNillableLinkCount(v *int16) *InodeUpdate {
 }
 
 // AddLinkCount adds value to the "link_count" field.
-func (_u *InodeUpdate) AddLinkCount(v int16) *InodeUpdate {
+func (_u *InodeUpdate) AddLinkCount(v int) *InodeUpdate {
 	_u.mutation.AddLinkCount(v)
 	return _u
 }
 
-// SetAccessedAt sets the "accessed_at" field.
-func (_u *InodeUpdate) SetAccessedAt(v time.Time) *InodeUpdate {
-	_u.mutation.SetAccessedAt(v)
+// SetFlags sets the "flags" field.
+func (_u *InodeUpdate) SetFlags(v int16) *InodeUpdate {
+	_u.mutation.ResetFlags()
+	_u.mutation.SetFlags(v)
 	return _u
 }
 
-// SetNillableAccessedAt sets the "accessed_at" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableAccessedAt(v *time.Time) *InodeUpdate {
+// SetNillableFlags sets the "flags" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableFlags(v *int16) *InodeUpdate {
 	if v != nil {
-		_u.SetAccessedAt(*v)
+		_u.SetFlags(*v)
 	}
 	return _u
 }
 
-// ClearAccessedAt clears the value of the "accessed_at" field.
-func (_u *InodeUpdate) ClearAccessedAt() *InodeUpdate {
-	_u.mutation.ClearAccessedAt()
+// AddFlags adds value to the "flags" field.
+func (_u *InodeUpdate) AddFlags(v int16) *InodeUpdate {
+	_u.mutation.AddFlags(v)
 	return _u
 }
 
-// SetIsSystem sets the "is_system" field.
-func (_u *InodeUpdate) SetIsSystem(v bool) *InodeUpdate {
-	_u.mutation.SetIsSystem(v)
+// SetAtime sets the "atime" field.
+func (_u *InodeUpdate) SetAtime(v time.Time) *InodeUpdate {
+	_u.mutation.SetAtime(v)
 	return _u
 }
 
-// SetNillableIsSystem sets the "is_system" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableIsSystem(v *bool) *InodeUpdate {
+// SetNillableAtime sets the "atime" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableAtime(v *time.Time) *InodeUpdate {
 	if v != nil {
-		_u.SetIsSystem(*v)
+		_u.SetAtime(*v)
 	}
 	return _u
 }
 
-// SetSystemType sets the "system_type" field.
-func (_u *InodeUpdate) SetSystemType(v string) *InodeUpdate {
-	_u.mutation.SetSystemType(v)
+// SetMtime sets the "mtime" field.
+func (_u *InodeUpdate) SetMtime(v time.Time) *InodeUpdate {
+	_u.mutation.SetMtime(v)
 	return _u
 }
 
-// SetNillableSystemType sets the "system_type" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableSystemType(v *string) *InodeUpdate {
+// SetNillableMtime sets the "mtime" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableMtime(v *time.Time) *InodeUpdate {
 	if v != nil {
-		_u.SetSystemType(*v)
+		_u.SetMtime(*v)
 	}
 	return _u
 }
 
-// ClearSystemType clears the value of the "system_type" field.
-func (_u *InodeUpdate) ClearSystemType() *InodeUpdate {
-	_u.mutation.ClearSystemType()
+// SetCtime sets the "ctime" field.
+func (_u *InodeUpdate) SetCtime(v time.Time) *InodeUpdate {
+	_u.mutation.SetCtime(v)
+	return _u
+}
+
+// SetNillableCtime sets the "ctime" field if the given value is not nil.
+func (_u *InodeUpdate) SetNillableCtime(v *time.Time) *InodeUpdate {
+	if v != nil {
+		_u.SetCtime(*v)
+	}
+	return _u
+}
+
+// SetContent sets the "content" field.
+func (_u *InodeUpdate) SetContent(v []byte) *InodeUpdate {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// ClearContent clears the value of the "content" field.
+func (_u *InodeUpdate) ClearContent() *InodeUpdate {
+	_u.mutation.ClearContent()
 	return _u
 }
 
 // SetSystem sets the "system" edge to the System entity.
 func (_u *InodeUpdate) SetSystem(v *System) *InodeUpdate {
 	return _u.SetSystemID(v.ID)
-}
-
-// AddEntryIDs adds the "entries" edge to the DirectoryEntry entity by IDs.
-func (_u *InodeUpdate) AddEntryIDs(ids ...int64) *InodeUpdate {
-	_u.mutation.AddEntryIDs(ids...)
-	return _u
-}
-
-// AddEntries adds the "entries" edges to the DirectoryEntry entity.
-func (_u *InodeUpdate) AddEntries(v ...*DirectoryEntry) *InodeUpdate {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddEntryIDs(ids...)
 }
 
 // Mutation returns the InodeMutation object of the builder.
@@ -265,27 +243,6 @@ func (_u *InodeUpdate) Mutation() *InodeMutation {
 func (_u *InodeUpdate) ClearSystem() *InodeUpdate {
 	_u.mutation.ClearSystem()
 	return _u
-}
-
-// ClearEntries clears all "entries" edges to the DirectoryEntry entity.
-func (_u *InodeUpdate) ClearEntries() *InodeUpdate {
-	_u.mutation.ClearEntries()
-	return _u
-}
-
-// RemoveEntryIDs removes the "entries" edge to DirectoryEntry entities by IDs.
-func (_u *InodeUpdate) RemoveEntryIDs(ids ...int64) *InodeUpdate {
-	_u.mutation.RemoveEntryIDs(ids...)
-	return _u
-}
-
-// RemoveEntries removes "entries" edges to DirectoryEntry entities.
-func (_u *InodeUpdate) RemoveEntries(v ...*DirectoryEntry) *InodeUpdate {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveEntryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -326,40 +283,8 @@ func (_u *InodeUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *InodeUpdate) check() error {
-	if v, ok := _u.mutation.FileType(); ok {
-		if err := inode.FileTypeValidator(v); err != nil {
-			return &ValidationError{Name: "file_type", err: fmt.Errorf(`ent: validator failed for field "Inode.file_type": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.OwnerUID(); ok {
-		if err := inode.OwnerUIDValidator(v); err != nil {
-			return &ValidationError{Name: "owner_uid", err: fmt.Errorf(`ent: validator failed for field "Inode.owner_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.OwnerGid(); ok {
-		if err := inode.OwnerGidValidator(v); err != nil {
-			return &ValidationError{Name: "owner_gid", err: fmt.Errorf(`ent: validator failed for field "Inode.owner_gid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.PermOwner(); ok {
-		if err := inode.PermOwnerValidator(v); err != nil {
-			return &ValidationError{Name: "perm_owner", err: fmt.Errorf(`ent: validator failed for field "Inode.perm_owner": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.PermGroup(); ok {
-		if err := inode.PermGroupValidator(v); err != nil {
-			return &ValidationError{Name: "perm_group", err: fmt.Errorf(`ent: validator failed for field "Inode.perm_group": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.PermOthers(); ok {
-		if err := inode.PermOthersValidator(v); err != nil {
-			return &ValidationError{Name: "perm_others", err: fmt.Errorf(`ent: validator failed for field "Inode.perm_others": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.SystemType(); ok {
-		if err := inode.SystemTypeValidator(v); err != nil {
-			return &ValidationError{Name: "system_type", err: fmt.Errorf(`ent: validator failed for field "Inode.system_type": %w`, err)}
-		}
+	if _u.mutation.SystemCleared() && len(_u.mutation.SystemIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Inode.system"`)
 	}
 	return nil
 }
@@ -379,50 +304,56 @@ func (_u *InodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(inode.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.FileType(); ok {
-		_spec.SetField(inode.FieldFileType, field.TypeEnum, value)
+	if value, ok := _u.mutation.Mode(); ok {
+		_spec.SetField(inode.FieldMode, field.TypeInt16, value)
 	}
-	if value, ok := _u.mutation.ByteSize(); ok {
-		_spec.SetField(inode.FieldByteSize, field.TypeInt64, value)
+	if value, ok := _u.mutation.AddedMode(); ok {
+		_spec.AddField(inode.FieldMode, field.TypeInt16, value)
 	}
-	if value, ok := _u.mutation.AddedByteSize(); ok {
-		_spec.AddField(inode.FieldByteSize, field.TypeInt64, value)
+	if value, ok := _u.mutation.UID(); ok {
+		_spec.SetField(inode.FieldUID, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.OwnerUID(); ok {
-		_spec.SetField(inode.FieldOwnerUID, field.TypeString, value)
+	if value, ok := _u.mutation.AddedUID(); ok {
+		_spec.AddField(inode.FieldUID, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.OwnerGid(); ok {
-		_spec.SetField(inode.FieldOwnerGid, field.TypeString, value)
+	if value, ok := _u.mutation.Gid(); ok {
+		_spec.SetField(inode.FieldGid, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.PermOwner(); ok {
-		_spec.SetField(inode.FieldPermOwner, field.TypeString, value)
+	if value, ok := _u.mutation.AddedGid(); ok {
+		_spec.AddField(inode.FieldGid, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.PermGroup(); ok {
-		_spec.SetField(inode.FieldPermGroup, field.TypeString, value)
+	if value, ok := _u.mutation.Size(); ok {
+		_spec.SetField(inode.FieldSize, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.PermOthers(); ok {
-		_spec.SetField(inode.FieldPermOthers, field.TypeString, value)
+	if value, ok := _u.mutation.AddedSize(); ok {
+		_spec.AddField(inode.FieldSize, field.TypeInt64, value)
 	}
 	if value, ok := _u.mutation.LinkCount(); ok {
-		_spec.SetField(inode.FieldLinkCount, field.TypeInt16, value)
+		_spec.SetField(inode.FieldLinkCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedLinkCount(); ok {
-		_spec.AddField(inode.FieldLinkCount, field.TypeInt16, value)
+		_spec.AddField(inode.FieldLinkCount, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.AccessedAt(); ok {
-		_spec.SetField(inode.FieldAccessedAt, field.TypeTime, value)
+	if value, ok := _u.mutation.Flags(); ok {
+		_spec.SetField(inode.FieldFlags, field.TypeInt16, value)
 	}
-	if _u.mutation.AccessedAtCleared() {
-		_spec.ClearField(inode.FieldAccessedAt, field.TypeTime)
+	if value, ok := _u.mutation.AddedFlags(); ok {
+		_spec.AddField(inode.FieldFlags, field.TypeInt16, value)
 	}
-	if value, ok := _u.mutation.IsSystem(); ok {
-		_spec.SetField(inode.FieldIsSystem, field.TypeBool, value)
+	if value, ok := _u.mutation.Atime(); ok {
+		_spec.SetField(inode.FieldAtime, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.SystemType(); ok {
-		_spec.SetField(inode.FieldSystemType, field.TypeString, value)
+	if value, ok := _u.mutation.Mtime(); ok {
+		_spec.SetField(inode.FieldMtime, field.TypeTime, value)
 	}
-	if _u.mutation.SystemTypeCleared() {
-		_spec.ClearField(inode.FieldSystemType, field.TypeString)
+	if value, ok := _u.mutation.Ctime(); ok {
+		_spec.SetField(inode.FieldCtime, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(inode.FieldContent, field.TypeBytes, value)
+	}
+	if _u.mutation.ContentCleared() {
+		_spec.ClearField(inode.FieldContent, field.TypeBytes)
 	}
 	if _u.mutation.SystemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -432,7 +363,7 @@ func (_u *InodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{inode.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -445,52 +376,7 @@ func (_u *InodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{inode.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.EntriesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   inode.EntriesTable,
-			Columns: []string{inode.EntriesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(directoryentry.FieldID, field.TypeInt64),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedEntriesIDs(); len(nodes) > 0 && !_u.mutation.EntriesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   inode.EntriesTable,
-			Columns: []string{inode.EntriesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(directoryentry.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.EntriesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   inode.EntriesTable,
-			Columns: []string{inode.EntriesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(directoryentry.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -525,139 +411,112 @@ func (_u *InodeUpdateOne) SetUpdateTime(v time.Time) *InodeUpdateOne {
 }
 
 // SetSystemID sets the "system_id" field.
-func (_u *InodeUpdateOne) SetSystemID(v int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetSystemID(v string) *InodeUpdateOne {
 	_u.mutation.SetSystemID(v)
 	return _u
 }
 
 // SetNillableSystemID sets the "system_id" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableSystemID(v *int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetNillableSystemID(v *string) *InodeUpdateOne {
 	if v != nil {
 		_u.SetSystemID(*v)
 	}
 	return _u
 }
 
-// ClearSystemID clears the value of the "system_id" field.
-func (_u *InodeUpdateOne) ClearSystemID() *InodeUpdateOne {
-	_u.mutation.ClearSystemID()
+// SetMode sets the "mode" field.
+func (_u *InodeUpdateOne) SetMode(v int16) *InodeUpdateOne {
+	_u.mutation.ResetMode()
+	_u.mutation.SetMode(v)
 	return _u
 }
 
-// SetFileType sets the "file_type" field.
-func (_u *InodeUpdateOne) SetFileType(v inode.FileType) *InodeUpdateOne {
-	_u.mutation.SetFileType(v)
-	return _u
-}
-
-// SetNillableFileType sets the "file_type" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableFileType(v *inode.FileType) *InodeUpdateOne {
+// SetNillableMode sets the "mode" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableMode(v *int16) *InodeUpdateOne {
 	if v != nil {
-		_u.SetFileType(*v)
+		_u.SetMode(*v)
 	}
 	return _u
 }
 
-// SetByteSize sets the "byte_size" field.
-func (_u *InodeUpdateOne) SetByteSize(v int64) *InodeUpdateOne {
-	_u.mutation.ResetByteSize()
-	_u.mutation.SetByteSize(v)
+// AddMode adds value to the "mode" field.
+func (_u *InodeUpdateOne) AddMode(v int16) *InodeUpdateOne {
+	_u.mutation.AddMode(v)
 	return _u
 }
 
-// SetNillableByteSize sets the "byte_size" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableByteSize(v *int64) *InodeUpdateOne {
+// SetUID sets the "uid" field.
+func (_u *InodeUpdateOne) SetUID(v int64) *InodeUpdateOne {
+	_u.mutation.ResetUID()
+	_u.mutation.SetUID(v)
+	return _u
+}
+
+// SetNillableUID sets the "uid" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableUID(v *int64) *InodeUpdateOne {
 	if v != nil {
-		_u.SetByteSize(*v)
+		_u.SetUID(*v)
 	}
 	return _u
 }
 
-// AddByteSize adds value to the "byte_size" field.
-func (_u *InodeUpdateOne) AddByteSize(v int64) *InodeUpdateOne {
-	_u.mutation.AddByteSize(v)
+// AddUID adds value to the "uid" field.
+func (_u *InodeUpdateOne) AddUID(v int64) *InodeUpdateOne {
+	_u.mutation.AddUID(v)
 	return _u
 }
 
-// SetOwnerUID sets the "owner_uid" field.
-func (_u *InodeUpdateOne) SetOwnerUID(v string) *InodeUpdateOne {
-	_u.mutation.SetOwnerUID(v)
+// SetGid sets the "gid" field.
+func (_u *InodeUpdateOne) SetGid(v int64) *InodeUpdateOne {
+	_u.mutation.ResetGid()
+	_u.mutation.SetGid(v)
 	return _u
 }
 
-// SetNillableOwnerUID sets the "owner_uid" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableOwnerUID(v *string) *InodeUpdateOne {
+// SetNillableGid sets the "gid" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableGid(v *int64) *InodeUpdateOne {
 	if v != nil {
-		_u.SetOwnerUID(*v)
+		_u.SetGid(*v)
 	}
 	return _u
 }
 
-// SetOwnerGid sets the "owner_gid" field.
-func (_u *InodeUpdateOne) SetOwnerGid(v string) *InodeUpdateOne {
-	_u.mutation.SetOwnerGid(v)
+// AddGid adds value to the "gid" field.
+func (_u *InodeUpdateOne) AddGid(v int64) *InodeUpdateOne {
+	_u.mutation.AddGid(v)
 	return _u
 }
 
-// SetNillableOwnerGid sets the "owner_gid" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableOwnerGid(v *string) *InodeUpdateOne {
+// SetSize sets the "size" field.
+func (_u *InodeUpdateOne) SetSize(v int64) *InodeUpdateOne {
+	_u.mutation.ResetSize()
+	_u.mutation.SetSize(v)
+	return _u
+}
+
+// SetNillableSize sets the "size" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableSize(v *int64) *InodeUpdateOne {
 	if v != nil {
-		_u.SetOwnerGid(*v)
+		_u.SetSize(*v)
 	}
 	return _u
 }
 
-// SetPermOwner sets the "perm_owner" field.
-func (_u *InodeUpdateOne) SetPermOwner(v string) *InodeUpdateOne {
-	_u.mutation.SetPermOwner(v)
-	return _u
-}
-
-// SetNillablePermOwner sets the "perm_owner" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillablePermOwner(v *string) *InodeUpdateOne {
-	if v != nil {
-		_u.SetPermOwner(*v)
-	}
-	return _u
-}
-
-// SetPermGroup sets the "perm_group" field.
-func (_u *InodeUpdateOne) SetPermGroup(v string) *InodeUpdateOne {
-	_u.mutation.SetPermGroup(v)
-	return _u
-}
-
-// SetNillablePermGroup sets the "perm_group" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillablePermGroup(v *string) *InodeUpdateOne {
-	if v != nil {
-		_u.SetPermGroup(*v)
-	}
-	return _u
-}
-
-// SetPermOthers sets the "perm_others" field.
-func (_u *InodeUpdateOne) SetPermOthers(v string) *InodeUpdateOne {
-	_u.mutation.SetPermOthers(v)
-	return _u
-}
-
-// SetNillablePermOthers sets the "perm_others" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillablePermOthers(v *string) *InodeUpdateOne {
-	if v != nil {
-		_u.SetPermOthers(*v)
-	}
+// AddSize adds value to the "size" field.
+func (_u *InodeUpdateOne) AddSize(v int64) *InodeUpdateOne {
+	_u.mutation.AddSize(v)
 	return _u
 }
 
 // SetLinkCount sets the "link_count" field.
-func (_u *InodeUpdateOne) SetLinkCount(v int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetLinkCount(v int) *InodeUpdateOne {
 	_u.mutation.ResetLinkCount()
 	_u.mutation.SetLinkCount(v)
 	return _u
 }
 
 // SetNillableLinkCount sets the "link_count" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableLinkCount(v *int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetNillableLinkCount(v *int) *InodeUpdateOne {
 	if v != nil {
 		_u.SetLinkCount(*v)
 	}
@@ -665,83 +524,89 @@ func (_u *InodeUpdateOne) SetNillableLinkCount(v *int16) *InodeUpdateOne {
 }
 
 // AddLinkCount adds value to the "link_count" field.
-func (_u *InodeUpdateOne) AddLinkCount(v int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) AddLinkCount(v int) *InodeUpdateOne {
 	_u.mutation.AddLinkCount(v)
 	return _u
 }
 
-// SetAccessedAt sets the "accessed_at" field.
-func (_u *InodeUpdateOne) SetAccessedAt(v time.Time) *InodeUpdateOne {
-	_u.mutation.SetAccessedAt(v)
+// SetFlags sets the "flags" field.
+func (_u *InodeUpdateOne) SetFlags(v int16) *InodeUpdateOne {
+	_u.mutation.ResetFlags()
+	_u.mutation.SetFlags(v)
 	return _u
 }
 
-// SetNillableAccessedAt sets the "accessed_at" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableAccessedAt(v *time.Time) *InodeUpdateOne {
+// SetNillableFlags sets the "flags" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableFlags(v *int16) *InodeUpdateOne {
 	if v != nil {
-		_u.SetAccessedAt(*v)
+		_u.SetFlags(*v)
 	}
 	return _u
 }
 
-// ClearAccessedAt clears the value of the "accessed_at" field.
-func (_u *InodeUpdateOne) ClearAccessedAt() *InodeUpdateOne {
-	_u.mutation.ClearAccessedAt()
+// AddFlags adds value to the "flags" field.
+func (_u *InodeUpdateOne) AddFlags(v int16) *InodeUpdateOne {
+	_u.mutation.AddFlags(v)
 	return _u
 }
 
-// SetIsSystem sets the "is_system" field.
-func (_u *InodeUpdateOne) SetIsSystem(v bool) *InodeUpdateOne {
-	_u.mutation.SetIsSystem(v)
+// SetAtime sets the "atime" field.
+func (_u *InodeUpdateOne) SetAtime(v time.Time) *InodeUpdateOne {
+	_u.mutation.SetAtime(v)
 	return _u
 }
 
-// SetNillableIsSystem sets the "is_system" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableIsSystem(v *bool) *InodeUpdateOne {
+// SetNillableAtime sets the "atime" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableAtime(v *time.Time) *InodeUpdateOne {
 	if v != nil {
-		_u.SetIsSystem(*v)
+		_u.SetAtime(*v)
 	}
 	return _u
 }
 
-// SetSystemType sets the "system_type" field.
-func (_u *InodeUpdateOne) SetSystemType(v string) *InodeUpdateOne {
-	_u.mutation.SetSystemType(v)
+// SetMtime sets the "mtime" field.
+func (_u *InodeUpdateOne) SetMtime(v time.Time) *InodeUpdateOne {
+	_u.mutation.SetMtime(v)
 	return _u
 }
 
-// SetNillableSystemType sets the "system_type" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableSystemType(v *string) *InodeUpdateOne {
+// SetNillableMtime sets the "mtime" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableMtime(v *time.Time) *InodeUpdateOne {
 	if v != nil {
-		_u.SetSystemType(*v)
+		_u.SetMtime(*v)
 	}
 	return _u
 }
 
-// ClearSystemType clears the value of the "system_type" field.
-func (_u *InodeUpdateOne) ClearSystemType() *InodeUpdateOne {
-	_u.mutation.ClearSystemType()
+// SetCtime sets the "ctime" field.
+func (_u *InodeUpdateOne) SetCtime(v time.Time) *InodeUpdateOne {
+	_u.mutation.SetCtime(v)
+	return _u
+}
+
+// SetNillableCtime sets the "ctime" field if the given value is not nil.
+func (_u *InodeUpdateOne) SetNillableCtime(v *time.Time) *InodeUpdateOne {
+	if v != nil {
+		_u.SetCtime(*v)
+	}
+	return _u
+}
+
+// SetContent sets the "content" field.
+func (_u *InodeUpdateOne) SetContent(v []byte) *InodeUpdateOne {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// ClearContent clears the value of the "content" field.
+func (_u *InodeUpdateOne) ClearContent() *InodeUpdateOne {
+	_u.mutation.ClearContent()
 	return _u
 }
 
 // SetSystem sets the "system" edge to the System entity.
 func (_u *InodeUpdateOne) SetSystem(v *System) *InodeUpdateOne {
 	return _u.SetSystemID(v.ID)
-}
-
-// AddEntryIDs adds the "entries" edge to the DirectoryEntry entity by IDs.
-func (_u *InodeUpdateOne) AddEntryIDs(ids ...int64) *InodeUpdateOne {
-	_u.mutation.AddEntryIDs(ids...)
-	return _u
-}
-
-// AddEntries adds the "entries" edges to the DirectoryEntry entity.
-func (_u *InodeUpdateOne) AddEntries(v ...*DirectoryEntry) *InodeUpdateOne {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddEntryIDs(ids...)
 }
 
 // Mutation returns the InodeMutation object of the builder.
@@ -753,27 +618,6 @@ func (_u *InodeUpdateOne) Mutation() *InodeMutation {
 func (_u *InodeUpdateOne) ClearSystem() *InodeUpdateOne {
 	_u.mutation.ClearSystem()
 	return _u
-}
-
-// ClearEntries clears all "entries" edges to the DirectoryEntry entity.
-func (_u *InodeUpdateOne) ClearEntries() *InodeUpdateOne {
-	_u.mutation.ClearEntries()
-	return _u
-}
-
-// RemoveEntryIDs removes the "entries" edge to DirectoryEntry entities by IDs.
-func (_u *InodeUpdateOne) RemoveEntryIDs(ids ...int64) *InodeUpdateOne {
-	_u.mutation.RemoveEntryIDs(ids...)
-	return _u
-}
-
-// RemoveEntries removes "entries" edges to DirectoryEntry entities.
-func (_u *InodeUpdateOne) RemoveEntries(v ...*DirectoryEntry) *InodeUpdateOne {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveEntryIDs(ids...)
 }
 
 // Where appends a list predicates to the InodeUpdate builder.
@@ -827,40 +671,8 @@ func (_u *InodeUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *InodeUpdateOne) check() error {
-	if v, ok := _u.mutation.FileType(); ok {
-		if err := inode.FileTypeValidator(v); err != nil {
-			return &ValidationError{Name: "file_type", err: fmt.Errorf(`ent: validator failed for field "Inode.file_type": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.OwnerUID(); ok {
-		if err := inode.OwnerUIDValidator(v); err != nil {
-			return &ValidationError{Name: "owner_uid", err: fmt.Errorf(`ent: validator failed for field "Inode.owner_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.OwnerGid(); ok {
-		if err := inode.OwnerGidValidator(v); err != nil {
-			return &ValidationError{Name: "owner_gid", err: fmt.Errorf(`ent: validator failed for field "Inode.owner_gid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.PermOwner(); ok {
-		if err := inode.PermOwnerValidator(v); err != nil {
-			return &ValidationError{Name: "perm_owner", err: fmt.Errorf(`ent: validator failed for field "Inode.perm_owner": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.PermGroup(); ok {
-		if err := inode.PermGroupValidator(v); err != nil {
-			return &ValidationError{Name: "perm_group", err: fmt.Errorf(`ent: validator failed for field "Inode.perm_group": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.PermOthers(); ok {
-		if err := inode.PermOthersValidator(v); err != nil {
-			return &ValidationError{Name: "perm_others", err: fmt.Errorf(`ent: validator failed for field "Inode.perm_others": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.SystemType(); ok {
-		if err := inode.SystemTypeValidator(v); err != nil {
-			return &ValidationError{Name: "system_type", err: fmt.Errorf(`ent: validator failed for field "Inode.system_type": %w`, err)}
-		}
+	if _u.mutation.SystemCleared() && len(_u.mutation.SystemIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Inode.system"`)
 	}
 	return nil
 }
@@ -897,50 +709,56 @@ func (_u *InodeUpdateOne) sqlSave(ctx context.Context) (_node *Inode, err error)
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(inode.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.FileType(); ok {
-		_spec.SetField(inode.FieldFileType, field.TypeEnum, value)
+	if value, ok := _u.mutation.Mode(); ok {
+		_spec.SetField(inode.FieldMode, field.TypeInt16, value)
 	}
-	if value, ok := _u.mutation.ByteSize(); ok {
-		_spec.SetField(inode.FieldByteSize, field.TypeInt64, value)
+	if value, ok := _u.mutation.AddedMode(); ok {
+		_spec.AddField(inode.FieldMode, field.TypeInt16, value)
 	}
-	if value, ok := _u.mutation.AddedByteSize(); ok {
-		_spec.AddField(inode.FieldByteSize, field.TypeInt64, value)
+	if value, ok := _u.mutation.UID(); ok {
+		_spec.SetField(inode.FieldUID, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.OwnerUID(); ok {
-		_spec.SetField(inode.FieldOwnerUID, field.TypeString, value)
+	if value, ok := _u.mutation.AddedUID(); ok {
+		_spec.AddField(inode.FieldUID, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.OwnerGid(); ok {
-		_spec.SetField(inode.FieldOwnerGid, field.TypeString, value)
+	if value, ok := _u.mutation.Gid(); ok {
+		_spec.SetField(inode.FieldGid, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.PermOwner(); ok {
-		_spec.SetField(inode.FieldPermOwner, field.TypeString, value)
+	if value, ok := _u.mutation.AddedGid(); ok {
+		_spec.AddField(inode.FieldGid, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.PermGroup(); ok {
-		_spec.SetField(inode.FieldPermGroup, field.TypeString, value)
+	if value, ok := _u.mutation.Size(); ok {
+		_spec.SetField(inode.FieldSize, field.TypeInt64, value)
 	}
-	if value, ok := _u.mutation.PermOthers(); ok {
-		_spec.SetField(inode.FieldPermOthers, field.TypeString, value)
+	if value, ok := _u.mutation.AddedSize(); ok {
+		_spec.AddField(inode.FieldSize, field.TypeInt64, value)
 	}
 	if value, ok := _u.mutation.LinkCount(); ok {
-		_spec.SetField(inode.FieldLinkCount, field.TypeInt16, value)
+		_spec.SetField(inode.FieldLinkCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedLinkCount(); ok {
-		_spec.AddField(inode.FieldLinkCount, field.TypeInt16, value)
+		_spec.AddField(inode.FieldLinkCount, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.AccessedAt(); ok {
-		_spec.SetField(inode.FieldAccessedAt, field.TypeTime, value)
+	if value, ok := _u.mutation.Flags(); ok {
+		_spec.SetField(inode.FieldFlags, field.TypeInt16, value)
 	}
-	if _u.mutation.AccessedAtCleared() {
-		_spec.ClearField(inode.FieldAccessedAt, field.TypeTime)
+	if value, ok := _u.mutation.AddedFlags(); ok {
+		_spec.AddField(inode.FieldFlags, field.TypeInt16, value)
 	}
-	if value, ok := _u.mutation.IsSystem(); ok {
-		_spec.SetField(inode.FieldIsSystem, field.TypeBool, value)
+	if value, ok := _u.mutation.Atime(); ok {
+		_spec.SetField(inode.FieldAtime, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.SystemType(); ok {
-		_spec.SetField(inode.FieldSystemType, field.TypeString, value)
+	if value, ok := _u.mutation.Mtime(); ok {
+		_spec.SetField(inode.FieldMtime, field.TypeTime, value)
 	}
-	if _u.mutation.SystemTypeCleared() {
-		_spec.ClearField(inode.FieldSystemType, field.TypeString)
+	if value, ok := _u.mutation.Ctime(); ok {
+		_spec.SetField(inode.FieldCtime, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(inode.FieldContent, field.TypeBytes, value)
+	}
+	if _u.mutation.ContentCleared() {
+		_spec.ClearField(inode.FieldContent, field.TypeBytes)
 	}
 	if _u.mutation.SystemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -950,7 +768,7 @@ func (_u *InodeUpdateOne) sqlSave(ctx context.Context) (_node *Inode, err error)
 			Columns: []string{inode.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -963,52 +781,7 @@ func (_u *InodeUpdateOne) sqlSave(ctx context.Context) (_node *Inode, err error)
 			Columns: []string{inode.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.EntriesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   inode.EntriesTable,
-			Columns: []string{inode.EntriesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(directoryentry.FieldID, field.TypeInt64),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedEntriesIDs(); len(nodes) > 0 && !_u.mutation.EntriesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   inode.EntriesTable,
-			Columns: []string{inode.EntriesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(directoryentry.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.EntriesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   inode.EntriesTable,
-			Columns: []string{inode.EntriesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(directoryentry.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

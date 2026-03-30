@@ -27,8 +27,6 @@ const (
 	FieldStatus = "status"
 	// EdgeInodes holds the string denoting the inodes edge name in mutations.
 	EdgeInodes = "inodes"
-	// EdgeGroups holds the string denoting the groups edge name in mutations.
-	EdgeGroups = "groups"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// Table holds the table name of the system in the database.
@@ -40,13 +38,6 @@ const (
 	InodesInverseTable = "inodes"
 	// InodesColumn is the table column denoting the inodes relation/edge.
 	InodesColumn = "system_id"
-	// GroupsTable is the table that holds the groups relation/edge.
-	GroupsTable = "groups"
-	// GroupsInverseTable is the table name for the Group entity.
-	// It exists in this package in order to avoid circular dependency with the "group" package.
-	GroupsInverseTable = "groups"
-	// GroupsColumn is the table column denoting the groups relation/edge.
-	GroupsColumn = "system_groups"
 	// UsersTable is the table that holds the users relation/edge. The primary key declared below.
 	UsersTable = "user_systems"
 	// UsersInverseTable is the table name for the User entity.
@@ -167,20 +158,6 @@ func ByInodes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByGroupsCount orders the results by groups count.
-func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newGroupsStep(), opts...)
-	}
-}
-
-// ByGroups orders the results by groups terms.
-func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByUsersCount orders the results by users count.
 func ByUsersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -199,13 +176,6 @@ func newInodesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(InodesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, InodesTable, InodesColumn),
-	)
-}
-func newGroupsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(GroupsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, GroupsTable, GroupsColumn),
 	)
 }
 func newUsersStep() *sqlgraph.Step {

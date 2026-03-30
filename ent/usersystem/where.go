@@ -54,53 +54,213 @@ func IDLTE(id int) predicate.UserSystem {
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int64) predicate.UserSystem {
+func UserID(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldUserID, v))
 }
 
 // SystemID applies equality check predicate on the "system_id" field. It's identical to SystemIDEQ.
-func SystemID(v int64) predicate.UserSystem {
+func SystemID(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldSystemID, v))
 }
 
+// Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
+func Username(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEQ(FieldUsername, v))
+}
+
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int64) predicate.UserSystem {
+func UserIDEQ(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int64) predicate.UserSystem {
+func UserIDNEQ(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int64) predicate.UserSystem {
+func UserIDIn(vs ...string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int64) predicate.UserSystem {
+func UserIDNotIn(vs ...string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldNotIn(FieldUserID, vs...))
 }
 
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLTE(FieldUserID, v))
+}
+
+// UserIDContains applies the Contains predicate on the "user_id" field.
+func UserIDContains(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldContains(FieldUserID, v))
+}
+
+// UserIDHasPrefix applies the HasPrefix predicate on the "user_id" field.
+func UserIDHasPrefix(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldHasPrefix(FieldUserID, v))
+}
+
+// UserIDHasSuffix applies the HasSuffix predicate on the "user_id" field.
+func UserIDHasSuffix(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldHasSuffix(FieldUserID, v))
+}
+
+// UserIDEqualFold applies the EqualFold predicate on the "user_id" field.
+func UserIDEqualFold(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEqualFold(FieldUserID, v))
+}
+
+// UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
+func UserIDContainsFold(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldContainsFold(FieldUserID, v))
+}
+
 // SystemIDEQ applies the EQ predicate on the "system_id" field.
-func SystemIDEQ(v int64) predicate.UserSystem {
+func SystemIDEQ(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldSystemID, v))
 }
 
 // SystemIDNEQ applies the NEQ predicate on the "system_id" field.
-func SystemIDNEQ(v int64) predicate.UserSystem {
+func SystemIDNEQ(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldNEQ(FieldSystemID, v))
 }
 
 // SystemIDIn applies the In predicate on the "system_id" field.
-func SystemIDIn(vs ...int64) predicate.UserSystem {
+func SystemIDIn(vs ...string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldIn(FieldSystemID, vs...))
 }
 
 // SystemIDNotIn applies the NotIn predicate on the "system_id" field.
-func SystemIDNotIn(vs ...int64) predicate.UserSystem {
+func SystemIDNotIn(vs ...string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldNotIn(FieldSystemID, vs...))
+}
+
+// SystemIDGT applies the GT predicate on the "system_id" field.
+func SystemIDGT(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGT(FieldSystemID, v))
+}
+
+// SystemIDGTE applies the GTE predicate on the "system_id" field.
+func SystemIDGTE(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGTE(FieldSystemID, v))
+}
+
+// SystemIDLT applies the LT predicate on the "system_id" field.
+func SystemIDLT(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLT(FieldSystemID, v))
+}
+
+// SystemIDLTE applies the LTE predicate on the "system_id" field.
+func SystemIDLTE(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLTE(FieldSystemID, v))
+}
+
+// SystemIDContains applies the Contains predicate on the "system_id" field.
+func SystemIDContains(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldContains(FieldSystemID, v))
+}
+
+// SystemIDHasPrefix applies the HasPrefix predicate on the "system_id" field.
+func SystemIDHasPrefix(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldHasPrefix(FieldSystemID, v))
+}
+
+// SystemIDHasSuffix applies the HasSuffix predicate on the "system_id" field.
+func SystemIDHasSuffix(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldHasSuffix(FieldSystemID, v))
+}
+
+// SystemIDEqualFold applies the EqualFold predicate on the "system_id" field.
+func SystemIDEqualFold(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEqualFold(FieldSystemID, v))
+}
+
+// SystemIDContainsFold applies the ContainsFold predicate on the "system_id" field.
+func SystemIDContainsFold(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldContainsFold(FieldSystemID, v))
+}
+
+// UsernameEQ applies the EQ predicate on the "username" field.
+func UsernameEQ(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEQ(FieldUsername, v))
+}
+
+// UsernameNEQ applies the NEQ predicate on the "username" field.
+func UsernameNEQ(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldNEQ(FieldUsername, v))
+}
+
+// UsernameIn applies the In predicate on the "username" field.
+func UsernameIn(vs ...string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldIn(FieldUsername, vs...))
+}
+
+// UsernameNotIn applies the NotIn predicate on the "username" field.
+func UsernameNotIn(vs ...string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldNotIn(FieldUsername, vs...))
+}
+
+// UsernameGT applies the GT predicate on the "username" field.
+func UsernameGT(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGT(FieldUsername, v))
+}
+
+// UsernameGTE applies the GTE predicate on the "username" field.
+func UsernameGTE(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGTE(FieldUsername, v))
+}
+
+// UsernameLT applies the LT predicate on the "username" field.
+func UsernameLT(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLT(FieldUsername, v))
+}
+
+// UsernameLTE applies the LTE predicate on the "username" field.
+func UsernameLTE(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLTE(FieldUsername, v))
+}
+
+// UsernameContains applies the Contains predicate on the "username" field.
+func UsernameContains(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldContains(FieldUsername, v))
+}
+
+// UsernameHasPrefix applies the HasPrefix predicate on the "username" field.
+func UsernameHasPrefix(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldHasPrefix(FieldUsername, v))
+}
+
+// UsernameHasSuffix applies the HasSuffix predicate on the "username" field.
+func UsernameHasSuffix(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldHasSuffix(FieldUsername, v))
+}
+
+// UsernameEqualFold applies the EqualFold predicate on the "username" field.
+func UsernameEqualFold(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEqualFold(FieldUsername, v))
+}
+
+// UsernameContainsFold applies the ContainsFold predicate on the "username" field.
+func UsernameContainsFold(v string) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldContainsFold(FieldUsername, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

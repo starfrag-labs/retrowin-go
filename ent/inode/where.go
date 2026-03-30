@@ -66,58 +66,58 @@ func UpdateTime(v time.Time) predicate.Inode {
 }
 
 // SystemID applies equality check predicate on the "system_id" field. It's identical to SystemIDEQ.
-func SystemID(v int64) predicate.Inode {
+func SystemID(v string) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldSystemID, v))
 }
 
-// ByteSize applies equality check predicate on the "byte_size" field. It's identical to ByteSizeEQ.
-func ByteSize(v int64) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldByteSize, v))
+// Mode applies equality check predicate on the "mode" field. It's identical to ModeEQ.
+func Mode(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldMode, v))
 }
 
-// OwnerUID applies equality check predicate on the "owner_uid" field. It's identical to OwnerUIDEQ.
-func OwnerUID(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldOwnerUID, v))
+// UID applies equality check predicate on the "uid" field. It's identical to UIDEQ.
+func UID(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldUID, v))
 }
 
-// OwnerGid applies equality check predicate on the "owner_gid" field. It's identical to OwnerGidEQ.
-func OwnerGid(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldOwnerGid, v))
+// Gid applies equality check predicate on the "gid" field. It's identical to GidEQ.
+func Gid(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldGid, v))
 }
 
-// PermOwner applies equality check predicate on the "perm_owner" field. It's identical to PermOwnerEQ.
-func PermOwner(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldPermOwner, v))
-}
-
-// PermGroup applies equality check predicate on the "perm_group" field. It's identical to PermGroupEQ.
-func PermGroup(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldPermGroup, v))
-}
-
-// PermOthers applies equality check predicate on the "perm_others" field. It's identical to PermOthersEQ.
-func PermOthers(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldPermOthers, v))
+// Size applies equality check predicate on the "size" field. It's identical to SizeEQ.
+func Size(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldSize, v))
 }
 
 // LinkCount applies equality check predicate on the "link_count" field. It's identical to LinkCountEQ.
-func LinkCount(v int16) predicate.Inode {
+func LinkCount(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldLinkCount, v))
 }
 
-// AccessedAt applies equality check predicate on the "accessed_at" field. It's identical to AccessedAtEQ.
-func AccessedAt(v time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldAccessedAt, v))
+// Flags applies equality check predicate on the "flags" field. It's identical to FlagsEQ.
+func Flags(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldFlags, v))
 }
 
-// IsSystem applies equality check predicate on the "is_system" field. It's identical to IsSystemEQ.
-func IsSystem(v bool) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldIsSystem, v))
+// Atime applies equality check predicate on the "atime" field. It's identical to AtimeEQ.
+func Atime(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldAtime, v))
 }
 
-// SystemType applies equality check predicate on the "system_type" field. It's identical to SystemTypeEQ.
-func SystemType(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldSystemType, v))
+// Mtime applies equality check predicate on the "mtime" field. It's identical to MtimeEQ.
+func Mtime(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldMtime, v))
+}
+
+// Ctime applies equality check predicate on the "ctime" field. It's identical to CtimeEQ.
+func Ctime(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldCtime, v))
+}
+
+// Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
+func Content(v []byte) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldContent, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -201,593 +201,478 @@ func UpdateTimeLTE(v time.Time) predicate.Inode {
 }
 
 // SystemIDEQ applies the EQ predicate on the "system_id" field.
-func SystemIDEQ(v int64) predicate.Inode {
+func SystemIDEQ(v string) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldSystemID, v))
 }
 
 // SystemIDNEQ applies the NEQ predicate on the "system_id" field.
-func SystemIDNEQ(v int64) predicate.Inode {
+func SystemIDNEQ(v string) predicate.Inode {
 	return predicate.Inode(sql.FieldNEQ(FieldSystemID, v))
 }
 
 // SystemIDIn applies the In predicate on the "system_id" field.
-func SystemIDIn(vs ...int64) predicate.Inode {
+func SystemIDIn(vs ...string) predicate.Inode {
 	return predicate.Inode(sql.FieldIn(FieldSystemID, vs...))
 }
 
 // SystemIDNotIn applies the NotIn predicate on the "system_id" field.
-func SystemIDNotIn(vs ...int64) predicate.Inode {
+func SystemIDNotIn(vs ...string) predicate.Inode {
 	return predicate.Inode(sql.FieldNotIn(FieldSystemID, vs...))
 }
 
-// SystemIDIsNil applies the IsNil predicate on the "system_id" field.
-func SystemIDIsNil() predicate.Inode {
-	return predicate.Inode(sql.FieldIsNull(FieldSystemID))
+// SystemIDGT applies the GT predicate on the "system_id" field.
+func SystemIDGT(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldSystemID, v))
 }
 
-// SystemIDNotNil applies the NotNil predicate on the "system_id" field.
-func SystemIDNotNil() predicate.Inode {
-	return predicate.Inode(sql.FieldNotNull(FieldSystemID))
+// SystemIDGTE applies the GTE predicate on the "system_id" field.
+func SystemIDGTE(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldSystemID, v))
 }
 
-// FileTypeEQ applies the EQ predicate on the "file_type" field.
-func FileTypeEQ(v FileType) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldFileType, v))
+// SystemIDLT applies the LT predicate on the "system_id" field.
+func SystemIDLT(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldSystemID, v))
 }
 
-// FileTypeNEQ applies the NEQ predicate on the "file_type" field.
-func FileTypeNEQ(v FileType) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldFileType, v))
+// SystemIDLTE applies the LTE predicate on the "system_id" field.
+func SystemIDLTE(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldSystemID, v))
 }
 
-// FileTypeIn applies the In predicate on the "file_type" field.
-func FileTypeIn(vs ...FileType) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldFileType, vs...))
+// SystemIDContains applies the Contains predicate on the "system_id" field.
+func SystemIDContains(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldContains(FieldSystemID, v))
 }
 
-// FileTypeNotIn applies the NotIn predicate on the "file_type" field.
-func FileTypeNotIn(vs ...FileType) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldFileType, vs...))
+// SystemIDHasPrefix applies the HasPrefix predicate on the "system_id" field.
+func SystemIDHasPrefix(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldHasPrefix(FieldSystemID, v))
 }
 
-// ByteSizeEQ applies the EQ predicate on the "byte_size" field.
-func ByteSizeEQ(v int64) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldByteSize, v))
+// SystemIDHasSuffix applies the HasSuffix predicate on the "system_id" field.
+func SystemIDHasSuffix(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldHasSuffix(FieldSystemID, v))
 }
 
-// ByteSizeNEQ applies the NEQ predicate on the "byte_size" field.
-func ByteSizeNEQ(v int64) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldByteSize, v))
+// SystemIDEqualFold applies the EqualFold predicate on the "system_id" field.
+func SystemIDEqualFold(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldEqualFold(FieldSystemID, v))
 }
 
-// ByteSizeIn applies the In predicate on the "byte_size" field.
-func ByteSizeIn(vs ...int64) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldByteSize, vs...))
+// SystemIDContainsFold applies the ContainsFold predicate on the "system_id" field.
+func SystemIDContainsFold(v string) predicate.Inode {
+	return predicate.Inode(sql.FieldContainsFold(FieldSystemID, v))
 }
 
-// ByteSizeNotIn applies the NotIn predicate on the "byte_size" field.
-func ByteSizeNotIn(vs ...int64) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldByteSize, vs...))
+// ModeEQ applies the EQ predicate on the "mode" field.
+func ModeEQ(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldMode, v))
 }
 
-// ByteSizeGT applies the GT predicate on the "byte_size" field.
-func ByteSizeGT(v int64) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldByteSize, v))
+// ModeNEQ applies the NEQ predicate on the "mode" field.
+func ModeNEQ(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldMode, v))
 }
 
-// ByteSizeGTE applies the GTE predicate on the "byte_size" field.
-func ByteSizeGTE(v int64) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldByteSize, v))
+// ModeIn applies the In predicate on the "mode" field.
+func ModeIn(vs ...int16) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldMode, vs...))
 }
 
-// ByteSizeLT applies the LT predicate on the "byte_size" field.
-func ByteSizeLT(v int64) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldByteSize, v))
+// ModeNotIn applies the NotIn predicate on the "mode" field.
+func ModeNotIn(vs ...int16) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldMode, vs...))
 }
 
-// ByteSizeLTE applies the LTE predicate on the "byte_size" field.
-func ByteSizeLTE(v int64) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldByteSize, v))
+// ModeGT applies the GT predicate on the "mode" field.
+func ModeGT(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldMode, v))
 }
 
-// OwnerUIDEQ applies the EQ predicate on the "owner_uid" field.
-func OwnerUIDEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldOwnerUID, v))
+// ModeGTE applies the GTE predicate on the "mode" field.
+func ModeGTE(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldMode, v))
 }
 
-// OwnerUIDNEQ applies the NEQ predicate on the "owner_uid" field.
-func OwnerUIDNEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldOwnerUID, v))
+// ModeLT applies the LT predicate on the "mode" field.
+func ModeLT(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldMode, v))
 }
 
-// OwnerUIDIn applies the In predicate on the "owner_uid" field.
-func OwnerUIDIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldOwnerUID, vs...))
+// ModeLTE applies the LTE predicate on the "mode" field.
+func ModeLTE(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldMode, v))
 }
 
-// OwnerUIDNotIn applies the NotIn predicate on the "owner_uid" field.
-func OwnerUIDNotIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldOwnerUID, vs...))
+// UIDEQ applies the EQ predicate on the "uid" field.
+func UIDEQ(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldUID, v))
 }
 
-// OwnerUIDGT applies the GT predicate on the "owner_uid" field.
-func OwnerUIDGT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldOwnerUID, v))
+// UIDNEQ applies the NEQ predicate on the "uid" field.
+func UIDNEQ(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldUID, v))
 }
 
-// OwnerUIDGTE applies the GTE predicate on the "owner_uid" field.
-func OwnerUIDGTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldOwnerUID, v))
+// UIDIn applies the In predicate on the "uid" field.
+func UIDIn(vs ...int64) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldUID, vs...))
 }
 
-// OwnerUIDLT applies the LT predicate on the "owner_uid" field.
-func OwnerUIDLT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldOwnerUID, v))
+// UIDNotIn applies the NotIn predicate on the "uid" field.
+func UIDNotIn(vs ...int64) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldUID, vs...))
 }
 
-// OwnerUIDLTE applies the LTE predicate on the "owner_uid" field.
-func OwnerUIDLTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldOwnerUID, v))
+// UIDGT applies the GT predicate on the "uid" field.
+func UIDGT(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldUID, v))
 }
 
-// OwnerUIDContains applies the Contains predicate on the "owner_uid" field.
-func OwnerUIDContains(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContains(FieldOwnerUID, v))
+// UIDGTE applies the GTE predicate on the "uid" field.
+func UIDGTE(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldUID, v))
 }
 
-// OwnerUIDHasPrefix applies the HasPrefix predicate on the "owner_uid" field.
-func OwnerUIDHasPrefix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasPrefix(FieldOwnerUID, v))
+// UIDLT applies the LT predicate on the "uid" field.
+func UIDLT(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldUID, v))
 }
 
-// OwnerUIDHasSuffix applies the HasSuffix predicate on the "owner_uid" field.
-func OwnerUIDHasSuffix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasSuffix(FieldOwnerUID, v))
+// UIDLTE applies the LTE predicate on the "uid" field.
+func UIDLTE(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldUID, v))
 }
 
-// OwnerUIDEqualFold applies the EqualFold predicate on the "owner_uid" field.
-func OwnerUIDEqualFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEqualFold(FieldOwnerUID, v))
+// GidEQ applies the EQ predicate on the "gid" field.
+func GidEQ(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldGid, v))
 }
 
-// OwnerUIDContainsFold applies the ContainsFold predicate on the "owner_uid" field.
-func OwnerUIDContainsFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContainsFold(FieldOwnerUID, v))
+// GidNEQ applies the NEQ predicate on the "gid" field.
+func GidNEQ(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldGid, v))
 }
 
-// OwnerGidEQ applies the EQ predicate on the "owner_gid" field.
-func OwnerGidEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldOwnerGid, v))
+// GidIn applies the In predicate on the "gid" field.
+func GidIn(vs ...int64) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldGid, vs...))
 }
 
-// OwnerGidNEQ applies the NEQ predicate on the "owner_gid" field.
-func OwnerGidNEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldOwnerGid, v))
+// GidNotIn applies the NotIn predicate on the "gid" field.
+func GidNotIn(vs ...int64) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldGid, vs...))
 }
 
-// OwnerGidIn applies the In predicate on the "owner_gid" field.
-func OwnerGidIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldOwnerGid, vs...))
+// GidGT applies the GT predicate on the "gid" field.
+func GidGT(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldGid, v))
 }
 
-// OwnerGidNotIn applies the NotIn predicate on the "owner_gid" field.
-func OwnerGidNotIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldOwnerGid, vs...))
+// GidGTE applies the GTE predicate on the "gid" field.
+func GidGTE(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldGid, v))
 }
 
-// OwnerGidGT applies the GT predicate on the "owner_gid" field.
-func OwnerGidGT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldOwnerGid, v))
+// GidLT applies the LT predicate on the "gid" field.
+func GidLT(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldGid, v))
 }
 
-// OwnerGidGTE applies the GTE predicate on the "owner_gid" field.
-func OwnerGidGTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldOwnerGid, v))
+// GidLTE applies the LTE predicate on the "gid" field.
+func GidLTE(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldGid, v))
 }
 
-// OwnerGidLT applies the LT predicate on the "owner_gid" field.
-func OwnerGidLT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldOwnerGid, v))
+// SizeEQ applies the EQ predicate on the "size" field.
+func SizeEQ(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldSize, v))
 }
 
-// OwnerGidLTE applies the LTE predicate on the "owner_gid" field.
-func OwnerGidLTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldOwnerGid, v))
+// SizeNEQ applies the NEQ predicate on the "size" field.
+func SizeNEQ(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldSize, v))
 }
 
-// OwnerGidContains applies the Contains predicate on the "owner_gid" field.
-func OwnerGidContains(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContains(FieldOwnerGid, v))
+// SizeIn applies the In predicate on the "size" field.
+func SizeIn(vs ...int64) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldSize, vs...))
 }
 
-// OwnerGidHasPrefix applies the HasPrefix predicate on the "owner_gid" field.
-func OwnerGidHasPrefix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasPrefix(FieldOwnerGid, v))
+// SizeNotIn applies the NotIn predicate on the "size" field.
+func SizeNotIn(vs ...int64) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldSize, vs...))
 }
 
-// OwnerGidHasSuffix applies the HasSuffix predicate on the "owner_gid" field.
-func OwnerGidHasSuffix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasSuffix(FieldOwnerGid, v))
+// SizeGT applies the GT predicate on the "size" field.
+func SizeGT(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldSize, v))
 }
 
-// OwnerGidEqualFold applies the EqualFold predicate on the "owner_gid" field.
-func OwnerGidEqualFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEqualFold(FieldOwnerGid, v))
+// SizeGTE applies the GTE predicate on the "size" field.
+func SizeGTE(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldSize, v))
 }
 
-// OwnerGidContainsFold applies the ContainsFold predicate on the "owner_gid" field.
-func OwnerGidContainsFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContainsFold(FieldOwnerGid, v))
+// SizeLT applies the LT predicate on the "size" field.
+func SizeLT(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldSize, v))
 }
 
-// PermOwnerEQ applies the EQ predicate on the "perm_owner" field.
-func PermOwnerEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldPermOwner, v))
-}
-
-// PermOwnerNEQ applies the NEQ predicate on the "perm_owner" field.
-func PermOwnerNEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldPermOwner, v))
-}
-
-// PermOwnerIn applies the In predicate on the "perm_owner" field.
-func PermOwnerIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldPermOwner, vs...))
-}
-
-// PermOwnerNotIn applies the NotIn predicate on the "perm_owner" field.
-func PermOwnerNotIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldPermOwner, vs...))
-}
-
-// PermOwnerGT applies the GT predicate on the "perm_owner" field.
-func PermOwnerGT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldPermOwner, v))
-}
-
-// PermOwnerGTE applies the GTE predicate on the "perm_owner" field.
-func PermOwnerGTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldPermOwner, v))
-}
-
-// PermOwnerLT applies the LT predicate on the "perm_owner" field.
-func PermOwnerLT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldPermOwner, v))
-}
-
-// PermOwnerLTE applies the LTE predicate on the "perm_owner" field.
-func PermOwnerLTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldPermOwner, v))
-}
-
-// PermOwnerContains applies the Contains predicate on the "perm_owner" field.
-func PermOwnerContains(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContains(FieldPermOwner, v))
-}
-
-// PermOwnerHasPrefix applies the HasPrefix predicate on the "perm_owner" field.
-func PermOwnerHasPrefix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasPrefix(FieldPermOwner, v))
-}
-
-// PermOwnerHasSuffix applies the HasSuffix predicate on the "perm_owner" field.
-func PermOwnerHasSuffix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasSuffix(FieldPermOwner, v))
-}
-
-// PermOwnerEqualFold applies the EqualFold predicate on the "perm_owner" field.
-func PermOwnerEqualFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEqualFold(FieldPermOwner, v))
-}
-
-// PermOwnerContainsFold applies the ContainsFold predicate on the "perm_owner" field.
-func PermOwnerContainsFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContainsFold(FieldPermOwner, v))
-}
-
-// PermGroupEQ applies the EQ predicate on the "perm_group" field.
-func PermGroupEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldPermGroup, v))
-}
-
-// PermGroupNEQ applies the NEQ predicate on the "perm_group" field.
-func PermGroupNEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldPermGroup, v))
-}
-
-// PermGroupIn applies the In predicate on the "perm_group" field.
-func PermGroupIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldPermGroup, vs...))
-}
-
-// PermGroupNotIn applies the NotIn predicate on the "perm_group" field.
-func PermGroupNotIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldPermGroup, vs...))
-}
-
-// PermGroupGT applies the GT predicate on the "perm_group" field.
-func PermGroupGT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldPermGroup, v))
-}
-
-// PermGroupGTE applies the GTE predicate on the "perm_group" field.
-func PermGroupGTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldPermGroup, v))
-}
-
-// PermGroupLT applies the LT predicate on the "perm_group" field.
-func PermGroupLT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldPermGroup, v))
-}
-
-// PermGroupLTE applies the LTE predicate on the "perm_group" field.
-func PermGroupLTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldPermGroup, v))
-}
-
-// PermGroupContains applies the Contains predicate on the "perm_group" field.
-func PermGroupContains(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContains(FieldPermGroup, v))
-}
-
-// PermGroupHasPrefix applies the HasPrefix predicate on the "perm_group" field.
-func PermGroupHasPrefix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasPrefix(FieldPermGroup, v))
-}
-
-// PermGroupHasSuffix applies the HasSuffix predicate on the "perm_group" field.
-func PermGroupHasSuffix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasSuffix(FieldPermGroup, v))
-}
-
-// PermGroupEqualFold applies the EqualFold predicate on the "perm_group" field.
-func PermGroupEqualFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEqualFold(FieldPermGroup, v))
-}
-
-// PermGroupContainsFold applies the ContainsFold predicate on the "perm_group" field.
-func PermGroupContainsFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContainsFold(FieldPermGroup, v))
-}
-
-// PermOthersEQ applies the EQ predicate on the "perm_others" field.
-func PermOthersEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldPermOthers, v))
-}
-
-// PermOthersNEQ applies the NEQ predicate on the "perm_others" field.
-func PermOthersNEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldPermOthers, v))
-}
-
-// PermOthersIn applies the In predicate on the "perm_others" field.
-func PermOthersIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldPermOthers, vs...))
-}
-
-// PermOthersNotIn applies the NotIn predicate on the "perm_others" field.
-func PermOthersNotIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldPermOthers, vs...))
-}
-
-// PermOthersGT applies the GT predicate on the "perm_others" field.
-func PermOthersGT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldPermOthers, v))
-}
-
-// PermOthersGTE applies the GTE predicate on the "perm_others" field.
-func PermOthersGTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldPermOthers, v))
-}
-
-// PermOthersLT applies the LT predicate on the "perm_others" field.
-func PermOthersLT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldPermOthers, v))
-}
-
-// PermOthersLTE applies the LTE predicate on the "perm_others" field.
-func PermOthersLTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldPermOthers, v))
-}
-
-// PermOthersContains applies the Contains predicate on the "perm_others" field.
-func PermOthersContains(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContains(FieldPermOthers, v))
-}
-
-// PermOthersHasPrefix applies the HasPrefix predicate on the "perm_others" field.
-func PermOthersHasPrefix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasPrefix(FieldPermOthers, v))
-}
-
-// PermOthersHasSuffix applies the HasSuffix predicate on the "perm_others" field.
-func PermOthersHasSuffix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasSuffix(FieldPermOthers, v))
-}
-
-// PermOthersEqualFold applies the EqualFold predicate on the "perm_others" field.
-func PermOthersEqualFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEqualFold(FieldPermOthers, v))
-}
-
-// PermOthersContainsFold applies the ContainsFold predicate on the "perm_others" field.
-func PermOthersContainsFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContainsFold(FieldPermOthers, v))
+// SizeLTE applies the LTE predicate on the "size" field.
+func SizeLTE(v int64) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldSize, v))
 }
 
 // LinkCountEQ applies the EQ predicate on the "link_count" field.
-func LinkCountEQ(v int16) predicate.Inode {
+func LinkCountEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldLinkCount, v))
 }
 
 // LinkCountNEQ applies the NEQ predicate on the "link_count" field.
-func LinkCountNEQ(v int16) predicate.Inode {
+func LinkCountNEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldNEQ(FieldLinkCount, v))
 }
 
 // LinkCountIn applies the In predicate on the "link_count" field.
-func LinkCountIn(vs ...int16) predicate.Inode {
+func LinkCountIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldIn(FieldLinkCount, vs...))
 }
 
 // LinkCountNotIn applies the NotIn predicate on the "link_count" field.
-func LinkCountNotIn(vs ...int16) predicate.Inode {
+func LinkCountNotIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldNotIn(FieldLinkCount, vs...))
 }
 
 // LinkCountGT applies the GT predicate on the "link_count" field.
-func LinkCountGT(v int16) predicate.Inode {
+func LinkCountGT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGT(FieldLinkCount, v))
 }
 
 // LinkCountGTE applies the GTE predicate on the "link_count" field.
-func LinkCountGTE(v int16) predicate.Inode {
+func LinkCountGTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGTE(FieldLinkCount, v))
 }
 
 // LinkCountLT applies the LT predicate on the "link_count" field.
-func LinkCountLT(v int16) predicate.Inode {
+func LinkCountLT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLT(FieldLinkCount, v))
 }
 
 // LinkCountLTE applies the LTE predicate on the "link_count" field.
-func LinkCountLTE(v int16) predicate.Inode {
+func LinkCountLTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLTE(FieldLinkCount, v))
 }
 
-// AccessedAtEQ applies the EQ predicate on the "accessed_at" field.
-func AccessedAtEQ(v time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldAccessedAt, v))
+// FlagsEQ applies the EQ predicate on the "flags" field.
+func FlagsEQ(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldFlags, v))
 }
 
-// AccessedAtNEQ applies the NEQ predicate on the "accessed_at" field.
-func AccessedAtNEQ(v time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldAccessedAt, v))
+// FlagsNEQ applies the NEQ predicate on the "flags" field.
+func FlagsNEQ(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldFlags, v))
 }
 
-// AccessedAtIn applies the In predicate on the "accessed_at" field.
-func AccessedAtIn(vs ...time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldAccessedAt, vs...))
+// FlagsIn applies the In predicate on the "flags" field.
+func FlagsIn(vs ...int16) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldFlags, vs...))
 }
 
-// AccessedAtNotIn applies the NotIn predicate on the "accessed_at" field.
-func AccessedAtNotIn(vs ...time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldAccessedAt, vs...))
+// FlagsNotIn applies the NotIn predicate on the "flags" field.
+func FlagsNotIn(vs ...int16) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldFlags, vs...))
 }
 
-// AccessedAtGT applies the GT predicate on the "accessed_at" field.
-func AccessedAtGT(v time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldAccessedAt, v))
+// FlagsGT applies the GT predicate on the "flags" field.
+func FlagsGT(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldFlags, v))
 }
 
-// AccessedAtGTE applies the GTE predicate on the "accessed_at" field.
-func AccessedAtGTE(v time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldAccessedAt, v))
+// FlagsGTE applies the GTE predicate on the "flags" field.
+func FlagsGTE(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldFlags, v))
 }
 
-// AccessedAtLT applies the LT predicate on the "accessed_at" field.
-func AccessedAtLT(v time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldAccessedAt, v))
+// FlagsLT applies the LT predicate on the "flags" field.
+func FlagsLT(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldFlags, v))
 }
 
-// AccessedAtLTE applies the LTE predicate on the "accessed_at" field.
-func AccessedAtLTE(v time.Time) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldAccessedAt, v))
+// FlagsLTE applies the LTE predicate on the "flags" field.
+func FlagsLTE(v int16) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldFlags, v))
 }
 
-// AccessedAtIsNil applies the IsNil predicate on the "accessed_at" field.
-func AccessedAtIsNil() predicate.Inode {
-	return predicate.Inode(sql.FieldIsNull(FieldAccessedAt))
+// AtimeEQ applies the EQ predicate on the "atime" field.
+func AtimeEQ(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldAtime, v))
 }
 
-// AccessedAtNotNil applies the NotNil predicate on the "accessed_at" field.
-func AccessedAtNotNil() predicate.Inode {
-	return predicate.Inode(sql.FieldNotNull(FieldAccessedAt))
+// AtimeNEQ applies the NEQ predicate on the "atime" field.
+func AtimeNEQ(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldAtime, v))
 }
 
-// IsSystemEQ applies the EQ predicate on the "is_system" field.
-func IsSystemEQ(v bool) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldIsSystem, v))
+// AtimeIn applies the In predicate on the "atime" field.
+func AtimeIn(vs ...time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldAtime, vs...))
 }
 
-// IsSystemNEQ applies the NEQ predicate on the "is_system" field.
-func IsSystemNEQ(v bool) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldIsSystem, v))
+// AtimeNotIn applies the NotIn predicate on the "atime" field.
+func AtimeNotIn(vs ...time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldAtime, vs...))
 }
 
-// SystemTypeEQ applies the EQ predicate on the "system_type" field.
-func SystemTypeEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEQ(FieldSystemType, v))
+// AtimeGT applies the GT predicate on the "atime" field.
+func AtimeGT(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldAtime, v))
 }
 
-// SystemTypeNEQ applies the NEQ predicate on the "system_type" field.
-func SystemTypeNEQ(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldNEQ(FieldSystemType, v))
+// AtimeGTE applies the GTE predicate on the "atime" field.
+func AtimeGTE(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldAtime, v))
 }
 
-// SystemTypeIn applies the In predicate on the "system_type" field.
-func SystemTypeIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldIn(FieldSystemType, vs...))
+// AtimeLT applies the LT predicate on the "atime" field.
+func AtimeLT(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldAtime, v))
 }
 
-// SystemTypeNotIn applies the NotIn predicate on the "system_type" field.
-func SystemTypeNotIn(vs ...string) predicate.Inode {
-	return predicate.Inode(sql.FieldNotIn(FieldSystemType, vs...))
+// AtimeLTE applies the LTE predicate on the "atime" field.
+func AtimeLTE(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldAtime, v))
 }
 
-// SystemTypeGT applies the GT predicate on the "system_type" field.
-func SystemTypeGT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGT(FieldSystemType, v))
+// MtimeEQ applies the EQ predicate on the "mtime" field.
+func MtimeEQ(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldMtime, v))
 }
 
-// SystemTypeGTE applies the GTE predicate on the "system_type" field.
-func SystemTypeGTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldGTE(FieldSystemType, v))
+// MtimeNEQ applies the NEQ predicate on the "mtime" field.
+func MtimeNEQ(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldMtime, v))
 }
 
-// SystemTypeLT applies the LT predicate on the "system_type" field.
-func SystemTypeLT(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLT(FieldSystemType, v))
+// MtimeIn applies the In predicate on the "mtime" field.
+func MtimeIn(vs ...time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldMtime, vs...))
 }
 
-// SystemTypeLTE applies the LTE predicate on the "system_type" field.
-func SystemTypeLTE(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldLTE(FieldSystemType, v))
+// MtimeNotIn applies the NotIn predicate on the "mtime" field.
+func MtimeNotIn(vs ...time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldMtime, vs...))
 }
 
-// SystemTypeContains applies the Contains predicate on the "system_type" field.
-func SystemTypeContains(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContains(FieldSystemType, v))
+// MtimeGT applies the GT predicate on the "mtime" field.
+func MtimeGT(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldMtime, v))
 }
 
-// SystemTypeHasPrefix applies the HasPrefix predicate on the "system_type" field.
-func SystemTypeHasPrefix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasPrefix(FieldSystemType, v))
+// MtimeGTE applies the GTE predicate on the "mtime" field.
+func MtimeGTE(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldMtime, v))
 }
 
-// SystemTypeHasSuffix applies the HasSuffix predicate on the "system_type" field.
-func SystemTypeHasSuffix(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldHasSuffix(FieldSystemType, v))
+// MtimeLT applies the LT predicate on the "mtime" field.
+func MtimeLT(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldMtime, v))
 }
 
-// SystemTypeIsNil applies the IsNil predicate on the "system_type" field.
-func SystemTypeIsNil() predicate.Inode {
-	return predicate.Inode(sql.FieldIsNull(FieldSystemType))
+// MtimeLTE applies the LTE predicate on the "mtime" field.
+func MtimeLTE(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldMtime, v))
 }
 
-// SystemTypeNotNil applies the NotNil predicate on the "system_type" field.
-func SystemTypeNotNil() predicate.Inode {
-	return predicate.Inode(sql.FieldNotNull(FieldSystemType))
+// CtimeEQ applies the EQ predicate on the "ctime" field.
+func CtimeEQ(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldCtime, v))
 }
 
-// SystemTypeEqualFold applies the EqualFold predicate on the "system_type" field.
-func SystemTypeEqualFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldEqualFold(FieldSystemType, v))
+// CtimeNEQ applies the NEQ predicate on the "ctime" field.
+func CtimeNEQ(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldCtime, v))
 }
 
-// SystemTypeContainsFold applies the ContainsFold predicate on the "system_type" field.
-func SystemTypeContainsFold(v string) predicate.Inode {
-	return predicate.Inode(sql.FieldContainsFold(FieldSystemType, v))
+// CtimeIn applies the In predicate on the "ctime" field.
+func CtimeIn(vs ...time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldCtime, vs...))
+}
+
+// CtimeNotIn applies the NotIn predicate on the "ctime" field.
+func CtimeNotIn(vs ...time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldCtime, vs...))
+}
+
+// CtimeGT applies the GT predicate on the "ctime" field.
+func CtimeGT(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldCtime, v))
+}
+
+// CtimeGTE applies the GTE predicate on the "ctime" field.
+func CtimeGTE(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldCtime, v))
+}
+
+// CtimeLT applies the LT predicate on the "ctime" field.
+func CtimeLT(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldCtime, v))
+}
+
+// CtimeLTE applies the LTE predicate on the "ctime" field.
+func CtimeLTE(v time.Time) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldCtime, v))
+}
+
+// ContentEQ applies the EQ predicate on the "content" field.
+func ContentEQ(v []byte) predicate.Inode {
+	return predicate.Inode(sql.FieldEQ(FieldContent, v))
+}
+
+// ContentNEQ applies the NEQ predicate on the "content" field.
+func ContentNEQ(v []byte) predicate.Inode {
+	return predicate.Inode(sql.FieldNEQ(FieldContent, v))
+}
+
+// ContentIn applies the In predicate on the "content" field.
+func ContentIn(vs ...[]byte) predicate.Inode {
+	return predicate.Inode(sql.FieldIn(FieldContent, vs...))
+}
+
+// ContentNotIn applies the NotIn predicate on the "content" field.
+func ContentNotIn(vs ...[]byte) predicate.Inode {
+	return predicate.Inode(sql.FieldNotIn(FieldContent, vs...))
+}
+
+// ContentGT applies the GT predicate on the "content" field.
+func ContentGT(v []byte) predicate.Inode {
+	return predicate.Inode(sql.FieldGT(FieldContent, v))
+}
+
+// ContentGTE applies the GTE predicate on the "content" field.
+func ContentGTE(v []byte) predicate.Inode {
+	return predicate.Inode(sql.FieldGTE(FieldContent, v))
+}
+
+// ContentLT applies the LT predicate on the "content" field.
+func ContentLT(v []byte) predicate.Inode {
+	return predicate.Inode(sql.FieldLT(FieldContent, v))
+}
+
+// ContentLTE applies the LTE predicate on the "content" field.
+func ContentLTE(v []byte) predicate.Inode {
+	return predicate.Inode(sql.FieldLTE(FieldContent, v))
+}
+
+// ContentIsNil applies the IsNil predicate on the "content" field.
+func ContentIsNil() predicate.Inode {
+	return predicate.Inode(sql.FieldIsNull(FieldContent))
+}
+
+// ContentNotNil applies the NotNil predicate on the "content" field.
+func ContentNotNil() predicate.Inode {
+	return predicate.Inode(sql.FieldNotNull(FieldContent))
 }
 
 // HasSystem applies the HasEdge predicate on the "system" edge.
@@ -805,29 +690,6 @@ func HasSystem() predicate.Inode {
 func HasSystemWith(preds ...predicate.System) predicate.Inode {
 	return predicate.Inode(func(s *sql.Selector) {
 		step := newSystemStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasEntries applies the HasEdge predicate on the "entries" edge.
-func HasEntries() predicate.Inode {
-	return predicate.Inode(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, EntriesTable, EntriesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasEntriesWith applies the HasEdge predicate on the "entries" edge with a given conditions (other predicates).
-func HasEntriesWith(preds ...predicate.DirectoryEntry) predicate.Inode {
-	return predicate.Inode(func(s *sql.Selector) {
-		step := newEntriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

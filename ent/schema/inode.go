@@ -39,58 +39,40 @@ func (Inode) Fields() []ent.Field {
 			StorageKey("id"),
 
 		// System this inode belongs to
-		field.Int64("system_id").
-			Optional().
-			Nillable(),
+		field.String("system_id"),
 
-		// File type: regular file (-), directory (d), symlink (l), etc.
-		field.Enum("file_type").
-			Values("regular", "directory", "symlink", "block", "char", "socket", "fifo").
-			Default("regular"),
+		field.Int16("mode"),
 
-		// File size in bytes
-		field.Int64("byte_size").
+		// Owner user ID
+		field.Int64("uid").
 			Default(0),
 
-		// Owner user ID (external uid string)
-		field.String("owner_uid").
-			MaxLen(64),
+		// Owner group ID
+		field.Int64("gid").
+			Default(0),
 
-		// Owner group ID (external gid string)
-		field.String("owner_gid").
-			MaxLen(64),
-
-		// Permissions: owner (e.g., "rwx")
-		field.String("perm_owner").
-			Default("rwx").
-			MaxLen(3),
-
-		// Permissions: group (e.g., "r-x")
-		field.String("perm_group").
-			Default("r-x").
-			MaxLen(3),
-
-		// Permissions: others (e.g., "r--")
-		field.String("perm_others").
-			Default("r--").
-			MaxLen(3),
+		// File size in bytes
+		field.Int64("size").
+			Default(0),
 
 		// Hard link count
-		field.Int16("link_count").
+		field.Int("link_count").
 			Default(1),
 
-		// Accessed timestamp
-		field.Time("accessed_at").
-			Optional().
-			Nillable(),
+		field.Int16("flags"),
 
-		// System file markers
-		field.Bool("is_system").
-			Default(false),
-		field.String("system_type").
-			Optional().
-			Nillable().
-			MaxLen(50),
+		// Accessed timestamp
+		field.Time("atime"),
+
+		// Modified timestamp
+		field.Time("mtime"),
+
+		// Changed timestamp
+		field.Time("ctime"),
+
+		// Content
+		field.Bytes("content").
+			Optional(),
 	}
 }
 
@@ -98,8 +80,6 @@ func (Inode) Fields() []ent.Field {
 func (Inode) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("system_id"),
-		index.Fields("owner_uid"),
-		index.Fields("owner_uid", "is_system", "system_type"),
 	}
 }
 
@@ -110,9 +90,7 @@ func (Inode) Edges() []ent.Edge {
 		edge.From("system", System.Type).
 			Ref("inodes").
 			Field("system_id").
+			Required().
 			Unique(),
-
-		// Inode has directory entries (as child)
-		edge.To("entries", DirectoryEntry.Type),
 	}
 }

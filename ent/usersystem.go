@@ -19,9 +19,11 @@ type UserSystem struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// UserID holds the value of the "user_id" field.
-	UserID int64 `json:"user_id,omitempty"`
+	UserID string `json:"user_id,omitempty"`
 	// SystemID holds the value of the "system_id" field.
-	SystemID int64 `json:"system_id,omitempty"`
+	SystemID string `json:"system_id,omitempty"`
+	// Username holds the value of the "username" field.
+	Username string `json:"username,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserSystemQuery when eager-loading is set.
 	Edges        UserSystemEdges `json:"edges"`
@@ -66,8 +68,10 @@ func (*UserSystem) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case usersystem.FieldID, usersystem.FieldUserID, usersystem.FieldSystemID:
+		case usersystem.FieldID:
 			values[i] = new(sql.NullInt64)
+		case usersystem.FieldUserID, usersystem.FieldSystemID, usersystem.FieldUsername:
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -90,16 +94,22 @@ func (_m *UserSystem) assignValues(columns []string, values []any) error {
 			}
 			_m.ID = int(value.Int64)
 		case usersystem.FieldUserID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				_m.UserID = value.Int64
+				_m.UserID = value.String
 			}
 		case usersystem.FieldSystemID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field system_id", values[i])
 			} else if value.Valid {
-				_m.SystemID = value.Int64
+				_m.SystemID = value.String
+			}
+		case usersystem.FieldUsername:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value.Valid {
+				_m.Username = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -148,10 +158,13 @@ func (_m *UserSystem) String() string {
 	builder.WriteString("UserSystem(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("user_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
+	builder.WriteString(_m.UserID)
 	builder.WriteString(", ")
 	builder.WriteString("system_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.SystemID))
+	builder.WriteString(_m.SystemID)
+	builder.WriteString(", ")
+	builder.WriteString("username=")
+	builder.WriteString(_m.Username)
 	builder.WriteByte(')')
 	return builder.String()
 }

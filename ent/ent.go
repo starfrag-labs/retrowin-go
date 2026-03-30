@@ -12,14 +12,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/starfrag-lab/retrowin-go/ent/directoryentry"
-	"github.com/starfrag-lab/retrowin-go/ent/filedata"
-	"github.com/starfrag-lab/retrowin-go/ent/group"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
-	"github.com/starfrag-lab/retrowin-go/ent/symlink"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
-	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
@@ -81,15 +76,10 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			directoryentry.Table: directoryentry.ValidColumn,
-			filedata.Table:       filedata.ValidColumn,
-			group.Table:          group.ValidColumn,
-			inode.Table:          inode.ValidColumn,
-			symlink.Table:        symlink.ValidColumn,
-			system.Table:         system.ValidColumn,
-			user.Table:           user.ValidColumn,
-			usergroup.Table:      usergroup.ValidColumn,
-			usersystem.Table:     usersystem.ValidColumn,
+			inode.Table:      inode.ValidColumn,
+			system.Table:     system.ValidColumn,
+			user.Table:       user.ValidColumn,
+			usersystem.Table: usersystem.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

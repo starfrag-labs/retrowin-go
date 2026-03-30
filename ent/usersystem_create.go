@@ -22,14 +22,20 @@ type UserSystemCreate struct {
 }
 
 // SetUserID sets the "user_id" field.
-func (_c *UserSystemCreate) SetUserID(v int64) *UserSystemCreate {
+func (_c *UserSystemCreate) SetUserID(v string) *UserSystemCreate {
 	_c.mutation.SetUserID(v)
 	return _c
 }
 
 // SetSystemID sets the "system_id" field.
-func (_c *UserSystemCreate) SetSystemID(v int64) *UserSystemCreate {
+func (_c *UserSystemCreate) SetSystemID(v string) *UserSystemCreate {
 	_c.mutation.SetSystemID(v)
+	return _c
+}
+
+// SetUsername sets the "username" field.
+func (_c *UserSystemCreate) SetUsername(v string) *UserSystemCreate {
+	_c.mutation.SetUsername(v)
 	return _c
 }
 
@@ -83,6 +89,14 @@ func (_c *UserSystemCreate) check() error {
 	if _, ok := _c.mutation.SystemID(); !ok {
 		return &ValidationError{Name: "system_id", err: errors.New(`ent: missing required field "UserSystem.system_id"`)}
 	}
+	if _, ok := _c.mutation.Username(); !ok {
+		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "UserSystem.username"`)}
+	}
+	if v, ok := _c.mutation.Username(); ok {
+		if err := usersystem.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "UserSystem.username": %w`, err)}
+		}
+	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "UserSystem.user"`)}
 	}
@@ -115,6 +129,10 @@ func (_c *UserSystemCreate) createSpec() (*UserSystem, *sqlgraph.CreateSpec) {
 		_node = &UserSystem{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(usersystem.Table, sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.Username(); ok {
+		_spec.SetField(usersystem.FieldUsername, field.TypeString, value)
+		_node.Username = value
+	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -123,7 +141,7 @@ func (_c *UserSystemCreate) createSpec() (*UserSystem, *sqlgraph.CreateSpec) {
 			Columns: []string{usersystem.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -140,7 +158,7 @@ func (_c *UserSystemCreate) createSpec() (*UserSystem, *sqlgraph.CreateSpec) {
 			Columns: []string{usersystem.SystemColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

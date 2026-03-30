@@ -12,22 +12,12 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// DirectoryEntry is the client for interacting with the DirectoryEntry builders.
-	DirectoryEntry *DirectoryEntryClient
-	// FileData is the client for interacting with the FileData builders.
-	FileData *FileDataClient
-	// Group is the client for interacting with the Group builders.
-	Group *GroupClient
 	// Inode is the client for interacting with the Inode builders.
 	Inode *InodeClient
-	// Symlink is the client for interacting with the Symlink builders.
-	Symlink *SymlinkClient
 	// System is the client for interacting with the System builders.
 	System *SystemClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// UserGroup is the client for interacting with the UserGroup builders.
-	UserGroup *UserGroupClient
 	// UserSystem is the client for interacting with the UserSystem builders.
 	UserSystem *UserSystemClient
 
@@ -161,14 +151,9 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.DirectoryEntry = NewDirectoryEntryClient(tx.config)
-	tx.FileData = NewFileDataClient(tx.config)
-	tx.Group = NewGroupClient(tx.config)
 	tx.Inode = NewInodeClient(tx.config)
-	tx.Symlink = NewSymlinkClient(tx.config)
 	tx.System = NewSystemClient(tx.config)
 	tx.User = NewUserClient(tx.config)
-	tx.UserGroup = NewUserGroupClient(tx.config)
 	tx.UserSystem = NewUserSystemClient(tx.config)
 }
 
@@ -179,7 +164,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: DirectoryEntry.QueryXXX(), the query will be executed
+// applies a query, for example: Inode.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

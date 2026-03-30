@@ -334,7 +334,7 @@ func (_q *UserSystemQuery) WithSystem(opts ...func(*SystemQuery)) *UserSystemQue
 // Example:
 //
 //	var v []struct {
-//		UserID int64 `json:"user_id,omitempty"`
+//		UserID string `json:"user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -357,7 +357,7 @@ func (_q *UserSystemQuery) GroupBy(field string, fields ...string) *UserSystemGr
 // Example:
 //
 //	var v []struct {
-//		UserID int64 `json:"user_id,omitempty"`
+//		UserID string `json:"user_id,omitempty"`
 //	}
 //
 //	client.UserSystem.Query().
@@ -445,8 +445,8 @@ func (_q *UserSystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*U
 }
 
 func (_q *UserSystemQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*UserSystem, init func(*UserSystem), assign func(*UserSystem, *User)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*UserSystem)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*UserSystem)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
@@ -474,8 +474,8 @@ func (_q *UserSystemQuery) loadUser(ctx context.Context, query *UserQuery, nodes
 	return nil
 }
 func (_q *UserSystemQuery) loadSystem(ctx context.Context, query *SystemQuery, nodes []*UserSystem, init func(*UserSystem), assign func(*UserSystem, *System)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*UserSystem)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*UserSystem)
 	for i := range nodes {
 		fk := nodes[i].SystemID
 		if _, ok := nodeids[fk]; !ok {

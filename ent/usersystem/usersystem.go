@@ -16,6 +16,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldSystemID holds the string denoting the system_id field in the database.
 	FieldSystemID = "system_id"
+	// FieldUsername holds the string denoting the username field in the database.
+	FieldUsername = "username"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeSystem holds the string denoting the system edge name in mutations.
@@ -43,6 +45,7 @@ var Columns = []string{
 	FieldID,
 	FieldUserID,
 	FieldSystemID,
+	FieldUsername,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -54,6 +57,11 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	UsernameValidator func(string) error
+)
 
 // OrderOption defines the ordering options for the UserSystem queries.
 type OrderOption func(*sql.Selector)
@@ -71,6 +79,11 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // BySystemID orders the results by the system_id field.
 func BySystemID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSystemID, opts...).ToFunc()
+}
+
+// ByUsername orders the results by the username field.
+func ByUsername(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsername, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

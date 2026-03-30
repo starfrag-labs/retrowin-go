@@ -9,165 +9,22 @@ import (
 )
 
 var (
-	// DirectoryEntriesColumns holds the columns for the "directory_entries" table.
-	DirectoryEntriesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "parent_id", Type: field.TypeInt64},
-		{Name: "child_id", Type: field.TypeInt64},
-		{Name: "inode_entries", Type: field.TypeInt64, Nullable: true},
-	}
-	// DirectoryEntriesTable holds the schema information for the "directory_entries" table.
-	DirectoryEntriesTable = &schema.Table{
-		Name:       "directory_entries",
-		Columns:    DirectoryEntriesColumns,
-		PrimaryKey: []*schema.Column{DirectoryEntriesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "directory_entries_inodes_parent",
-				Columns:    []*schema.Column{DirectoryEntriesColumns[2]},
-				RefColumns: []*schema.Column{InodesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "directory_entries_inodes_child",
-				Columns:    []*schema.Column{DirectoryEntriesColumns[3]},
-				RefColumns: []*schema.Column{InodesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "directory_entries_inodes_entries",
-				Columns:    []*schema.Column{DirectoryEntriesColumns[4]},
-				RefColumns: []*schema.Column{InodesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "directoryentry_parent_id_name",
-				Unique:  true,
-				Columns: []*schema.Column{DirectoryEntriesColumns[2], DirectoryEntriesColumns[1]},
-			},
-			{
-				Name:    "directoryentry_parent_id",
-				Unique:  false,
-				Columns: []*schema.Column{DirectoryEntriesColumns[2]},
-			},
-			{
-				Name:    "directoryentry_child_id",
-				Unique:  false,
-				Columns: []*schema.Column{DirectoryEntriesColumns[3]},
-			},
-		},
-	}
-	// FileDataColumns holds the columns for the "file_data" table.
-	FileDataColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "storage_type", Type: field.TypeEnum, Enums: []string{"s3", "local"}, Default: "s3"},
-		{Name: "location", Type: field.TypeString, Size: 1024},
-		{Name: "checksum", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "inode_id", Type: field.TypeInt64},
-	}
-	// FileDataTable holds the schema information for the "file_data" table.
-	FileDataTable = &schema.Table{
-		Name:       "file_data",
-		Columns:    FileDataColumns,
-		PrimaryKey: []*schema.Column{FileDataColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "file_data_inodes_inode",
-				Columns:    []*schema.Column{FileDataColumns[4]},
-				RefColumns: []*schema.Column{InodesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "filedata_inode_id",
-				Unique:  true,
-				Columns: []*schema.Column{FileDataColumns[4]},
-			},
-			{
-				Name:    "filedata_storage_type",
-				Unique:  false,
-				Columns: []*schema.Column{FileDataColumns[1]},
-			},
-		},
-	}
-	// GroupsColumns holds the columns for the "groups" table.
-	GroupsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "gid", Type: field.TypeString, Size: 64},
-		{Name: "groupname", Type: field.TypeString, Size: 32},
-		{Name: "system_id", Type: field.TypeInt64},
-		{Name: "system_groups", Type: field.TypeInt64, Nullable: true},
-	}
-	// GroupsTable holds the schema information for the "groups" table.
-	GroupsTable = &schema.Table{
-		Name:       "groups",
-		Columns:    GroupsColumns,
-		PrimaryKey: []*schema.Column{GroupsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "groups_systems_system",
-				Columns:    []*schema.Column{GroupsColumns[5]},
-				RefColumns: []*schema.Column{SystemsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "groups_systems_groups",
-				Columns:    []*schema.Column{GroupsColumns[6]},
-				RefColumns: []*schema.Column{SystemsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "group_system_id",
-				Unique:  false,
-				Columns: []*schema.Column{GroupsColumns[5]},
-			},
-			{
-				Name:    "group_gid",
-				Unique:  false,
-				Columns: []*schema.Column{GroupsColumns[3]},
-			},
-			{
-				Name:    "group_groupname",
-				Unique:  false,
-				Columns: []*schema.Column{GroupsColumns[4]},
-			},
-			{
-				Name:    "group_system_id_gid",
-				Unique:  true,
-				Columns: []*schema.Column{GroupsColumns[5], GroupsColumns[3]},
-			},
-			{
-				Name:    "group_system_id_groupname",
-				Unique:  true,
-				Columns: []*schema.Column{GroupsColumns[5], GroupsColumns[4]},
-			},
-		},
-	}
 	// InodesColumns holds the columns for the "inodes" table.
 	InodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "file_type", Type: field.TypeEnum, Enums: []string{"regular", "directory", "symlink", "block", "char", "socket", "fifo"}, Default: "regular"},
-		{Name: "byte_size", Type: field.TypeInt64, Default: 0},
-		{Name: "owner_uid", Type: field.TypeString, Size: 64},
-		{Name: "owner_gid", Type: field.TypeString, Size: 64},
-		{Name: "perm_owner", Type: field.TypeString, Size: 3, Default: "rwx"},
-		{Name: "perm_group", Type: field.TypeString, Size: 3, Default: "r-x"},
-		{Name: "perm_others", Type: field.TypeString, Size: 3, Default: "r--"},
-		{Name: "link_count", Type: field.TypeInt16, Default: 1},
-		{Name: "accessed_at", Type: field.TypeTime, Nullable: true},
-		{Name: "is_system", Type: field.TypeBool, Default: false},
-		{Name: "system_type", Type: field.TypeString, Nullable: true, Size: 50},
-		{Name: "system_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "mode", Type: field.TypeInt16},
+		{Name: "uid", Type: field.TypeInt64, Default: 0},
+		{Name: "gid", Type: field.TypeInt64, Default: 0},
+		{Name: "size", Type: field.TypeInt64, Default: 0},
+		{Name: "link_count", Type: field.TypeInt, Default: 1},
+		{Name: "flags", Type: field.TypeInt16},
+		{Name: "atime", Type: field.TypeTime},
+		{Name: "mtime", Type: field.TypeTime},
+		{Name: "ctime", Type: field.TypeTime},
+		{Name: "content", Type: field.TypeBytes, Nullable: true},
+		{Name: "system_id", Type: field.TypeString},
 	}
 	// InodesTable holds the schema information for the "inodes" table.
 	InodesTable = &schema.Table{
@@ -177,59 +34,22 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "inodes_systems_inodes",
-				Columns:    []*schema.Column{InodesColumns[14]},
+				Columns:    []*schema.Column{InodesColumns[13]},
 				RefColumns: []*schema.Column{SystemsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "inode_system_id",
 				Unique:  false,
-				Columns: []*schema.Column{InodesColumns[14]},
-			},
-			{
-				Name:    "inode_owner_uid",
-				Unique:  false,
-				Columns: []*schema.Column{InodesColumns[5]},
-			},
-			{
-				Name:    "inode_owner_uid_is_system_system_type",
-				Unique:  false,
-				Columns: []*schema.Column{InodesColumns[5], InodesColumns[12], InodesColumns[13]},
-			},
-		},
-	}
-	// SymlinksColumns holds the columns for the "symlinks" table.
-	SymlinksColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "target_path", Type: field.TypeString, Size: 4096},
-		{Name: "inode_id", Type: field.TypeInt64},
-	}
-	// SymlinksTable holds the schema information for the "symlinks" table.
-	SymlinksTable = &schema.Table{
-		Name:       "symlinks",
-		Columns:    SymlinksColumns,
-		PrimaryKey: []*schema.Column{SymlinksColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "symlinks_inodes_inode",
-				Columns:    []*schema.Column{SymlinksColumns[2]},
-				RefColumns: []*schema.Column{InodesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "symlink_inode_id",
-				Unique:  true,
-				Columns: []*schema.Column{SymlinksColumns[2]},
+				Columns: []*schema.Column{InodesColumns[13]},
 			},
 		},
 	}
 	// SystemsColumns holds the columns for the "systems" table.
 	SystemsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Size: 64},
@@ -256,10 +76,9 @@ var (
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "uid", Type: field.TypeString, Unique: true, Size: 64},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 32},
 		{Name: "provider", Type: field.TypeString, Size: 32},
 		{Name: "provider_id", Type: field.TypeString, Size: 255},
@@ -274,58 +93,21 @@ var (
 			{
 				Name:    "user_provider_provider_id",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[5], UsersColumns[6]},
-			},
-			{
-				Name:    "user_uid",
-				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[3]},
+				Columns: []*schema.Column{UsersColumns[4], UsersColumns[5]},
 			},
 			{
 				Name:    "user_username",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[4]},
-			},
-		},
-	}
-	// UserGroupsColumns holds the columns for the "user_groups" table.
-	UserGroupsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_id", Type: field.TypeInt64},
-		{Name: "group_id", Type: field.TypeInt64},
-	}
-	// UserGroupsTable holds the schema information for the "user_groups" table.
-	UserGroupsTable = &schema.Table{
-		Name:       "user_groups",
-		Columns:    UserGroupsColumns,
-		PrimaryKey: []*schema.Column{UserGroupsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_groups_users_user",
-				Columns:    []*schema.Column{UserGroupsColumns[1]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "user_groups_groups_group",
-				Columns:    []*schema.Column{UserGroupsColumns[2]},
-				RefColumns: []*schema.Column{GroupsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "usergroup_user_id_group_id",
-				Unique:  true,
-				Columns: []*schema.Column{UserGroupsColumns[1], UserGroupsColumns[2]},
+				Columns: []*schema.Column{UsersColumns[3]},
 			},
 		},
 	}
 	// UserSystemsColumns holds the columns for the "user_systems" table.
 	UserSystemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_id", Type: field.TypeInt64},
-		{Name: "system_id", Type: field.TypeInt64},
+		{Name: "username", Type: field.TypeString, Unique: true, Size: 32},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "system_id", Type: field.TypeString},
 	}
 	// UserSystemsTable holds the schema information for the "user_systems" table.
 	UserSystemsTable = &schema.Table{
@@ -335,13 +117,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_systems_users_user",
-				Columns:    []*schema.Column{UserSystemsColumns[1]},
+				Columns:    []*schema.Column{UserSystemsColumns[2]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "user_systems_systems_system",
-				Columns:    []*schema.Column{UserSystemsColumns[2]},
+				Columns:    []*schema.Column{UserSystemsColumns[3]},
 				RefColumns: []*schema.Column{SystemsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -350,58 +132,34 @@ var (
 			{
 				Name:    "usersystem_user_id_system_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserSystemsColumns[1], UserSystemsColumns[2]},
+				Columns: []*schema.Column{UserSystemsColumns[2], UserSystemsColumns[3]},
+			},
+			{
+				Name:    "usersystem_system_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserSystemsColumns[3]},
 			},
 		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		DirectoryEntriesTable,
-		FileDataTable,
-		GroupsTable,
 		InodesTable,
-		SymlinksTable,
 		SystemsTable,
 		UsersTable,
-		UserGroupsTable,
 		UserSystemsTable,
 	}
 )
 
 func init() {
-	DirectoryEntriesTable.ForeignKeys[0].RefTable = InodesTable
-	DirectoryEntriesTable.ForeignKeys[1].RefTable = InodesTable
-	DirectoryEntriesTable.ForeignKeys[2].RefTable = InodesTable
-	DirectoryEntriesTable.Annotation = &entsql.Annotation{
-		Table: "directory_entries",
-	}
-	FileDataTable.ForeignKeys[0].RefTable = InodesTable
-	FileDataTable.Annotation = &entsql.Annotation{
-		Table: "file_data",
-	}
-	GroupsTable.ForeignKeys[0].RefTable = SystemsTable
-	GroupsTable.ForeignKeys[1].RefTable = SystemsTable
-	GroupsTable.Annotation = &entsql.Annotation{
-		Table: "groups",
-	}
 	InodesTable.ForeignKeys[0].RefTable = SystemsTable
 	InodesTable.Annotation = &entsql.Annotation{
 		Table: "inodes",
-	}
-	SymlinksTable.ForeignKeys[0].RefTable = InodesTable
-	SymlinksTable.Annotation = &entsql.Annotation{
-		Table: "symlinks",
 	}
 	SystemsTable.Annotation = &entsql.Annotation{
 		Table: "systems",
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
-	}
-	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable
-	UserGroupsTable.ForeignKeys[1].RefTable = GroupsTable
-	UserGroupsTable.Annotation = &entsql.Annotation{
-		Table: "user_groups",
 	}
 	UserSystemsTable.ForeignKeys[0].RefTable = UsersTable
 	UserSystemsTable.ForeignKeys[1].RefTable = SystemsTable

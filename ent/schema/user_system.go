@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // UserSystem holds the schema definition for the user-system relationship.
@@ -23,8 +24,21 @@ func (UserSystem) Annotations() []schema.Annotation {
 // Fields of the UserSystem.
 func (UserSystem) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("user_id"),
-		field.Int64("system_id"),
+		field.String("user_id"),
+		field.String("system_id"),
+
+		// Username for display
+		field.String("username").
+			Unique().
+			MaxLen(32),
+	}
+}
+
+// Indexes of the UserSystem.
+func (UserSystem) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id", "system_id").Unique(),
+		index.Fields("system_id"),
 	}
 }
 

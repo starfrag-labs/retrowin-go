@@ -5,59 +5,17 @@ package ent
 import (
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/ent/directoryentry"
-	"github.com/starfrag-lab/retrowin-go/ent/filedata"
-	"github.com/starfrag-lab/retrowin-go/ent/group"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
 	"github.com/starfrag-lab/retrowin-go/ent/schema"
-	"github.com/starfrag-lab/retrowin-go/ent/symlink"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	directoryentryFields := schema.DirectoryEntry{}.Fields()
-	_ = directoryentryFields
-	// directoryentryDescName is the schema descriptor for name field.
-	directoryentryDescName := directoryentryFields[2].Descriptor()
-	// directoryentry.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	directoryentry.NameValidator = directoryentryDescName.Validators[0].(func(string) error)
-	filedataFields := schema.FileData{}.Fields()
-	_ = filedataFields
-	// filedataDescLocation is the schema descriptor for location field.
-	filedataDescLocation := filedataFields[2].Descriptor()
-	// filedata.LocationValidator is a validator for the "location" field. It is called by the builders before save.
-	filedata.LocationValidator = filedataDescLocation.Validators[0].(func(string) error)
-	// filedataDescChecksum is the schema descriptor for checksum field.
-	filedataDescChecksum := filedataFields[3].Descriptor()
-	// filedata.ChecksumValidator is a validator for the "checksum" field. It is called by the builders before save.
-	filedata.ChecksumValidator = filedataDescChecksum.Validators[0].(func(string) error)
-	groupMixin := schema.Group{}.Mixin()
-	groupMixinFields0 := groupMixin[0].Fields()
-	_ = groupMixinFields0
-	groupFields := schema.Group{}.Fields()
-	_ = groupFields
-	// groupDescCreateTime is the schema descriptor for create_time field.
-	groupDescCreateTime := groupMixinFields0[0].Descriptor()
-	// group.DefaultCreateTime holds the default value on creation for the create_time field.
-	group.DefaultCreateTime = groupDescCreateTime.Default.(func() time.Time)
-	// groupDescUpdateTime is the schema descriptor for update_time field.
-	groupDescUpdateTime := groupMixinFields0[1].Descriptor()
-	// group.DefaultUpdateTime holds the default value on creation for the update_time field.
-	group.DefaultUpdateTime = groupDescUpdateTime.Default.(func() time.Time)
-	// group.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	group.UpdateDefaultUpdateTime = groupDescUpdateTime.UpdateDefault.(func() time.Time)
-	// groupDescGid is the schema descriptor for gid field.
-	groupDescGid := groupFields[2].Descriptor()
-	// group.GidValidator is a validator for the "gid" field. It is called by the builders before save.
-	group.GidValidator = groupDescGid.Validators[0].(func(string) error)
-	// groupDescGroupname is the schema descriptor for groupname field.
-	groupDescGroupname := groupFields[3].Descriptor()
-	// group.GroupnameValidator is a validator for the "groupname" field. It is called by the builders before save.
-	group.GroupnameValidator = groupDescGroupname.Validators[0].(func(string) error)
 	inodeMixin := schema.Inode{}.Mixin()
 	inodeMixinFields0 := inodeMixin[0].Fields()
 	_ = inodeMixinFields0
@@ -73,54 +31,22 @@ func init() {
 	inode.DefaultUpdateTime = inodeDescUpdateTime.Default.(func() time.Time)
 	// inode.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	inode.UpdateDefaultUpdateTime = inodeDescUpdateTime.UpdateDefault.(func() time.Time)
-	// inodeDescByteSize is the schema descriptor for byte_size field.
-	inodeDescByteSize := inodeFields[3].Descriptor()
-	// inode.DefaultByteSize holds the default value on creation for the byte_size field.
-	inode.DefaultByteSize = inodeDescByteSize.Default.(int64)
-	// inodeDescOwnerUID is the schema descriptor for owner_uid field.
-	inodeDescOwnerUID := inodeFields[4].Descriptor()
-	// inode.OwnerUIDValidator is a validator for the "owner_uid" field. It is called by the builders before save.
-	inode.OwnerUIDValidator = inodeDescOwnerUID.Validators[0].(func(string) error)
-	// inodeDescOwnerGid is the schema descriptor for owner_gid field.
-	inodeDescOwnerGid := inodeFields[5].Descriptor()
-	// inode.OwnerGidValidator is a validator for the "owner_gid" field. It is called by the builders before save.
-	inode.OwnerGidValidator = inodeDescOwnerGid.Validators[0].(func(string) error)
-	// inodeDescPermOwner is the schema descriptor for perm_owner field.
-	inodeDescPermOwner := inodeFields[6].Descriptor()
-	// inode.DefaultPermOwner holds the default value on creation for the perm_owner field.
-	inode.DefaultPermOwner = inodeDescPermOwner.Default.(string)
-	// inode.PermOwnerValidator is a validator for the "perm_owner" field. It is called by the builders before save.
-	inode.PermOwnerValidator = inodeDescPermOwner.Validators[0].(func(string) error)
-	// inodeDescPermGroup is the schema descriptor for perm_group field.
-	inodeDescPermGroup := inodeFields[7].Descriptor()
-	// inode.DefaultPermGroup holds the default value on creation for the perm_group field.
-	inode.DefaultPermGroup = inodeDescPermGroup.Default.(string)
-	// inode.PermGroupValidator is a validator for the "perm_group" field. It is called by the builders before save.
-	inode.PermGroupValidator = inodeDescPermGroup.Validators[0].(func(string) error)
-	// inodeDescPermOthers is the schema descriptor for perm_others field.
-	inodeDescPermOthers := inodeFields[8].Descriptor()
-	// inode.DefaultPermOthers holds the default value on creation for the perm_others field.
-	inode.DefaultPermOthers = inodeDescPermOthers.Default.(string)
-	// inode.PermOthersValidator is a validator for the "perm_others" field. It is called by the builders before save.
-	inode.PermOthersValidator = inodeDescPermOthers.Validators[0].(func(string) error)
+	// inodeDescUID is the schema descriptor for uid field.
+	inodeDescUID := inodeFields[3].Descriptor()
+	// inode.DefaultUID holds the default value on creation for the uid field.
+	inode.DefaultUID = inodeDescUID.Default.(int64)
+	// inodeDescGid is the schema descriptor for gid field.
+	inodeDescGid := inodeFields[4].Descriptor()
+	// inode.DefaultGid holds the default value on creation for the gid field.
+	inode.DefaultGid = inodeDescGid.Default.(int64)
+	// inodeDescSize is the schema descriptor for size field.
+	inodeDescSize := inodeFields[5].Descriptor()
+	// inode.DefaultSize holds the default value on creation for the size field.
+	inode.DefaultSize = inodeDescSize.Default.(int64)
 	// inodeDescLinkCount is the schema descriptor for link_count field.
-	inodeDescLinkCount := inodeFields[9].Descriptor()
+	inodeDescLinkCount := inodeFields[6].Descriptor()
 	// inode.DefaultLinkCount holds the default value on creation for the link_count field.
-	inode.DefaultLinkCount = inodeDescLinkCount.Default.(int16)
-	// inodeDescIsSystem is the schema descriptor for is_system field.
-	inodeDescIsSystem := inodeFields[11].Descriptor()
-	// inode.DefaultIsSystem holds the default value on creation for the is_system field.
-	inode.DefaultIsSystem = inodeDescIsSystem.Default.(bool)
-	// inodeDescSystemType is the schema descriptor for system_type field.
-	inodeDescSystemType := inodeFields[12].Descriptor()
-	// inode.SystemTypeValidator is a validator for the "system_type" field. It is called by the builders before save.
-	inode.SystemTypeValidator = inodeDescSystemType.Validators[0].(func(string) error)
-	symlinkFields := schema.Symlink{}.Fields()
-	_ = symlinkFields
-	// symlinkDescTargetPath is the schema descriptor for target_path field.
-	symlinkDescTargetPath := symlinkFields[1].Descriptor()
-	// symlink.TargetPathValidator is a validator for the "target_path" field. It is called by the builders before save.
-	symlink.TargetPathValidator = symlinkDescTargetPath.Validators[0].(func(string) error)
+	inode.DefaultLinkCount = inodeDescLinkCount.Default.(int)
 	systemMixin := schema.System{}.Mixin()
 	systemMixinFields0 := systemMixin[0].Fields()
 	_ = systemMixinFields0
@@ -159,24 +85,26 @@ func init() {
 	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
 	// user.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	user.UpdateDefaultUpdateTime = userDescUpdateTime.UpdateDefault.(func() time.Time)
-	// userDescUID is the schema descriptor for uid field.
-	userDescUID := userFields[1].Descriptor()
-	// user.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	user.UIDValidator = userDescUID.Validators[0].(func(string) error)
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[2].Descriptor()
+	userDescUsername := userFields[1].Descriptor()
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescProvider is the schema descriptor for provider field.
-	userDescProvider := userFields[3].Descriptor()
+	userDescProvider := userFields[2].Descriptor()
 	// user.ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
 	user.ProviderValidator = userDescProvider.Validators[0].(func(string) error)
 	// userDescProviderID is the schema descriptor for provider_id field.
-	userDescProviderID := userFields[4].Descriptor()
+	userDescProviderID := userFields[3].Descriptor()
 	// user.ProviderIDValidator is a validator for the "provider_id" field. It is called by the builders before save.
 	user.ProviderIDValidator = userDescProviderID.Validators[0].(func(string) error)
 	// userDescJoinDate is the schema descriptor for join_date field.
-	userDescJoinDate := userFields[5].Descriptor()
+	userDescJoinDate := userFields[4].Descriptor()
 	// user.DefaultJoinDate holds the default value on creation for the join_date field.
 	user.DefaultJoinDate = userDescJoinDate.Default.(func() time.Time)
+	usersystemFields := schema.UserSystem{}.Fields()
+	_ = usersystemFields
+	// usersystemDescUsername is the schema descriptor for username field.
+	usersystemDescUsername := usersystemFields[2].Descriptor()
+	// usersystem.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	usersystem.UsernameValidator = usersystemDescUsername.Validators[0].(func(string) error)
 }

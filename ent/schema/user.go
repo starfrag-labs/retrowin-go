@@ -34,13 +34,8 @@ func (User) Mixin() []ent.Mixin {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("id").
+		field.String("id").
 			StorageKey("id"),
-
-		// External user ID (e.g., UUID) - for API exposure
-		field.String("uid").
-			Unique().
-			MaxLen(64),
 
 		// Username for display
 		field.String("username").
@@ -63,7 +58,6 @@ func (User) Fields() []ent.Field {
 func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("provider", "provider_id").Unique(),
-		index.Fields("uid"),
 		index.Fields("username"),
 	}
 }
@@ -71,10 +65,6 @@ func (User) Indexes() []ent.Index {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		// User belongs to many groups (M2M through user_groups)
-		edge.To("groups", Group.Type).
-			Through("user_groups", UserGroup.Type),
-
 		// User has access to many systems (M2M through user_systems)
 		edge.To("systems", System.Type).
 			Through("user_systems", UserSystem.Type),

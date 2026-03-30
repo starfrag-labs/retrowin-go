@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/starfrag-lab/retrowin-go/ent/group"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
@@ -27,7 +26,6 @@ type SystemQuery struct {
 	inters     []Interceptor
 	predicates []predicate.System
 	withInodes *InodeQuery
-	withGroups *GroupQuery
 	withUsers  *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -87,28 +85,6 @@ func (_q *SystemQuery) QueryInodes() *InodeQuery {
 	return query
 }
 
-// QueryGroups chains the current query on the "groups" edge.
-func (_q *SystemQuery) QueryGroups() *GroupQuery {
-	query := (&GroupClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(system.Table, system.FieldID, selector),
-			sqlgraph.To(group.Table, group.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, system.GroupsTable, system.GroupsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryUsers chains the current query on the "users" edge.
 func (_q *SystemQuery) QueryUsers() *UserQuery {
 	query := (&UserClient{config: _q.config}).Query()
@@ -155,8 +131,8 @@ func (_q *SystemQuery) FirstX(ctx context.Context) *System {
 
 // FirstID returns the first System ID from the query.
 // Returns a *NotFoundError when no System ID was found.
-func (_q *SystemQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (_q *SystemQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -168,7 +144,7 @@ func (_q *SystemQuery) FirstID(ctx context.Context) (id int64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *SystemQuery) FirstIDX(ctx context.Context) int64 {
+func (_q *SystemQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -206,8 +182,8 @@ func (_q *SystemQuery) OnlyX(ctx context.Context) *System {
 // OnlyID is like Only, but returns the only System ID in the query.
 // Returns a *NotSingularError when more than one System ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *SystemQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (_q *SystemQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -223,7 +199,7 @@ func (_q *SystemQuery) OnlyID(ctx context.Context) (id int64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *SystemQuery) OnlyIDX(ctx context.Context) int64 {
+func (_q *SystemQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -251,7 +227,7 @@ func (_q *SystemQuery) AllX(ctx context.Context) []*System {
 }
 
 // IDs executes the query and returns a list of System IDs.
-func (_q *SystemQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (_q *SystemQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -263,7 +239,7 @@ func (_q *SystemQuery) IDs(ctx context.Context) (ids []int64, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *SystemQuery) IDsX(ctx context.Context) []int64 {
+func (_q *SystemQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -324,7 +300,6 @@ func (_q *SystemQuery) Clone() *SystemQuery {
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.System{}, _q.predicates...),
 		withInodes: _q.withInodes.Clone(),
-		withGroups: _q.withGroups.Clone(),
 		withUsers:  _q.withUsers.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -340,17 +315,6 @@ func (_q *SystemQuery) WithInodes(opts ...func(*InodeQuery)) *SystemQuery {
 		opt(query)
 	}
 	_q.withInodes = query
-	return _q
-}
-
-// WithGroups tells the query-builder to eager-load the nodes that are connected to
-// the "groups" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SystemQuery) WithGroups(opts ...func(*GroupQuery)) *SystemQuery {
-	query := (&GroupClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withGroups = query
 	return _q
 }
 
@@ -443,9 +407,8 @@ func (_q *SystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Syste
 	var (
 		nodes       = []*System{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [2]bool{
 			_q.withInodes != nil,
-			_q.withGroups != nil,
 			_q.withUsers != nil,
 		}
 	)
@@ -474,13 +437,6 @@ func (_q *SystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Syste
 			return nil, err
 		}
 	}
-	if query := _q.withGroups; query != nil {
-		if err := _q.loadGroups(ctx, query, nodes,
-			func(n *System) { n.Edges.Groups = []*Group{} },
-			func(n *System, e *Group) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withUsers; query != nil {
 		if err := _q.loadUsers(ctx, query, nodes,
 			func(n *System) { n.Edges.Users = []*User{} },
@@ -493,7 +449,7 @@ func (_q *SystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Syste
 
 func (_q *SystemQuery) loadInodes(ctx context.Context, query *InodeQuery, nodes []*System, init func(*System), assign func(*System, *Inode)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*System)
+	nodeids := make(map[string]*System)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -513,43 +469,9 @@ func (_q *SystemQuery) loadInodes(ctx context.Context, query *InodeQuery, nodes 
 	}
 	for _, n := range neighbors {
 		fk := n.SystemID
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "system_id" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "system_id" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *SystemQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []*System, init func(*System), assign func(*System, *Group)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*System)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(system.GroupsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.system_groups
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "system_groups" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "system_groups" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "system_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -557,8 +479,8 @@ func (_q *SystemQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes 
 }
 func (_q *SystemQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*System, init func(*System), assign func(*System, *User)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int64]*System)
-	nids := make(map[int64]map[*System]struct{})
+	byID := make(map[string]*System)
+	nids := make(map[string]map[*System]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -587,11 +509,11 @@ func (_q *SystemQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []
 				if err != nil {
 					return nil, err
 				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
+				return append([]any{new(sql.NullString)}, values...), nil
 			}
 			spec.Assign = func(columns []string, values []any) error {
-				outValue := values[0].(*sql.NullInt64).Int64
-				inValue := values[1].(*sql.NullInt64).Int64
+				outValue := values[0].(*sql.NullString).String
+				inValue := values[1].(*sql.NullString).String
 				if nids[inValue] == nil {
 					nids[inValue] = map[*System]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])
@@ -627,7 +549,7 @@ func (_q *SystemQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *SystemQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(system.Table, system.Columns, sqlgraph.NewFieldSpec(system.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(system.Table, system.Columns, sqlgraph.NewFieldSpec(system.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

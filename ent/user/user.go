@@ -18,8 +18,6 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldUID holds the string denoting the uid field in the database.
-	FieldUID = "uid"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
 	// FieldProvider holds the string denoting the provider field in the database.
@@ -28,33 +26,17 @@ const (
 	FieldProviderID = "provider_id"
 	// FieldJoinDate holds the string denoting the join_date field in the database.
 	FieldJoinDate = "join_date"
-	// EdgeGroups holds the string denoting the groups edge name in mutations.
-	EdgeGroups = "groups"
 	// EdgeSystems holds the string denoting the systems edge name in mutations.
 	EdgeSystems = "systems"
-	// EdgeUserGroups holds the string denoting the user_groups edge name in mutations.
-	EdgeUserGroups = "user_groups"
 	// EdgeUserSystems holds the string denoting the user_systems edge name in mutations.
 	EdgeUserSystems = "user_systems"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
-	GroupsTable = "user_groups"
-	// GroupsInverseTable is the table name for the Group entity.
-	// It exists in this package in order to avoid circular dependency with the "group" package.
-	GroupsInverseTable = "groups"
 	// SystemsTable is the table that holds the systems relation/edge. The primary key declared below.
 	SystemsTable = "user_systems"
 	// SystemsInverseTable is the table name for the System entity.
 	// It exists in this package in order to avoid circular dependency with the "system" package.
 	SystemsInverseTable = "systems"
-	// UserGroupsTable is the table that holds the user_groups relation/edge.
-	UserGroupsTable = "user_groups"
-	// UserGroupsInverseTable is the table name for the UserGroup entity.
-	// It exists in this package in order to avoid circular dependency with the "usergroup" package.
-	UserGroupsInverseTable = "user_groups"
-	// UserGroupsColumn is the table column denoting the user_groups relation/edge.
-	UserGroupsColumn = "user_id"
 	// UserSystemsTable is the table that holds the user_systems relation/edge.
 	UserSystemsTable = "user_systems"
 	// UserSystemsInverseTable is the table name for the UserSystem entity.
@@ -69,7 +51,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldUID,
 	FieldUsername,
 	FieldProvider,
 	FieldProviderID,
@@ -77,9 +58,6 @@ var Columns = []string{
 }
 
 var (
-	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
-	// primary key for the groups relation (M2M).
-	GroupsPrimaryKey = []string{"user_id", "group_id"}
 	// SystemsPrimaryKey and SystemsColumn2 are the table columns denoting the
 	// primary key for the systems relation (M2M).
 	SystemsPrimaryKey = []string{"user_id", "system_id"}
@@ -102,8 +80,6 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	UIDValidator func(string) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
 	// ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
@@ -132,11 +108,6 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
 }
 
-// ByUID orders the results by the uid field.
-func ByUID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUID, opts...).ToFunc()
-}
-
 // ByUsername orders the results by the username field.
 func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
@@ -157,20 +128,6 @@ func ByJoinDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldJoinDate, opts...).ToFunc()
 }
 
-// ByGroupsCount orders the results by groups count.
-func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newGroupsStep(), opts...)
-	}
-}
-
-// ByGroups orders the results by groups terms.
-func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // BySystemsCount orders the results by systems count.
 func BySystemsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -182,20 +139,6 @@ func BySystemsCount(opts ...sql.OrderTermOption) OrderOption {
 func BySystems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSystemsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByUserGroupsCount orders the results by user_groups count.
-func ByUserGroupsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUserGroupsStep(), opts...)
-	}
-}
-
-// ByUserGroups orders the results by user_groups terms.
-func ByUserGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -212,25 +155,11 @@ func ByUserSystems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserSystemsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newGroupsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(GroupsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, GroupsTable, GroupsPrimaryKey...),
-	)
-}
 func newSystemsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SystemsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, SystemsTable, SystemsPrimaryKey...),
-	)
-}
-func newUserGroupsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserGroupsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, UserGroupsTable, UserGroupsColumn),
 	)
 }
 func newUserSystemsStep() *sqlgraph.Step {

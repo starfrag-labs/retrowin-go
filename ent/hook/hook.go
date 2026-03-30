@@ -9,42 +9,6 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
-// The DirectoryEntryFunc type is an adapter to allow the use of ordinary
-// function as DirectoryEntry mutator.
-type DirectoryEntryFunc func(context.Context, *ent.DirectoryEntryMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f DirectoryEntryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.DirectoryEntryMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DirectoryEntryMutation", m)
-}
-
-// The FileDataFunc type is an adapter to allow the use of ordinary
-// function as FileData mutator.
-type FileDataFunc func(context.Context, *ent.FileDataMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FileDataFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileDataMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileDataMutation", m)
-}
-
-// The GroupFunc type is an adapter to allow the use of ordinary
-// function as Group mutator.
-type GroupFunc func(context.Context, *ent.GroupMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.GroupMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
-}
-
 // The InodeFunc type is an adapter to allow the use of ordinary
 // function as Inode mutator.
 type InodeFunc func(context.Context, *ent.InodeMutation) (ent.Value, error)
@@ -55,18 +19,6 @@ func (f InodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InodeMutation", m)
-}
-
-// The SymlinkFunc type is an adapter to allow the use of ordinary
-// function as Symlink mutator.
-type SymlinkFunc func(context.Context, *ent.SymlinkMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SymlinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.SymlinkMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SymlinkMutation", m)
 }
 
 // The SystemFunc type is an adapter to allow the use of ordinary
@@ -91,18 +43,6 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
-}
-
-// The UserGroupFunc type is an adapter to allow the use of ordinary
-// function as UserGroup mutator.
-type UserGroupFunc func(context.Context, *ent.UserGroupMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f UserGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.UserGroupMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserGroupMutation", m)
 }
 
 // The UserSystemFunc type is an adapter to allow the use of ordinary

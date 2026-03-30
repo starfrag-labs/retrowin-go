@@ -11,15 +11,10 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/starfrag-lab/retrowin-go/ent/directoryentry"
-	"github.com/starfrag-lab/retrowin-go/ent/filedata"
-	"github.com/starfrag-lab/retrowin-go/ent/group"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
-	"github.com/starfrag-lab/retrowin-go/ent/symlink"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
-	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
@@ -32,1847 +27,42 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeDirectoryEntry = "DirectoryEntry"
-	TypeFileData       = "FileData"
-	TypeGroup          = "Group"
-	TypeInode          = "Inode"
-	TypeSymlink        = "Symlink"
-	TypeSystem         = "System"
-	TypeUser           = "User"
-	TypeUserGroup      = "UserGroup"
-	TypeUserSystem     = "UserSystem"
+	TypeInode      = "Inode"
+	TypeSystem     = "System"
+	TypeUser       = "User"
+	TypeUserSystem = "UserSystem"
 )
 
-// DirectoryEntryMutation represents an operation that mutates the DirectoryEntry nodes in the graph.
-type DirectoryEntryMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int64
-	name          *string
-	clearedFields map[string]struct{}
-	parent        *int64
-	clearedparent bool
-	child         *int64
-	clearedchild  bool
-	done          bool
-	oldValue      func(context.Context) (*DirectoryEntry, error)
-	predicates    []predicate.DirectoryEntry
-}
-
-var _ ent.Mutation = (*DirectoryEntryMutation)(nil)
-
-// directoryentryOption allows management of the mutation configuration using functional options.
-type directoryentryOption func(*DirectoryEntryMutation)
-
-// newDirectoryEntryMutation creates new mutation for the DirectoryEntry entity.
-func newDirectoryEntryMutation(c config, op Op, opts ...directoryentryOption) *DirectoryEntryMutation {
-	m := &DirectoryEntryMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeDirectoryEntry,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withDirectoryEntryID sets the ID field of the mutation.
-func withDirectoryEntryID(id int64) directoryentryOption {
-	return func(m *DirectoryEntryMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *DirectoryEntry
-		)
-		m.oldValue = func(ctx context.Context) (*DirectoryEntry, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().DirectoryEntry.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withDirectoryEntry sets the old DirectoryEntry of the mutation.
-func withDirectoryEntry(node *DirectoryEntry) directoryentryOption {
-	return func(m *DirectoryEntryMutation) {
-		m.oldValue = func(context.Context) (*DirectoryEntry, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m DirectoryEntryMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m DirectoryEntryMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of DirectoryEntry entities.
-func (m *DirectoryEntryMutation) SetID(id int64) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *DirectoryEntryMutation) ID() (id int64, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *DirectoryEntryMutation) IDs(ctx context.Context) ([]int64, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int64{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().DirectoryEntry.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetParentID sets the "parent_id" field.
-func (m *DirectoryEntryMutation) SetParentID(i int64) {
-	m.parent = &i
-}
-
-// ParentID returns the value of the "parent_id" field in the mutation.
-func (m *DirectoryEntryMutation) ParentID() (r int64, exists bool) {
-	v := m.parent
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldParentID returns the old "parent_id" field's value of the DirectoryEntry entity.
-// If the DirectoryEntry object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DirectoryEntryMutation) OldParentID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldParentID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldParentID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldParentID: %w", err)
-	}
-	return oldValue.ParentID, nil
-}
-
-// ResetParentID resets all changes to the "parent_id" field.
-func (m *DirectoryEntryMutation) ResetParentID() {
-	m.parent = nil
-}
-
-// SetName sets the "name" field.
-func (m *DirectoryEntryMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *DirectoryEntryMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the DirectoryEntry entity.
-// If the DirectoryEntry object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DirectoryEntryMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *DirectoryEntryMutation) ResetName() {
-	m.name = nil
-}
-
-// SetChildID sets the "child_id" field.
-func (m *DirectoryEntryMutation) SetChildID(i int64) {
-	m.child = &i
-}
-
-// ChildID returns the value of the "child_id" field in the mutation.
-func (m *DirectoryEntryMutation) ChildID() (r int64, exists bool) {
-	v := m.child
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldChildID returns the old "child_id" field's value of the DirectoryEntry entity.
-// If the DirectoryEntry object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DirectoryEntryMutation) OldChildID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldChildID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldChildID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldChildID: %w", err)
-	}
-	return oldValue.ChildID, nil
-}
-
-// ResetChildID resets all changes to the "child_id" field.
-func (m *DirectoryEntryMutation) ResetChildID() {
-	m.child = nil
-}
-
-// ClearParent clears the "parent" edge to the Inode entity.
-func (m *DirectoryEntryMutation) ClearParent() {
-	m.clearedparent = true
-	m.clearedFields[directoryentry.FieldParentID] = struct{}{}
-}
-
-// ParentCleared reports if the "parent" edge to the Inode entity was cleared.
-func (m *DirectoryEntryMutation) ParentCleared() bool {
-	return m.clearedparent
-}
-
-// ParentIDs returns the "parent" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ParentID instead. It exists only for internal usage by the builders.
-func (m *DirectoryEntryMutation) ParentIDs() (ids []int64) {
-	if id := m.parent; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetParent resets all changes to the "parent" edge.
-func (m *DirectoryEntryMutation) ResetParent() {
-	m.parent = nil
-	m.clearedparent = false
-}
-
-// ClearChild clears the "child" edge to the Inode entity.
-func (m *DirectoryEntryMutation) ClearChild() {
-	m.clearedchild = true
-	m.clearedFields[directoryentry.FieldChildID] = struct{}{}
-}
-
-// ChildCleared reports if the "child" edge to the Inode entity was cleared.
-func (m *DirectoryEntryMutation) ChildCleared() bool {
-	return m.clearedchild
-}
-
-// ChildIDs returns the "child" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ChildID instead. It exists only for internal usage by the builders.
-func (m *DirectoryEntryMutation) ChildIDs() (ids []int64) {
-	if id := m.child; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetChild resets all changes to the "child" edge.
-func (m *DirectoryEntryMutation) ResetChild() {
-	m.child = nil
-	m.clearedchild = false
-}
-
-// Where appends a list predicates to the DirectoryEntryMutation builder.
-func (m *DirectoryEntryMutation) Where(ps ...predicate.DirectoryEntry) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the DirectoryEntryMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *DirectoryEntryMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.DirectoryEntry, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *DirectoryEntryMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *DirectoryEntryMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (DirectoryEntry).
-func (m *DirectoryEntryMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *DirectoryEntryMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m.parent != nil {
-		fields = append(fields, directoryentry.FieldParentID)
-	}
-	if m.name != nil {
-		fields = append(fields, directoryentry.FieldName)
-	}
-	if m.child != nil {
-		fields = append(fields, directoryentry.FieldChildID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *DirectoryEntryMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case directoryentry.FieldParentID:
-		return m.ParentID()
-	case directoryentry.FieldName:
-		return m.Name()
-	case directoryentry.FieldChildID:
-		return m.ChildID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *DirectoryEntryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case directoryentry.FieldParentID:
-		return m.OldParentID(ctx)
-	case directoryentry.FieldName:
-		return m.OldName(ctx)
-	case directoryentry.FieldChildID:
-		return m.OldChildID(ctx)
-	}
-	return nil, fmt.Errorf("unknown DirectoryEntry field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *DirectoryEntryMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case directoryentry.FieldParentID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetParentID(v)
-		return nil
-	case directoryentry.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case directoryentry.FieldChildID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetChildID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown DirectoryEntry field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *DirectoryEntryMutation) AddedFields() []string {
-	var fields []string
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *DirectoryEntryMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *DirectoryEntryMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown DirectoryEntry numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *DirectoryEntryMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *DirectoryEntryMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *DirectoryEntryMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown DirectoryEntry nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *DirectoryEntryMutation) ResetField(name string) error {
-	switch name {
-	case directoryentry.FieldParentID:
-		m.ResetParentID()
-		return nil
-	case directoryentry.FieldName:
-		m.ResetName()
-		return nil
-	case directoryentry.FieldChildID:
-		m.ResetChildID()
-		return nil
-	}
-	return fmt.Errorf("unknown DirectoryEntry field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *DirectoryEntryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.parent != nil {
-		edges = append(edges, directoryentry.EdgeParent)
-	}
-	if m.child != nil {
-		edges = append(edges, directoryentry.EdgeChild)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *DirectoryEntryMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case directoryentry.EdgeParent:
-		if id := m.parent; id != nil {
-			return []ent.Value{*id}
-		}
-	case directoryentry.EdgeChild:
-		if id := m.child; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *DirectoryEntryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *DirectoryEntryMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *DirectoryEntryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedparent {
-		edges = append(edges, directoryentry.EdgeParent)
-	}
-	if m.clearedchild {
-		edges = append(edges, directoryentry.EdgeChild)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *DirectoryEntryMutation) EdgeCleared(name string) bool {
-	switch name {
-	case directoryentry.EdgeParent:
-		return m.clearedparent
-	case directoryentry.EdgeChild:
-		return m.clearedchild
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *DirectoryEntryMutation) ClearEdge(name string) error {
-	switch name {
-	case directoryentry.EdgeParent:
-		m.ClearParent()
-		return nil
-	case directoryentry.EdgeChild:
-		m.ClearChild()
-		return nil
-	}
-	return fmt.Errorf("unknown DirectoryEntry unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *DirectoryEntryMutation) ResetEdge(name string) error {
-	switch name {
-	case directoryentry.EdgeParent:
-		m.ResetParent()
-		return nil
-	case directoryentry.EdgeChild:
-		m.ResetChild()
-		return nil
-	}
-	return fmt.Errorf("unknown DirectoryEntry edge %s", name)
-}
-
-// FileDataMutation represents an operation that mutates the FileData nodes in the graph.
-type FileDataMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	storage_type  *filedata.StorageType
-	location      *string
-	checksum      *string
-	clearedFields map[string]struct{}
-	inode         *int64
-	clearedinode  bool
-	done          bool
-	oldValue      func(context.Context) (*FileData, error)
-	predicates    []predicate.FileData
-}
-
-var _ ent.Mutation = (*FileDataMutation)(nil)
-
-// filedataOption allows management of the mutation configuration using functional options.
-type filedataOption func(*FileDataMutation)
-
-// newFileDataMutation creates new mutation for the FileData entity.
-func newFileDataMutation(c config, op Op, opts ...filedataOption) *FileDataMutation {
-	m := &FileDataMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeFileData,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withFileDataID sets the ID field of the mutation.
-func withFileDataID(id int) filedataOption {
-	return func(m *FileDataMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *FileData
-		)
-		m.oldValue = func(ctx context.Context) (*FileData, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().FileData.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withFileData sets the old FileData of the mutation.
-func withFileData(node *FileData) filedataOption {
-	return func(m *FileDataMutation) {
-		m.oldValue = func(context.Context) (*FileData, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m FileDataMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m FileDataMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *FileDataMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *FileDataMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().FileData.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetInodeID sets the "inode_id" field.
-func (m *FileDataMutation) SetInodeID(i int64) {
-	m.inode = &i
-}
-
-// InodeID returns the value of the "inode_id" field in the mutation.
-func (m *FileDataMutation) InodeID() (r int64, exists bool) {
-	v := m.inode
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldInodeID returns the old "inode_id" field's value of the FileData entity.
-// If the FileData object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileDataMutation) OldInodeID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInodeID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInodeID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInodeID: %w", err)
-	}
-	return oldValue.InodeID, nil
-}
-
-// ResetInodeID resets all changes to the "inode_id" field.
-func (m *FileDataMutation) ResetInodeID() {
-	m.inode = nil
-}
-
-// SetStorageType sets the "storage_type" field.
-func (m *FileDataMutation) SetStorageType(ft filedata.StorageType) {
-	m.storage_type = &ft
-}
-
-// StorageType returns the value of the "storage_type" field in the mutation.
-func (m *FileDataMutation) StorageType() (r filedata.StorageType, exists bool) {
-	v := m.storage_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStorageType returns the old "storage_type" field's value of the FileData entity.
-// If the FileData object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileDataMutation) OldStorageType(ctx context.Context) (v filedata.StorageType, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStorageType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStorageType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStorageType: %w", err)
-	}
-	return oldValue.StorageType, nil
-}
-
-// ResetStorageType resets all changes to the "storage_type" field.
-func (m *FileDataMutation) ResetStorageType() {
-	m.storage_type = nil
-}
-
-// SetLocation sets the "location" field.
-func (m *FileDataMutation) SetLocation(s string) {
-	m.location = &s
-}
-
-// Location returns the value of the "location" field in the mutation.
-func (m *FileDataMutation) Location() (r string, exists bool) {
-	v := m.location
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLocation returns the old "location" field's value of the FileData entity.
-// If the FileData object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileDataMutation) OldLocation(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLocation is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLocation requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
-	}
-	return oldValue.Location, nil
-}
-
-// ResetLocation resets all changes to the "location" field.
-func (m *FileDataMutation) ResetLocation() {
-	m.location = nil
-}
-
-// SetChecksum sets the "checksum" field.
-func (m *FileDataMutation) SetChecksum(s string) {
-	m.checksum = &s
-}
-
-// Checksum returns the value of the "checksum" field in the mutation.
-func (m *FileDataMutation) Checksum() (r string, exists bool) {
-	v := m.checksum
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldChecksum returns the old "checksum" field's value of the FileData entity.
-// If the FileData object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileDataMutation) OldChecksum(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldChecksum is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldChecksum requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldChecksum: %w", err)
-	}
-	return oldValue.Checksum, nil
-}
-
-// ClearChecksum clears the value of the "checksum" field.
-func (m *FileDataMutation) ClearChecksum() {
-	m.checksum = nil
-	m.clearedFields[filedata.FieldChecksum] = struct{}{}
-}
-
-// ChecksumCleared returns if the "checksum" field was cleared in this mutation.
-func (m *FileDataMutation) ChecksumCleared() bool {
-	_, ok := m.clearedFields[filedata.FieldChecksum]
-	return ok
-}
-
-// ResetChecksum resets all changes to the "checksum" field.
-func (m *FileDataMutation) ResetChecksum() {
-	m.checksum = nil
-	delete(m.clearedFields, filedata.FieldChecksum)
-}
-
-// ClearInode clears the "inode" edge to the Inode entity.
-func (m *FileDataMutation) ClearInode() {
-	m.clearedinode = true
-	m.clearedFields[filedata.FieldInodeID] = struct{}{}
-}
-
-// InodeCleared reports if the "inode" edge to the Inode entity was cleared.
-func (m *FileDataMutation) InodeCleared() bool {
-	return m.clearedinode
-}
-
-// InodeIDs returns the "inode" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// InodeID instead. It exists only for internal usage by the builders.
-func (m *FileDataMutation) InodeIDs() (ids []int64) {
-	if id := m.inode; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetInode resets all changes to the "inode" edge.
-func (m *FileDataMutation) ResetInode() {
-	m.inode = nil
-	m.clearedinode = false
-}
-
-// Where appends a list predicates to the FileDataMutation builder.
-func (m *FileDataMutation) Where(ps ...predicate.FileData) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the FileDataMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *FileDataMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.FileData, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *FileDataMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *FileDataMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (FileData).
-func (m *FileDataMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *FileDataMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.inode != nil {
-		fields = append(fields, filedata.FieldInodeID)
-	}
-	if m.storage_type != nil {
-		fields = append(fields, filedata.FieldStorageType)
-	}
-	if m.location != nil {
-		fields = append(fields, filedata.FieldLocation)
-	}
-	if m.checksum != nil {
-		fields = append(fields, filedata.FieldChecksum)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *FileDataMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case filedata.FieldInodeID:
-		return m.InodeID()
-	case filedata.FieldStorageType:
-		return m.StorageType()
-	case filedata.FieldLocation:
-		return m.Location()
-	case filedata.FieldChecksum:
-		return m.Checksum()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *FileDataMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case filedata.FieldInodeID:
-		return m.OldInodeID(ctx)
-	case filedata.FieldStorageType:
-		return m.OldStorageType(ctx)
-	case filedata.FieldLocation:
-		return m.OldLocation(ctx)
-	case filedata.FieldChecksum:
-		return m.OldChecksum(ctx)
-	}
-	return nil, fmt.Errorf("unknown FileData field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *FileDataMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case filedata.FieldInodeID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetInodeID(v)
-		return nil
-	case filedata.FieldStorageType:
-		v, ok := value.(filedata.StorageType)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStorageType(v)
-		return nil
-	case filedata.FieldLocation:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLocation(v)
-		return nil
-	case filedata.FieldChecksum:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetChecksum(v)
-		return nil
-	}
-	return fmt.Errorf("unknown FileData field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *FileDataMutation) AddedFields() []string {
-	var fields []string
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *FileDataMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *FileDataMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown FileData numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *FileDataMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(filedata.FieldChecksum) {
-		fields = append(fields, filedata.FieldChecksum)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *FileDataMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *FileDataMutation) ClearField(name string) error {
-	switch name {
-	case filedata.FieldChecksum:
-		m.ClearChecksum()
-		return nil
-	}
-	return fmt.Errorf("unknown FileData nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *FileDataMutation) ResetField(name string) error {
-	switch name {
-	case filedata.FieldInodeID:
-		m.ResetInodeID()
-		return nil
-	case filedata.FieldStorageType:
-		m.ResetStorageType()
-		return nil
-	case filedata.FieldLocation:
-		m.ResetLocation()
-		return nil
-	case filedata.FieldChecksum:
-		m.ResetChecksum()
-		return nil
-	}
-	return fmt.Errorf("unknown FileData field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *FileDataMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.inode != nil {
-		edges = append(edges, filedata.EdgeInode)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *FileDataMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case filedata.EdgeInode:
-		if id := m.inode; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *FileDataMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *FileDataMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *FileDataMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedinode {
-		edges = append(edges, filedata.EdgeInode)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *FileDataMutation) EdgeCleared(name string) bool {
-	switch name {
-	case filedata.EdgeInode:
-		return m.clearedinode
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *FileDataMutation) ClearEdge(name string) error {
-	switch name {
-	case filedata.EdgeInode:
-		m.ClearInode()
-		return nil
-	}
-	return fmt.Errorf("unknown FileData unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *FileDataMutation) ResetEdge(name string) error {
-	switch name {
-	case filedata.EdgeInode:
-		m.ResetInode()
-		return nil
-	}
-	return fmt.Errorf("unknown FileData edge %s", name)
-}
-
-// GroupMutation represents an operation that mutates the Group nodes in the graph.
-type GroupMutation struct {
+// InodeMutation represents an operation that mutates the Inode nodes in the graph.
+type InodeMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *int64
 	create_time   *time.Time
 	update_time   *time.Time
-	gid           *string
-	groupname     *string
+	mode          *int16
+	addmode       *int16
+	uid           *int64
+	adduid        *int64
+	gid           *int64
+	addgid        *int64
+	size          *int64
+	addsize       *int64
+	link_count    *int
+	addlink_count *int
+	flags         *int16
+	addflags      *int16
+	atime         *time.Time
+	mtime         *time.Time
+	ctime         *time.Time
+	content       *[]byte
 	clearedFields map[string]struct{}
-	system        *int64
+	system        *string
 	clearedsystem bool
-	users         map[int64]struct{}
-	removedusers  map[int64]struct{}
-	clearedusers  bool
 	done          bool
-	oldValue      func(context.Context) (*Group, error)
-	predicates    []predicate.Group
-}
-
-var _ ent.Mutation = (*GroupMutation)(nil)
-
-// groupOption allows management of the mutation configuration using functional options.
-type groupOption func(*GroupMutation)
-
-// newGroupMutation creates new mutation for the Group entity.
-func newGroupMutation(c config, op Op, opts ...groupOption) *GroupMutation {
-	m := &GroupMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeGroup,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withGroupID sets the ID field of the mutation.
-func withGroupID(id int64) groupOption {
-	return func(m *GroupMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Group
-		)
-		m.oldValue = func(ctx context.Context) (*Group, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Group.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withGroup sets the old Group of the mutation.
-func withGroup(node *Group) groupOption {
-	return func(m *GroupMutation) {
-		m.oldValue = func(context.Context) (*Group, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m GroupMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m GroupMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Group entities.
-func (m *GroupMutation) SetID(id int64) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *GroupMutation) ID() (id int64, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *GroupMutation) IDs(ctx context.Context) ([]int64, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int64{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Group.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreateTime sets the "create_time" field.
-func (m *GroupMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *GroupMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the Group entity.
-// If the Group object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *GroupMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *GroupMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *GroupMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the Group entity.
-// If the Group object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *GroupMutation) ResetUpdateTime() {
-	m.update_time = nil
-}
-
-// SetSystemID sets the "system_id" field.
-func (m *GroupMutation) SetSystemID(i int64) {
-	m.system = &i
-}
-
-// SystemID returns the value of the "system_id" field in the mutation.
-func (m *GroupMutation) SystemID() (r int64, exists bool) {
-	v := m.system
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSystemID returns the old "system_id" field's value of the Group entity.
-// If the Group object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldSystemID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSystemID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSystemID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSystemID: %w", err)
-	}
-	return oldValue.SystemID, nil
-}
-
-// ResetSystemID resets all changes to the "system_id" field.
-func (m *GroupMutation) ResetSystemID() {
-	m.system = nil
-}
-
-// SetGid sets the "gid" field.
-func (m *GroupMutation) SetGid(s string) {
-	m.gid = &s
-}
-
-// Gid returns the value of the "gid" field in the mutation.
-func (m *GroupMutation) Gid() (r string, exists bool) {
-	v := m.gid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGid returns the old "gid" field's value of the Group entity.
-// If the Group object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldGid(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGid is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGid requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGid: %w", err)
-	}
-	return oldValue.Gid, nil
-}
-
-// ResetGid resets all changes to the "gid" field.
-func (m *GroupMutation) ResetGid() {
-	m.gid = nil
-}
-
-// SetGroupname sets the "groupname" field.
-func (m *GroupMutation) SetGroupname(s string) {
-	m.groupname = &s
-}
-
-// Groupname returns the value of the "groupname" field in the mutation.
-func (m *GroupMutation) Groupname() (r string, exists bool) {
-	v := m.groupname
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGroupname returns the old "groupname" field's value of the Group entity.
-// If the Group object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldGroupname(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGroupname is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGroupname requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGroupname: %w", err)
-	}
-	return oldValue.Groupname, nil
-}
-
-// ResetGroupname resets all changes to the "groupname" field.
-func (m *GroupMutation) ResetGroupname() {
-	m.groupname = nil
-}
-
-// ClearSystem clears the "system" edge to the System entity.
-func (m *GroupMutation) ClearSystem() {
-	m.clearedsystem = true
-	m.clearedFields[group.FieldSystemID] = struct{}{}
-}
-
-// SystemCleared reports if the "system" edge to the System entity was cleared.
-func (m *GroupMutation) SystemCleared() bool {
-	return m.clearedsystem
-}
-
-// SystemIDs returns the "system" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// SystemID instead. It exists only for internal usage by the builders.
-func (m *GroupMutation) SystemIDs() (ids []int64) {
-	if id := m.system; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetSystem resets all changes to the "system" edge.
-func (m *GroupMutation) ResetSystem() {
-	m.system = nil
-	m.clearedsystem = false
-}
-
-// AddUserIDs adds the "users" edge to the User entity by ids.
-func (m *GroupMutation) AddUserIDs(ids ...int64) {
-	if m.users == nil {
-		m.users = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.users[ids[i]] = struct{}{}
-	}
-}
-
-// ClearUsers clears the "users" edge to the User entity.
-func (m *GroupMutation) ClearUsers() {
-	m.clearedusers = true
-}
-
-// UsersCleared reports if the "users" edge to the User entity was cleared.
-func (m *GroupMutation) UsersCleared() bool {
-	return m.clearedusers
-}
-
-// RemoveUserIDs removes the "users" edge to the User entity by IDs.
-func (m *GroupMutation) RemoveUserIDs(ids ...int64) {
-	if m.removedusers == nil {
-		m.removedusers = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.users, ids[i])
-		m.removedusers[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedUsers returns the removed IDs of the "users" edge to the User entity.
-func (m *GroupMutation) RemovedUsersIDs() (ids []int64) {
-	for id := range m.removedusers {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// UsersIDs returns the "users" edge IDs in the mutation.
-func (m *GroupMutation) UsersIDs() (ids []int64) {
-	for id := range m.users {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetUsers resets all changes to the "users" edge.
-func (m *GroupMutation) ResetUsers() {
-	m.users = nil
-	m.clearedusers = false
-	m.removedusers = nil
-}
-
-// Where appends a list predicates to the GroupMutation builder.
-func (m *GroupMutation) Where(ps ...predicate.Group) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the GroupMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *GroupMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Group, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *GroupMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *GroupMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Group).
-func (m *GroupMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *GroupMutation) Fields() []string {
-	fields := make([]string, 0, 5)
-	if m.create_time != nil {
-		fields = append(fields, group.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, group.FieldUpdateTime)
-	}
-	if m.system != nil {
-		fields = append(fields, group.FieldSystemID)
-	}
-	if m.gid != nil {
-		fields = append(fields, group.FieldGid)
-	}
-	if m.groupname != nil {
-		fields = append(fields, group.FieldGroupname)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *GroupMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case group.FieldCreateTime:
-		return m.CreateTime()
-	case group.FieldUpdateTime:
-		return m.UpdateTime()
-	case group.FieldSystemID:
-		return m.SystemID()
-	case group.FieldGid:
-		return m.Gid()
-	case group.FieldGroupname:
-		return m.Groupname()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case group.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case group.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
-	case group.FieldSystemID:
-		return m.OldSystemID(ctx)
-	case group.FieldGid:
-		return m.OldGid(ctx)
-	case group.FieldGroupname:
-		return m.OldGroupname(ctx)
-	}
-	return nil, fmt.Errorf("unknown Group field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GroupMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case group.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case group.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
-		return nil
-	case group.FieldSystemID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSystemID(v)
-		return nil
-	case group.FieldGid:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGid(v)
-		return nil
-	case group.FieldGroupname:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGroupname(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Group field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *GroupMutation) AddedFields() []string {
-	var fields []string
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *GroupMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GroupMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Group numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *GroupMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *GroupMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *GroupMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Group nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *GroupMutation) ResetField(name string) error {
-	switch name {
-	case group.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case group.FieldUpdateTime:
-		m.ResetUpdateTime()
-		return nil
-	case group.FieldSystemID:
-		m.ResetSystemID()
-		return nil
-	case group.FieldGid:
-		m.ResetGid()
-		return nil
-	case group.FieldGroupname:
-		m.ResetGroupname()
-		return nil
-	}
-	return fmt.Errorf("unknown Group field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *GroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.system != nil {
-		edges = append(edges, group.EdgeSystem)
-	}
-	if m.users != nil {
-		edges = append(edges, group.EdgeUsers)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *GroupMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case group.EdgeSystem:
-		if id := m.system; id != nil {
-			return []ent.Value{*id}
-		}
-	case group.EdgeUsers:
-		ids := make([]ent.Value, 0, len(m.users))
-		for id := range m.users {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *GroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedusers != nil {
-		edges = append(edges, group.EdgeUsers)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case group.EdgeUsers:
-		ids := make([]ent.Value, 0, len(m.removedusers))
-		for id := range m.removedusers {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *GroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedsystem {
-		edges = append(edges, group.EdgeSystem)
-	}
-	if m.clearedusers {
-		edges = append(edges, group.EdgeUsers)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *GroupMutation) EdgeCleared(name string) bool {
-	switch name {
-	case group.EdgeSystem:
-		return m.clearedsystem
-	case group.EdgeUsers:
-		return m.clearedusers
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *GroupMutation) ClearEdge(name string) error {
-	switch name {
-	case group.EdgeSystem:
-		m.ClearSystem()
-		return nil
-	}
-	return fmt.Errorf("unknown Group unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *GroupMutation) ResetEdge(name string) error {
-	switch name {
-	case group.EdgeSystem:
-		m.ResetSystem()
-		return nil
-	case group.EdgeUsers:
-		m.ResetUsers()
-		return nil
-	}
-	return fmt.Errorf("unknown Group edge %s", name)
-}
-
-// InodeMutation represents an operation that mutates the Inode nodes in the graph.
-type InodeMutation struct {
-	config
-	op             Op
-	typ            string
-	id             *int64
-	create_time    *time.Time
-	update_time    *time.Time
-	file_type      *inode.FileType
-	byte_size      *int64
-	addbyte_size   *int64
-	owner_uid      *string
-	owner_gid      *string
-	perm_owner     *string
-	perm_group     *string
-	perm_others    *string
-	link_count     *int16
-	addlink_count  *int16
-	accessed_at    *time.Time
-	is_system      *bool
-	system_type    *string
-	clearedFields  map[string]struct{}
-	system         *int64
-	clearedsystem  bool
-	entries        map[int64]struct{}
-	removedentries map[int64]struct{}
-	clearedentries bool
-	done           bool
-	oldValue       func(context.Context) (*Inode, error)
-	predicates     []predicate.Inode
+	oldValue      func(context.Context) (*Inode, error)
+	predicates    []predicate.Inode
 }
 
 var _ ent.Mutation = (*InodeMutation)(nil)
@@ -2052,12 +242,12 @@ func (m *InodeMutation) ResetUpdateTime() {
 }
 
 // SetSystemID sets the "system_id" field.
-func (m *InodeMutation) SetSystemID(i int64) {
-	m.system = &i
+func (m *InodeMutation) SetSystemID(s string) {
+	m.system = &s
 }
 
 // SystemID returns the value of the "system_id" field in the mutation.
-func (m *InodeMutation) SystemID() (r int64, exists bool) {
+func (m *InodeMutation) SystemID() (r string, exists bool) {
 	v := m.system
 	if v == nil {
 		return
@@ -2068,7 +258,7 @@ func (m *InodeMutation) SystemID() (r int64, exists bool) {
 // OldSystemID returns the old "system_id" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldSystemID(ctx context.Context) (v *int64, err error) {
+func (m *InodeMutation) OldSystemID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSystemID is only allowed on UpdateOne operations")
 	}
@@ -2082,304 +272,243 @@ func (m *InodeMutation) OldSystemID(ctx context.Context) (v *int64, err error) {
 	return oldValue.SystemID, nil
 }
 
-// ClearSystemID clears the value of the "system_id" field.
-func (m *InodeMutation) ClearSystemID() {
-	m.system = nil
-	m.clearedFields[inode.FieldSystemID] = struct{}{}
-}
-
-// SystemIDCleared returns if the "system_id" field was cleared in this mutation.
-func (m *InodeMutation) SystemIDCleared() bool {
-	_, ok := m.clearedFields[inode.FieldSystemID]
-	return ok
-}
-
 // ResetSystemID resets all changes to the "system_id" field.
 func (m *InodeMutation) ResetSystemID() {
 	m.system = nil
-	delete(m.clearedFields, inode.FieldSystemID)
 }
 
-// SetFileType sets the "file_type" field.
-func (m *InodeMutation) SetFileType(it inode.FileType) {
-	m.file_type = &it
+// SetMode sets the "mode" field.
+func (m *InodeMutation) SetMode(i int16) {
+	m.mode = &i
+	m.addmode = nil
 }
 
-// FileType returns the value of the "file_type" field in the mutation.
-func (m *InodeMutation) FileType() (r inode.FileType, exists bool) {
-	v := m.file_type
+// Mode returns the value of the "mode" field in the mutation.
+func (m *InodeMutation) Mode() (r int16, exists bool) {
+	v := m.mode
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldFileType returns the old "file_type" field's value of the Inode entity.
+// OldMode returns the old "mode" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldFileType(ctx context.Context) (v inode.FileType, err error) {
+func (m *InodeMutation) OldMode(ctx context.Context) (v int16, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFileType is only allowed on UpdateOne operations")
+		return v, errors.New("OldMode is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFileType requires an ID field in the mutation")
+		return v, errors.New("OldMode requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFileType: %w", err)
+		return v, fmt.Errorf("querying old value for OldMode: %w", err)
 	}
-	return oldValue.FileType, nil
+	return oldValue.Mode, nil
 }
 
-// ResetFileType resets all changes to the "file_type" field.
-func (m *InodeMutation) ResetFileType() {
-	m.file_type = nil
-}
-
-// SetByteSize sets the "byte_size" field.
-func (m *InodeMutation) SetByteSize(i int64) {
-	m.byte_size = &i
-	m.addbyte_size = nil
-}
-
-// ByteSize returns the value of the "byte_size" field in the mutation.
-func (m *InodeMutation) ByteSize() (r int64, exists bool) {
-	v := m.byte_size
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldByteSize returns the old "byte_size" field's value of the Inode entity.
-// If the Inode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldByteSize(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldByteSize is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldByteSize requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldByteSize: %w", err)
-	}
-	return oldValue.ByteSize, nil
-}
-
-// AddByteSize adds i to the "byte_size" field.
-func (m *InodeMutation) AddByteSize(i int64) {
-	if m.addbyte_size != nil {
-		*m.addbyte_size += i
+// AddMode adds i to the "mode" field.
+func (m *InodeMutation) AddMode(i int16) {
+	if m.addmode != nil {
+		*m.addmode += i
 	} else {
-		m.addbyte_size = &i
+		m.addmode = &i
 	}
 }
 
-// AddedByteSize returns the value that was added to the "byte_size" field in this mutation.
-func (m *InodeMutation) AddedByteSize() (r int64, exists bool) {
-	v := m.addbyte_size
+// AddedMode returns the value that was added to the "mode" field in this mutation.
+func (m *InodeMutation) AddedMode() (r int16, exists bool) {
+	v := m.addmode
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetByteSize resets all changes to the "byte_size" field.
-func (m *InodeMutation) ResetByteSize() {
-	m.byte_size = nil
-	m.addbyte_size = nil
+// ResetMode resets all changes to the "mode" field.
+func (m *InodeMutation) ResetMode() {
+	m.mode = nil
+	m.addmode = nil
 }
 
-// SetOwnerUID sets the "owner_uid" field.
-func (m *InodeMutation) SetOwnerUID(s string) {
-	m.owner_uid = &s
+// SetUID sets the "uid" field.
+func (m *InodeMutation) SetUID(i int64) {
+	m.uid = &i
+	m.adduid = nil
 }
 
-// OwnerUID returns the value of the "owner_uid" field in the mutation.
-func (m *InodeMutation) OwnerUID() (r string, exists bool) {
-	v := m.owner_uid
+// UID returns the value of the "uid" field in the mutation.
+func (m *InodeMutation) UID() (r int64, exists bool) {
+	v := m.uid
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldOwnerUID returns the old "owner_uid" field's value of the Inode entity.
+// OldUID returns the old "uid" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldOwnerUID(ctx context.Context) (v string, err error) {
+func (m *InodeMutation) OldUID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOwnerUID is only allowed on UpdateOne operations")
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOwnerUID requires an ID field in the mutation")
+		return v, errors.New("OldUID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOwnerUID: %w", err)
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
 	}
-	return oldValue.OwnerUID, nil
+	return oldValue.UID, nil
 }
 
-// ResetOwnerUID resets all changes to the "owner_uid" field.
-func (m *InodeMutation) ResetOwnerUID() {
-	m.owner_uid = nil
+// AddUID adds i to the "uid" field.
+func (m *InodeMutation) AddUID(i int64) {
+	if m.adduid != nil {
+		*m.adduid += i
+	} else {
+		m.adduid = &i
+	}
 }
 
-// SetOwnerGid sets the "owner_gid" field.
-func (m *InodeMutation) SetOwnerGid(s string) {
-	m.owner_gid = &s
-}
-
-// OwnerGid returns the value of the "owner_gid" field in the mutation.
-func (m *InodeMutation) OwnerGid() (r string, exists bool) {
-	v := m.owner_gid
+// AddedUID returns the value that was added to the "uid" field in this mutation.
+func (m *InodeMutation) AddedUID() (r int64, exists bool) {
+	v := m.adduid
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldOwnerGid returns the old "owner_gid" field's value of the Inode entity.
-// If the Inode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldOwnerGid(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOwnerGid is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOwnerGid requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOwnerGid: %w", err)
-	}
-	return oldValue.OwnerGid, nil
+// ResetUID resets all changes to the "uid" field.
+func (m *InodeMutation) ResetUID() {
+	m.uid = nil
+	m.adduid = nil
 }
 
-// ResetOwnerGid resets all changes to the "owner_gid" field.
-func (m *InodeMutation) ResetOwnerGid() {
-	m.owner_gid = nil
+// SetGid sets the "gid" field.
+func (m *InodeMutation) SetGid(i int64) {
+	m.gid = &i
+	m.addgid = nil
 }
 
-// SetPermOwner sets the "perm_owner" field.
-func (m *InodeMutation) SetPermOwner(s string) {
-	m.perm_owner = &s
-}
-
-// PermOwner returns the value of the "perm_owner" field in the mutation.
-func (m *InodeMutation) PermOwner() (r string, exists bool) {
-	v := m.perm_owner
+// Gid returns the value of the "gid" field in the mutation.
+func (m *InodeMutation) Gid() (r int64, exists bool) {
+	v := m.gid
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPermOwner returns the old "perm_owner" field's value of the Inode entity.
+// OldGid returns the old "gid" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldPermOwner(ctx context.Context) (v string, err error) {
+func (m *InodeMutation) OldGid(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPermOwner is only allowed on UpdateOne operations")
+		return v, errors.New("OldGid is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPermOwner requires an ID field in the mutation")
+		return v, errors.New("OldGid requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPermOwner: %w", err)
+		return v, fmt.Errorf("querying old value for OldGid: %w", err)
 	}
-	return oldValue.PermOwner, nil
+	return oldValue.Gid, nil
 }
 
-// ResetPermOwner resets all changes to the "perm_owner" field.
-func (m *InodeMutation) ResetPermOwner() {
-	m.perm_owner = nil
+// AddGid adds i to the "gid" field.
+func (m *InodeMutation) AddGid(i int64) {
+	if m.addgid != nil {
+		*m.addgid += i
+	} else {
+		m.addgid = &i
+	}
 }
 
-// SetPermGroup sets the "perm_group" field.
-func (m *InodeMutation) SetPermGroup(s string) {
-	m.perm_group = &s
-}
-
-// PermGroup returns the value of the "perm_group" field in the mutation.
-func (m *InodeMutation) PermGroup() (r string, exists bool) {
-	v := m.perm_group
+// AddedGid returns the value that was added to the "gid" field in this mutation.
+func (m *InodeMutation) AddedGid() (r int64, exists bool) {
+	v := m.addgid
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPermGroup returns the old "perm_group" field's value of the Inode entity.
-// If the Inode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldPermGroup(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPermGroup is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPermGroup requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPermGroup: %w", err)
-	}
-	return oldValue.PermGroup, nil
+// ResetGid resets all changes to the "gid" field.
+func (m *InodeMutation) ResetGid() {
+	m.gid = nil
+	m.addgid = nil
 }
 
-// ResetPermGroup resets all changes to the "perm_group" field.
-func (m *InodeMutation) ResetPermGroup() {
-	m.perm_group = nil
+// SetSize sets the "size" field.
+func (m *InodeMutation) SetSize(i int64) {
+	m.size = &i
+	m.addsize = nil
 }
 
-// SetPermOthers sets the "perm_others" field.
-func (m *InodeMutation) SetPermOthers(s string) {
-	m.perm_others = &s
-}
-
-// PermOthers returns the value of the "perm_others" field in the mutation.
-func (m *InodeMutation) PermOthers() (r string, exists bool) {
-	v := m.perm_others
+// Size returns the value of the "size" field in the mutation.
+func (m *InodeMutation) Size() (r int64, exists bool) {
+	v := m.size
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPermOthers returns the old "perm_others" field's value of the Inode entity.
+// OldSize returns the old "size" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldPermOthers(ctx context.Context) (v string, err error) {
+func (m *InodeMutation) OldSize(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPermOthers is only allowed on UpdateOne operations")
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPermOthers requires an ID field in the mutation")
+		return v, errors.New("OldSize requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPermOthers: %w", err)
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
 	}
-	return oldValue.PermOthers, nil
+	return oldValue.Size, nil
 }
 
-// ResetPermOthers resets all changes to the "perm_others" field.
-func (m *InodeMutation) ResetPermOthers() {
-	m.perm_others = nil
+// AddSize adds i to the "size" field.
+func (m *InodeMutation) AddSize(i int64) {
+	if m.addsize != nil {
+		*m.addsize += i
+	} else {
+		m.addsize = &i
+	}
+}
+
+// AddedSize returns the value that was added to the "size" field in this mutation.
+func (m *InodeMutation) AddedSize() (r int64, exists bool) {
+	v := m.addsize
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *InodeMutation) ResetSize() {
+	m.size = nil
+	m.addsize = nil
 }
 
 // SetLinkCount sets the "link_count" field.
-func (m *InodeMutation) SetLinkCount(i int16) {
+func (m *InodeMutation) SetLinkCount(i int) {
 	m.link_count = &i
 	m.addlink_count = nil
 }
 
 // LinkCount returns the value of the "link_count" field in the mutation.
-func (m *InodeMutation) LinkCount() (r int16, exists bool) {
+func (m *InodeMutation) LinkCount() (r int, exists bool) {
 	v := m.link_count
 	if v == nil {
 		return
@@ -2390,7 +519,7 @@ func (m *InodeMutation) LinkCount() (r int16, exists bool) {
 // OldLinkCount returns the old "link_count" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldLinkCount(ctx context.Context) (v int16, err error) {
+func (m *InodeMutation) OldLinkCount(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldLinkCount is only allowed on UpdateOne operations")
 	}
@@ -2405,7 +534,7 @@ func (m *InodeMutation) OldLinkCount(ctx context.Context) (v int16, err error) {
 }
 
 // AddLinkCount adds i to the "link_count" field.
-func (m *InodeMutation) AddLinkCount(i int16) {
+func (m *InodeMutation) AddLinkCount(i int) {
 	if m.addlink_count != nil {
 		*m.addlink_count += i
 	} else {
@@ -2414,7 +543,7 @@ func (m *InodeMutation) AddLinkCount(i int16) {
 }
 
 // AddedLinkCount returns the value that was added to the "link_count" field in this mutation.
-func (m *InodeMutation) AddedLinkCount() (r int16, exists bool) {
+func (m *InodeMutation) AddedLinkCount() (r int, exists bool) {
 	v := m.addlink_count
 	if v == nil {
 		return
@@ -2428,138 +557,217 @@ func (m *InodeMutation) ResetLinkCount() {
 	m.addlink_count = nil
 }
 
-// SetAccessedAt sets the "accessed_at" field.
-func (m *InodeMutation) SetAccessedAt(t time.Time) {
-	m.accessed_at = &t
+// SetFlags sets the "flags" field.
+func (m *InodeMutation) SetFlags(i int16) {
+	m.flags = &i
+	m.addflags = nil
 }
 
-// AccessedAt returns the value of the "accessed_at" field in the mutation.
-func (m *InodeMutation) AccessedAt() (r time.Time, exists bool) {
-	v := m.accessed_at
+// Flags returns the value of the "flags" field in the mutation.
+func (m *InodeMutation) Flags() (r int16, exists bool) {
+	v := m.flags
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldAccessedAt returns the old "accessed_at" field's value of the Inode entity.
+// OldFlags returns the old "flags" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldAccessedAt(ctx context.Context) (v *time.Time, err error) {
+func (m *InodeMutation) OldFlags(ctx context.Context) (v int16, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAccessedAt is only allowed on UpdateOne operations")
+		return v, errors.New("OldFlags is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAccessedAt requires an ID field in the mutation")
+		return v, errors.New("OldFlags requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAccessedAt: %w", err)
+		return v, fmt.Errorf("querying old value for OldFlags: %w", err)
 	}
-	return oldValue.AccessedAt, nil
+	return oldValue.Flags, nil
 }
 
-// ClearAccessedAt clears the value of the "accessed_at" field.
-func (m *InodeMutation) ClearAccessedAt() {
-	m.accessed_at = nil
-	m.clearedFields[inode.FieldAccessedAt] = struct{}{}
+// AddFlags adds i to the "flags" field.
+func (m *InodeMutation) AddFlags(i int16) {
+	if m.addflags != nil {
+		*m.addflags += i
+	} else {
+		m.addflags = &i
+	}
 }
 
-// AccessedAtCleared returns if the "accessed_at" field was cleared in this mutation.
-func (m *InodeMutation) AccessedAtCleared() bool {
-	_, ok := m.clearedFields[inode.FieldAccessedAt]
+// AddedFlags returns the value that was added to the "flags" field in this mutation.
+func (m *InodeMutation) AddedFlags() (r int16, exists bool) {
+	v := m.addflags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFlags resets all changes to the "flags" field.
+func (m *InodeMutation) ResetFlags() {
+	m.flags = nil
+	m.addflags = nil
+}
+
+// SetAtime sets the "atime" field.
+func (m *InodeMutation) SetAtime(t time.Time) {
+	m.atime = &t
+}
+
+// Atime returns the value of the "atime" field in the mutation.
+func (m *InodeMutation) Atime() (r time.Time, exists bool) {
+	v := m.atime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAtime returns the old "atime" field's value of the Inode entity.
+// If the Inode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InodeMutation) OldAtime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAtime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAtime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAtime: %w", err)
+	}
+	return oldValue.Atime, nil
+}
+
+// ResetAtime resets all changes to the "atime" field.
+func (m *InodeMutation) ResetAtime() {
+	m.atime = nil
+}
+
+// SetMtime sets the "mtime" field.
+func (m *InodeMutation) SetMtime(t time.Time) {
+	m.mtime = &t
+}
+
+// Mtime returns the value of the "mtime" field in the mutation.
+func (m *InodeMutation) Mtime() (r time.Time, exists bool) {
+	v := m.mtime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMtime returns the old "mtime" field's value of the Inode entity.
+// If the Inode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InodeMutation) OldMtime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMtime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMtime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMtime: %w", err)
+	}
+	return oldValue.Mtime, nil
+}
+
+// ResetMtime resets all changes to the "mtime" field.
+func (m *InodeMutation) ResetMtime() {
+	m.mtime = nil
+}
+
+// SetCtime sets the "ctime" field.
+func (m *InodeMutation) SetCtime(t time.Time) {
+	m.ctime = &t
+}
+
+// Ctime returns the value of the "ctime" field in the mutation.
+func (m *InodeMutation) Ctime() (r time.Time, exists bool) {
+	v := m.ctime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCtime returns the old "ctime" field's value of the Inode entity.
+// If the Inode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InodeMutation) OldCtime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCtime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCtime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCtime: %w", err)
+	}
+	return oldValue.Ctime, nil
+}
+
+// ResetCtime resets all changes to the "ctime" field.
+func (m *InodeMutation) ResetCtime() {
+	m.ctime = nil
+}
+
+// SetContent sets the "content" field.
+func (m *InodeMutation) SetContent(b []byte) {
+	m.content = &b
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *InodeMutation) Content() (r []byte, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the Inode entity.
+// If the Inode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InodeMutation) OldContent(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ClearContent clears the value of the "content" field.
+func (m *InodeMutation) ClearContent() {
+	m.content = nil
+	m.clearedFields[inode.FieldContent] = struct{}{}
+}
+
+// ContentCleared returns if the "content" field was cleared in this mutation.
+func (m *InodeMutation) ContentCleared() bool {
+	_, ok := m.clearedFields[inode.FieldContent]
 	return ok
 }
 
-// ResetAccessedAt resets all changes to the "accessed_at" field.
-func (m *InodeMutation) ResetAccessedAt() {
-	m.accessed_at = nil
-	delete(m.clearedFields, inode.FieldAccessedAt)
-}
-
-// SetIsSystem sets the "is_system" field.
-func (m *InodeMutation) SetIsSystem(b bool) {
-	m.is_system = &b
-}
-
-// IsSystem returns the value of the "is_system" field in the mutation.
-func (m *InodeMutation) IsSystem() (r bool, exists bool) {
-	v := m.is_system
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsSystem returns the old "is_system" field's value of the Inode entity.
-// If the Inode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldIsSystem(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsSystem is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsSystem requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsSystem: %w", err)
-	}
-	return oldValue.IsSystem, nil
-}
-
-// ResetIsSystem resets all changes to the "is_system" field.
-func (m *InodeMutation) ResetIsSystem() {
-	m.is_system = nil
-}
-
-// SetSystemType sets the "system_type" field.
-func (m *InodeMutation) SetSystemType(s string) {
-	m.system_type = &s
-}
-
-// SystemType returns the value of the "system_type" field in the mutation.
-func (m *InodeMutation) SystemType() (r string, exists bool) {
-	v := m.system_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSystemType returns the old "system_type" field's value of the Inode entity.
-// If the Inode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldSystemType(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSystemType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSystemType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSystemType: %w", err)
-	}
-	return oldValue.SystemType, nil
-}
-
-// ClearSystemType clears the value of the "system_type" field.
-func (m *InodeMutation) ClearSystemType() {
-	m.system_type = nil
-	m.clearedFields[inode.FieldSystemType] = struct{}{}
-}
-
-// SystemTypeCleared returns if the "system_type" field was cleared in this mutation.
-func (m *InodeMutation) SystemTypeCleared() bool {
-	_, ok := m.clearedFields[inode.FieldSystemType]
-	return ok
-}
-
-// ResetSystemType resets all changes to the "system_type" field.
-func (m *InodeMutation) ResetSystemType() {
-	m.system_type = nil
-	delete(m.clearedFields, inode.FieldSystemType)
+// ResetContent resets all changes to the "content" field.
+func (m *InodeMutation) ResetContent() {
+	m.content = nil
+	delete(m.clearedFields, inode.FieldContent)
 }
 
 // ClearSystem clears the "system" edge to the System entity.
@@ -2570,13 +778,13 @@ func (m *InodeMutation) ClearSystem() {
 
 // SystemCleared reports if the "system" edge to the System entity was cleared.
 func (m *InodeMutation) SystemCleared() bool {
-	return m.SystemIDCleared() || m.clearedsystem
+	return m.clearedsystem
 }
 
 // SystemIDs returns the "system" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SystemID instead. It exists only for internal usage by the builders.
-func (m *InodeMutation) SystemIDs() (ids []int64) {
+func (m *InodeMutation) SystemIDs() (ids []string) {
 	if id := m.system; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2587,60 +795,6 @@ func (m *InodeMutation) SystemIDs() (ids []int64) {
 func (m *InodeMutation) ResetSystem() {
 	m.system = nil
 	m.clearedsystem = false
-}
-
-// AddEntryIDs adds the "entries" edge to the DirectoryEntry entity by ids.
-func (m *InodeMutation) AddEntryIDs(ids ...int64) {
-	if m.entries == nil {
-		m.entries = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.entries[ids[i]] = struct{}{}
-	}
-}
-
-// ClearEntries clears the "entries" edge to the DirectoryEntry entity.
-func (m *InodeMutation) ClearEntries() {
-	m.clearedentries = true
-}
-
-// EntriesCleared reports if the "entries" edge to the DirectoryEntry entity was cleared.
-func (m *InodeMutation) EntriesCleared() bool {
-	return m.clearedentries
-}
-
-// RemoveEntryIDs removes the "entries" edge to the DirectoryEntry entity by IDs.
-func (m *InodeMutation) RemoveEntryIDs(ids ...int64) {
-	if m.removedentries == nil {
-		m.removedentries = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.entries, ids[i])
-		m.removedentries[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedEntries returns the removed IDs of the "entries" edge to the DirectoryEntry entity.
-func (m *InodeMutation) RemovedEntriesIDs() (ids []int64) {
-	for id := range m.removedentries {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// EntriesIDs returns the "entries" edge IDs in the mutation.
-func (m *InodeMutation) EntriesIDs() (ids []int64) {
-	for id := range m.entries {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetEntries resets all changes to the "entries" edge.
-func (m *InodeMutation) ResetEntries() {
-	m.entries = nil
-	m.clearedentries = false
-	m.removedentries = nil
 }
 
 // Where appends a list predicates to the InodeMutation builder.
@@ -2677,7 +831,7 @@ func (m *InodeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InodeMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 13)
 	if m.create_time != nil {
 		fields = append(fields, inode.FieldCreateTime)
 	}
@@ -2687,38 +841,35 @@ func (m *InodeMutation) Fields() []string {
 	if m.system != nil {
 		fields = append(fields, inode.FieldSystemID)
 	}
-	if m.file_type != nil {
-		fields = append(fields, inode.FieldFileType)
+	if m.mode != nil {
+		fields = append(fields, inode.FieldMode)
 	}
-	if m.byte_size != nil {
-		fields = append(fields, inode.FieldByteSize)
+	if m.uid != nil {
+		fields = append(fields, inode.FieldUID)
 	}
-	if m.owner_uid != nil {
-		fields = append(fields, inode.FieldOwnerUID)
+	if m.gid != nil {
+		fields = append(fields, inode.FieldGid)
 	}
-	if m.owner_gid != nil {
-		fields = append(fields, inode.FieldOwnerGid)
-	}
-	if m.perm_owner != nil {
-		fields = append(fields, inode.FieldPermOwner)
-	}
-	if m.perm_group != nil {
-		fields = append(fields, inode.FieldPermGroup)
-	}
-	if m.perm_others != nil {
-		fields = append(fields, inode.FieldPermOthers)
+	if m.size != nil {
+		fields = append(fields, inode.FieldSize)
 	}
 	if m.link_count != nil {
 		fields = append(fields, inode.FieldLinkCount)
 	}
-	if m.accessed_at != nil {
-		fields = append(fields, inode.FieldAccessedAt)
+	if m.flags != nil {
+		fields = append(fields, inode.FieldFlags)
 	}
-	if m.is_system != nil {
-		fields = append(fields, inode.FieldIsSystem)
+	if m.atime != nil {
+		fields = append(fields, inode.FieldAtime)
 	}
-	if m.system_type != nil {
-		fields = append(fields, inode.FieldSystemType)
+	if m.mtime != nil {
+		fields = append(fields, inode.FieldMtime)
+	}
+	if m.ctime != nil {
+		fields = append(fields, inode.FieldCtime)
+	}
+	if m.content != nil {
+		fields = append(fields, inode.FieldContent)
 	}
 	return fields
 }
@@ -2734,28 +885,26 @@ func (m *InodeMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case inode.FieldSystemID:
 		return m.SystemID()
-	case inode.FieldFileType:
-		return m.FileType()
-	case inode.FieldByteSize:
-		return m.ByteSize()
-	case inode.FieldOwnerUID:
-		return m.OwnerUID()
-	case inode.FieldOwnerGid:
-		return m.OwnerGid()
-	case inode.FieldPermOwner:
-		return m.PermOwner()
-	case inode.FieldPermGroup:
-		return m.PermGroup()
-	case inode.FieldPermOthers:
-		return m.PermOthers()
+	case inode.FieldMode:
+		return m.Mode()
+	case inode.FieldUID:
+		return m.UID()
+	case inode.FieldGid:
+		return m.Gid()
+	case inode.FieldSize:
+		return m.Size()
 	case inode.FieldLinkCount:
 		return m.LinkCount()
-	case inode.FieldAccessedAt:
-		return m.AccessedAt()
-	case inode.FieldIsSystem:
-		return m.IsSystem()
-	case inode.FieldSystemType:
-		return m.SystemType()
+	case inode.FieldFlags:
+		return m.Flags()
+	case inode.FieldAtime:
+		return m.Atime()
+	case inode.FieldMtime:
+		return m.Mtime()
+	case inode.FieldCtime:
+		return m.Ctime()
+	case inode.FieldContent:
+		return m.Content()
 	}
 	return nil, false
 }
@@ -2771,28 +920,26 @@ func (m *InodeMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldUpdateTime(ctx)
 	case inode.FieldSystemID:
 		return m.OldSystemID(ctx)
-	case inode.FieldFileType:
-		return m.OldFileType(ctx)
-	case inode.FieldByteSize:
-		return m.OldByteSize(ctx)
-	case inode.FieldOwnerUID:
-		return m.OldOwnerUID(ctx)
-	case inode.FieldOwnerGid:
-		return m.OldOwnerGid(ctx)
-	case inode.FieldPermOwner:
-		return m.OldPermOwner(ctx)
-	case inode.FieldPermGroup:
-		return m.OldPermGroup(ctx)
-	case inode.FieldPermOthers:
-		return m.OldPermOthers(ctx)
+	case inode.FieldMode:
+		return m.OldMode(ctx)
+	case inode.FieldUID:
+		return m.OldUID(ctx)
+	case inode.FieldGid:
+		return m.OldGid(ctx)
+	case inode.FieldSize:
+		return m.OldSize(ctx)
 	case inode.FieldLinkCount:
 		return m.OldLinkCount(ctx)
-	case inode.FieldAccessedAt:
-		return m.OldAccessedAt(ctx)
-	case inode.FieldIsSystem:
-		return m.OldIsSystem(ctx)
-	case inode.FieldSystemType:
-		return m.OldSystemType(ctx)
+	case inode.FieldFlags:
+		return m.OldFlags(ctx)
+	case inode.FieldAtime:
+		return m.OldAtime(ctx)
+	case inode.FieldMtime:
+		return m.OldMtime(ctx)
+	case inode.FieldCtime:
+		return m.OldCtime(ctx)
+	case inode.FieldContent:
+		return m.OldContent(ctx)
 	}
 	return nil, fmt.Errorf("unknown Inode field %s", name)
 }
@@ -2817,88 +964,81 @@ func (m *InodeMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case inode.FieldSystemID:
-		v, ok := value.(int64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSystemID(v)
 		return nil
-	case inode.FieldFileType:
-		v, ok := value.(inode.FileType)
+	case inode.FieldMode:
+		v, ok := value.(int16)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetFileType(v)
+		m.SetMode(v)
 		return nil
-	case inode.FieldByteSize:
+	case inode.FieldUID:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetByteSize(v)
+		m.SetUID(v)
 		return nil
-	case inode.FieldOwnerUID:
-		v, ok := value.(string)
+	case inode.FieldGid:
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetOwnerUID(v)
+		m.SetGid(v)
 		return nil
-	case inode.FieldOwnerGid:
-		v, ok := value.(string)
+	case inode.FieldSize:
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetOwnerGid(v)
-		return nil
-	case inode.FieldPermOwner:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPermOwner(v)
-		return nil
-	case inode.FieldPermGroup:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPermGroup(v)
-		return nil
-	case inode.FieldPermOthers:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPermOthers(v)
+		m.SetSize(v)
 		return nil
 	case inode.FieldLinkCount:
-		v, ok := value.(int16)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLinkCount(v)
 		return nil
-	case inode.FieldAccessedAt:
+	case inode.FieldFlags:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlags(v)
+		return nil
+	case inode.FieldAtime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAccessedAt(v)
+		m.SetAtime(v)
 		return nil
-	case inode.FieldIsSystem:
-		v, ok := value.(bool)
+	case inode.FieldMtime:
+		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIsSystem(v)
+		m.SetMtime(v)
 		return nil
-	case inode.FieldSystemType:
-		v, ok := value.(string)
+	case inode.FieldCtime:
+		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetSystemType(v)
+		m.SetCtime(v)
+		return nil
+	case inode.FieldContent:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Inode field %s", name)
@@ -2908,11 +1048,23 @@ func (m *InodeMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *InodeMutation) AddedFields() []string {
 	var fields []string
-	if m.addbyte_size != nil {
-		fields = append(fields, inode.FieldByteSize)
+	if m.addmode != nil {
+		fields = append(fields, inode.FieldMode)
+	}
+	if m.adduid != nil {
+		fields = append(fields, inode.FieldUID)
+	}
+	if m.addgid != nil {
+		fields = append(fields, inode.FieldGid)
+	}
+	if m.addsize != nil {
+		fields = append(fields, inode.FieldSize)
 	}
 	if m.addlink_count != nil {
 		fields = append(fields, inode.FieldLinkCount)
+	}
+	if m.addflags != nil {
+		fields = append(fields, inode.FieldFlags)
 	}
 	return fields
 }
@@ -2922,10 +1074,18 @@ func (m *InodeMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *InodeMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case inode.FieldByteSize:
-		return m.AddedByteSize()
+	case inode.FieldMode:
+		return m.AddedMode()
+	case inode.FieldUID:
+		return m.AddedUID()
+	case inode.FieldGid:
+		return m.AddedGid()
+	case inode.FieldSize:
+		return m.AddedSize()
 	case inode.FieldLinkCount:
 		return m.AddedLinkCount()
+	case inode.FieldFlags:
+		return m.AddedFlags()
 	}
 	return nil, false
 }
@@ -2935,19 +1095,47 @@ func (m *InodeMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *InodeMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case inode.FieldByteSize:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddByteSize(v)
-		return nil
-	case inode.FieldLinkCount:
+	case inode.FieldMode:
 		v, ok := value.(int16)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
+		m.AddMode(v)
+		return nil
+	case inode.FieldUID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUID(v)
+		return nil
+	case inode.FieldGid:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGid(v)
+		return nil
+	case inode.FieldSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSize(v)
+		return nil
+	case inode.FieldLinkCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
 		m.AddLinkCount(v)
+		return nil
+	case inode.FieldFlags:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFlags(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Inode numeric field %s", name)
@@ -2957,14 +1145,8 @@ func (m *InodeMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *InodeMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(inode.FieldSystemID) {
-		fields = append(fields, inode.FieldSystemID)
-	}
-	if m.FieldCleared(inode.FieldAccessedAt) {
-		fields = append(fields, inode.FieldAccessedAt)
-	}
-	if m.FieldCleared(inode.FieldSystemType) {
-		fields = append(fields, inode.FieldSystemType)
+	if m.FieldCleared(inode.FieldContent) {
+		fields = append(fields, inode.FieldContent)
 	}
 	return fields
 }
@@ -2980,14 +1162,8 @@ func (m *InodeMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *InodeMutation) ClearField(name string) error {
 	switch name {
-	case inode.FieldSystemID:
-		m.ClearSystemID()
-		return nil
-	case inode.FieldAccessedAt:
-		m.ClearAccessedAt()
-		return nil
-	case inode.FieldSystemType:
-		m.ClearSystemType()
+	case inode.FieldContent:
+		m.ClearContent()
 		return nil
 	}
 	return fmt.Errorf("unknown Inode nullable field %s", name)
@@ -3006,38 +1182,35 @@ func (m *InodeMutation) ResetField(name string) error {
 	case inode.FieldSystemID:
 		m.ResetSystemID()
 		return nil
-	case inode.FieldFileType:
-		m.ResetFileType()
+	case inode.FieldMode:
+		m.ResetMode()
 		return nil
-	case inode.FieldByteSize:
-		m.ResetByteSize()
+	case inode.FieldUID:
+		m.ResetUID()
 		return nil
-	case inode.FieldOwnerUID:
-		m.ResetOwnerUID()
+	case inode.FieldGid:
+		m.ResetGid()
 		return nil
-	case inode.FieldOwnerGid:
-		m.ResetOwnerGid()
-		return nil
-	case inode.FieldPermOwner:
-		m.ResetPermOwner()
-		return nil
-	case inode.FieldPermGroup:
-		m.ResetPermGroup()
-		return nil
-	case inode.FieldPermOthers:
-		m.ResetPermOthers()
+	case inode.FieldSize:
+		m.ResetSize()
 		return nil
 	case inode.FieldLinkCount:
 		m.ResetLinkCount()
 		return nil
-	case inode.FieldAccessedAt:
-		m.ResetAccessedAt()
+	case inode.FieldFlags:
+		m.ResetFlags()
 		return nil
-	case inode.FieldIsSystem:
-		m.ResetIsSystem()
+	case inode.FieldAtime:
+		m.ResetAtime()
 		return nil
-	case inode.FieldSystemType:
-		m.ResetSystemType()
+	case inode.FieldMtime:
+		m.ResetMtime()
+		return nil
+	case inode.FieldCtime:
+		m.ResetCtime()
+		return nil
+	case inode.FieldContent:
+		m.ResetContent()
 		return nil
 	}
 	return fmt.Errorf("unknown Inode field %s", name)
@@ -3045,12 +1218,9 @@ func (m *InodeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *InodeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 1)
 	if m.system != nil {
 		edges = append(edges, inode.EdgeSystem)
-	}
-	if m.entries != nil {
-		edges = append(edges, inode.EdgeEntries)
 	}
 	return edges
 }
@@ -3063,47 +1233,27 @@ func (m *InodeMutation) AddedIDs(name string) []ent.Value {
 		if id := m.system; id != nil {
 			return []ent.Value{*id}
 		}
-	case inode.EdgeEntries:
-		ids := make([]ent.Value, 0, len(m.entries))
-		for id := range m.entries {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *InodeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedentries != nil {
-		edges = append(edges, inode.EdgeEntries)
-	}
+	edges := make([]string, 0, 1)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *InodeMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case inode.EdgeEntries:
-		ids := make([]ent.Value, 0, len(m.removedentries))
-		for id := range m.removedentries {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *InodeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 1)
 	if m.clearedsystem {
 		edges = append(edges, inode.EdgeSystem)
-	}
-	if m.clearedentries {
-		edges = append(edges, inode.EdgeEntries)
 	}
 	return edges
 }
@@ -3114,8 +1264,6 @@ func (m *InodeMutation) EdgeCleared(name string) bool {
 	switch name {
 	case inode.EdgeSystem:
 		return m.clearedsystem
-	case inode.EdgeEntries:
-		return m.clearedentries
 	}
 	return false
 }
@@ -3138,448 +1286,8 @@ func (m *InodeMutation) ResetEdge(name string) error {
 	case inode.EdgeSystem:
 		m.ResetSystem()
 		return nil
-	case inode.EdgeEntries:
-		m.ResetEntries()
-		return nil
 	}
 	return fmt.Errorf("unknown Inode edge %s", name)
-}
-
-// SymlinkMutation represents an operation that mutates the Symlink nodes in the graph.
-type SymlinkMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	target_path   *string
-	clearedFields map[string]struct{}
-	inode         *int64
-	clearedinode  bool
-	done          bool
-	oldValue      func(context.Context) (*Symlink, error)
-	predicates    []predicate.Symlink
-}
-
-var _ ent.Mutation = (*SymlinkMutation)(nil)
-
-// symlinkOption allows management of the mutation configuration using functional options.
-type symlinkOption func(*SymlinkMutation)
-
-// newSymlinkMutation creates new mutation for the Symlink entity.
-func newSymlinkMutation(c config, op Op, opts ...symlinkOption) *SymlinkMutation {
-	m := &SymlinkMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeSymlink,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withSymlinkID sets the ID field of the mutation.
-func withSymlinkID(id int) symlinkOption {
-	return func(m *SymlinkMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Symlink
-		)
-		m.oldValue = func(ctx context.Context) (*Symlink, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Symlink.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withSymlink sets the old Symlink of the mutation.
-func withSymlink(node *Symlink) symlinkOption {
-	return func(m *SymlinkMutation) {
-		m.oldValue = func(context.Context) (*Symlink, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m SymlinkMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m SymlinkMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *SymlinkMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *SymlinkMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Symlink.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetInodeID sets the "inode_id" field.
-func (m *SymlinkMutation) SetInodeID(i int64) {
-	m.inode = &i
-}
-
-// InodeID returns the value of the "inode_id" field in the mutation.
-func (m *SymlinkMutation) InodeID() (r int64, exists bool) {
-	v := m.inode
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldInodeID returns the old "inode_id" field's value of the Symlink entity.
-// If the Symlink object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SymlinkMutation) OldInodeID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInodeID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInodeID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInodeID: %w", err)
-	}
-	return oldValue.InodeID, nil
-}
-
-// ResetInodeID resets all changes to the "inode_id" field.
-func (m *SymlinkMutation) ResetInodeID() {
-	m.inode = nil
-}
-
-// SetTargetPath sets the "target_path" field.
-func (m *SymlinkMutation) SetTargetPath(s string) {
-	m.target_path = &s
-}
-
-// TargetPath returns the value of the "target_path" field in the mutation.
-func (m *SymlinkMutation) TargetPath() (r string, exists bool) {
-	v := m.target_path
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTargetPath returns the old "target_path" field's value of the Symlink entity.
-// If the Symlink object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SymlinkMutation) OldTargetPath(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTargetPath is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTargetPath requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTargetPath: %w", err)
-	}
-	return oldValue.TargetPath, nil
-}
-
-// ResetTargetPath resets all changes to the "target_path" field.
-func (m *SymlinkMutation) ResetTargetPath() {
-	m.target_path = nil
-}
-
-// ClearInode clears the "inode" edge to the Inode entity.
-func (m *SymlinkMutation) ClearInode() {
-	m.clearedinode = true
-	m.clearedFields[symlink.FieldInodeID] = struct{}{}
-}
-
-// InodeCleared reports if the "inode" edge to the Inode entity was cleared.
-func (m *SymlinkMutation) InodeCleared() bool {
-	return m.clearedinode
-}
-
-// InodeIDs returns the "inode" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// InodeID instead. It exists only for internal usage by the builders.
-func (m *SymlinkMutation) InodeIDs() (ids []int64) {
-	if id := m.inode; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetInode resets all changes to the "inode" edge.
-func (m *SymlinkMutation) ResetInode() {
-	m.inode = nil
-	m.clearedinode = false
-}
-
-// Where appends a list predicates to the SymlinkMutation builder.
-func (m *SymlinkMutation) Where(ps ...predicate.Symlink) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the SymlinkMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *SymlinkMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Symlink, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *SymlinkMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *SymlinkMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Symlink).
-func (m *SymlinkMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *SymlinkMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.inode != nil {
-		fields = append(fields, symlink.FieldInodeID)
-	}
-	if m.target_path != nil {
-		fields = append(fields, symlink.FieldTargetPath)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *SymlinkMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case symlink.FieldInodeID:
-		return m.InodeID()
-	case symlink.FieldTargetPath:
-		return m.TargetPath()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *SymlinkMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case symlink.FieldInodeID:
-		return m.OldInodeID(ctx)
-	case symlink.FieldTargetPath:
-		return m.OldTargetPath(ctx)
-	}
-	return nil, fmt.Errorf("unknown Symlink field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *SymlinkMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case symlink.FieldInodeID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetInodeID(v)
-		return nil
-	case symlink.FieldTargetPath:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTargetPath(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Symlink field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *SymlinkMutation) AddedFields() []string {
-	var fields []string
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *SymlinkMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *SymlinkMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Symlink numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *SymlinkMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *SymlinkMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *SymlinkMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Symlink nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *SymlinkMutation) ResetField(name string) error {
-	switch name {
-	case symlink.FieldInodeID:
-		m.ResetInodeID()
-		return nil
-	case symlink.FieldTargetPath:
-		m.ResetTargetPath()
-		return nil
-	}
-	return fmt.Errorf("unknown Symlink field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *SymlinkMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.inode != nil {
-		edges = append(edges, symlink.EdgeInode)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *SymlinkMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case symlink.EdgeInode:
-		if id := m.inode; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *SymlinkMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *SymlinkMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *SymlinkMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedinode {
-		edges = append(edges, symlink.EdgeInode)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *SymlinkMutation) EdgeCleared(name string) bool {
-	switch name {
-	case symlink.EdgeInode:
-		return m.clearedinode
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *SymlinkMutation) ClearEdge(name string) error {
-	switch name {
-	case symlink.EdgeInode:
-		m.ClearInode()
-		return nil
-	}
-	return fmt.Errorf("unknown Symlink unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *SymlinkMutation) ResetEdge(name string) error {
-	switch name {
-	case symlink.EdgeInode:
-		m.ResetInode()
-		return nil
-	}
-	return fmt.Errorf("unknown Symlink edge %s", name)
 }
 
 // SystemMutation represents an operation that mutates the System nodes in the graph.
@@ -3587,7 +1295,7 @@ type SystemMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int64
+	id            *string
 	create_time   *time.Time
 	update_time   *time.Time
 	name          *string
@@ -3597,11 +1305,8 @@ type SystemMutation struct {
 	inodes        map[int64]struct{}
 	removedinodes map[int64]struct{}
 	clearedinodes bool
-	groups        map[int64]struct{}
-	removedgroups map[int64]struct{}
-	clearedgroups bool
-	users         map[int64]struct{}
-	removedusers  map[int64]struct{}
+	users         map[string]struct{}
+	removedusers  map[string]struct{}
 	clearedusers  bool
 	done          bool
 	oldValue      func(context.Context) (*System, error)
@@ -3628,7 +1333,7 @@ func newSystemMutation(c config, op Op, opts ...systemOption) *SystemMutation {
 }
 
 // withSystemID sets the ID field of the mutation.
-func withSystemID(id int64) systemOption {
+func withSystemID(id string) systemOption {
 	return func(m *SystemMutation) {
 		var (
 			err   error
@@ -3680,13 +1385,13 @@ func (m SystemMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of System entities.
-func (m *SystemMutation) SetID(id int64) {
+func (m *SystemMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SystemMutation) ID() (id int64, exists bool) {
+func (m *SystemMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3697,12 +1402,12 @@ func (m *SystemMutation) ID() (id int64, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SystemMutation) IDs(ctx context.Context) ([]int64, error) {
+func (m *SystemMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int64{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -3959,64 +1664,10 @@ func (m *SystemMutation) ResetInodes() {
 	m.removedinodes = nil
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by ids.
-func (m *SystemMutation) AddGroupIDs(ids ...int64) {
-	if m.groups == nil {
-		m.groups = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.groups[ids[i]] = struct{}{}
-	}
-}
-
-// ClearGroups clears the "groups" edge to the Group entity.
-func (m *SystemMutation) ClearGroups() {
-	m.clearedgroups = true
-}
-
-// GroupsCleared reports if the "groups" edge to the Group entity was cleared.
-func (m *SystemMutation) GroupsCleared() bool {
-	return m.clearedgroups
-}
-
-// RemoveGroupIDs removes the "groups" edge to the Group entity by IDs.
-func (m *SystemMutation) RemoveGroupIDs(ids ...int64) {
-	if m.removedgroups == nil {
-		m.removedgroups = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.groups, ids[i])
-		m.removedgroups[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedGroups returns the removed IDs of the "groups" edge to the Group entity.
-func (m *SystemMutation) RemovedGroupsIDs() (ids []int64) {
-	for id := range m.removedgroups {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// GroupsIDs returns the "groups" edge IDs in the mutation.
-func (m *SystemMutation) GroupsIDs() (ids []int64) {
-	for id := range m.groups {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetGroups resets all changes to the "groups" edge.
-func (m *SystemMutation) ResetGroups() {
-	m.groups = nil
-	m.clearedgroups = false
-	m.removedgroups = nil
-}
-
 // AddUserIDs adds the "users" edge to the User entity by ids.
-func (m *SystemMutation) AddUserIDs(ids ...int64) {
+func (m *SystemMutation) AddUserIDs(ids ...string) {
 	if m.users == nil {
-		m.users = make(map[int64]struct{})
+		m.users = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.users[ids[i]] = struct{}{}
@@ -4034,9 +1685,9 @@ func (m *SystemMutation) UsersCleared() bool {
 }
 
 // RemoveUserIDs removes the "users" edge to the User entity by IDs.
-func (m *SystemMutation) RemoveUserIDs(ids ...int64) {
+func (m *SystemMutation) RemoveUserIDs(ids ...string) {
 	if m.removedusers == nil {
-		m.removedusers = make(map[int64]struct{})
+		m.removedusers = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.users, ids[i])
@@ -4045,7 +1696,7 @@ func (m *SystemMutation) RemoveUserIDs(ids ...int64) {
 }
 
 // RemovedUsers returns the removed IDs of the "users" edge to the User entity.
-func (m *SystemMutation) RemovedUsersIDs() (ids []int64) {
+func (m *SystemMutation) RemovedUsersIDs() (ids []string) {
 	for id := range m.removedusers {
 		ids = append(ids, id)
 	}
@@ -4053,7 +1704,7 @@ func (m *SystemMutation) RemovedUsersIDs() (ids []int64) {
 }
 
 // UsersIDs returns the "users" edge IDs in the mutation.
-func (m *SystemMutation) UsersIDs() (ids []int64) {
+func (m *SystemMutation) UsersIDs() (ids []string) {
 	for id := range m.users {
 		ids = append(ids, id)
 	}
@@ -4277,12 +1928,9 @@ func (m *SystemMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SystemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.inodes != nil {
 		edges = append(edges, system.EdgeInodes)
-	}
-	if m.groups != nil {
-		edges = append(edges, system.EdgeGroups)
 	}
 	if m.users != nil {
 		edges = append(edges, system.EdgeUsers)
@@ -4300,12 +1948,6 @@ func (m *SystemMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case system.EdgeGroups:
-		ids := make([]ent.Value, 0, len(m.groups))
-		for id := range m.groups {
-			ids = append(ids, id)
-		}
-		return ids
 	case system.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.users))
 		for id := range m.users {
@@ -4318,12 +1960,9 @@ func (m *SystemMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SystemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.removedinodes != nil {
 		edges = append(edges, system.EdgeInodes)
-	}
-	if m.removedgroups != nil {
-		edges = append(edges, system.EdgeGroups)
 	}
 	if m.removedusers != nil {
 		edges = append(edges, system.EdgeUsers)
@@ -4341,12 +1980,6 @@ func (m *SystemMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case system.EdgeGroups:
-		ids := make([]ent.Value, 0, len(m.removedgroups))
-		for id := range m.removedgroups {
-			ids = append(ids, id)
-		}
-		return ids
 	case system.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.removedusers))
 		for id := range m.removedusers {
@@ -4359,12 +1992,9 @@ func (m *SystemMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SystemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.clearedinodes {
 		edges = append(edges, system.EdgeInodes)
-	}
-	if m.clearedgroups {
-		edges = append(edges, system.EdgeGroups)
 	}
 	if m.clearedusers {
 		edges = append(edges, system.EdgeUsers)
@@ -4378,8 +2008,6 @@ func (m *SystemMutation) EdgeCleared(name string) bool {
 	switch name {
 	case system.EdgeInodes:
 		return m.clearedinodes
-	case system.EdgeGroups:
-		return m.clearedgroups
 	case system.EdgeUsers:
 		return m.clearedusers
 	}
@@ -4401,9 +2029,6 @@ func (m *SystemMutation) ResetEdge(name string) error {
 	case system.EdgeInodes:
 		m.ResetInodes()
 		return nil
-	case system.EdgeGroups:
-		m.ResetGroups()
-		return nil
 	case system.EdgeUsers:
 		m.ResetUsers()
 		return nil
@@ -4416,24 +2041,17 @@ type UserMutation struct {
 	config
 	op                  Op
 	typ                 string
-	id                  *int64
+	id                  *string
 	create_time         *time.Time
 	update_time         *time.Time
-	uid                 *string
 	username            *string
 	provider            *string
 	provider_id         *string
 	join_date           *time.Time
 	clearedFields       map[string]struct{}
-	groups              map[int64]struct{}
-	removedgroups       map[int64]struct{}
-	clearedgroups       bool
-	systems             map[int64]struct{}
-	removedsystems      map[int64]struct{}
+	systems             map[string]struct{}
+	removedsystems      map[string]struct{}
 	clearedsystems      bool
-	user_groups         map[int]struct{}
-	removeduser_groups  map[int]struct{}
-	cleareduser_groups  bool
 	user_systems        map[int]struct{}
 	removeduser_systems map[int]struct{}
 	cleareduser_systems bool
@@ -4462,7 +2080,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int64) userOption {
+func withUserID(id string) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -4514,13 +2132,13 @@ func (m UserMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of User entities.
-func (m *UserMutation) SetID(id int64) {
+func (m *UserMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int64, exists bool) {
+func (m *UserMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -4531,12 +2149,12 @@ func (m *UserMutation) ID() (id int64, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int64, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int64{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -4616,42 +2234,6 @@ func (m *UserMutation) OldUpdateTime(ctx context.Context) (v time.Time, err erro
 // ResetUpdateTime resets all changes to the "update_time" field.
 func (m *UserMutation) ResetUpdateTime() {
 	m.update_time = nil
-}
-
-// SetUID sets the "uid" field.
-func (m *UserMutation) SetUID(s string) {
-	m.uid = &s
-}
-
-// UID returns the value of the "uid" field in the mutation.
-func (m *UserMutation) UID() (r string, exists bool) {
-	v := m.uid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUID returns the old "uid" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldUID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUID: %w", err)
-	}
-	return oldValue.UID, nil
-}
-
-// ResetUID resets all changes to the "uid" field.
-func (m *UserMutation) ResetUID() {
-	m.uid = nil
 }
 
 // SetUsername sets the "username" field.
@@ -4798,64 +2380,10 @@ func (m *UserMutation) ResetJoinDate() {
 	m.join_date = nil
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by ids.
-func (m *UserMutation) AddGroupIDs(ids ...int64) {
-	if m.groups == nil {
-		m.groups = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.groups[ids[i]] = struct{}{}
-	}
-}
-
-// ClearGroups clears the "groups" edge to the Group entity.
-func (m *UserMutation) ClearGroups() {
-	m.clearedgroups = true
-}
-
-// GroupsCleared reports if the "groups" edge to the Group entity was cleared.
-func (m *UserMutation) GroupsCleared() bool {
-	return m.clearedgroups
-}
-
-// RemoveGroupIDs removes the "groups" edge to the Group entity by IDs.
-func (m *UserMutation) RemoveGroupIDs(ids ...int64) {
-	if m.removedgroups == nil {
-		m.removedgroups = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.groups, ids[i])
-		m.removedgroups[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedGroups returns the removed IDs of the "groups" edge to the Group entity.
-func (m *UserMutation) RemovedGroupsIDs() (ids []int64) {
-	for id := range m.removedgroups {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// GroupsIDs returns the "groups" edge IDs in the mutation.
-func (m *UserMutation) GroupsIDs() (ids []int64) {
-	for id := range m.groups {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetGroups resets all changes to the "groups" edge.
-func (m *UserMutation) ResetGroups() {
-	m.groups = nil
-	m.clearedgroups = false
-	m.removedgroups = nil
-}
-
 // AddSystemIDs adds the "systems" edge to the System entity by ids.
-func (m *UserMutation) AddSystemIDs(ids ...int64) {
+func (m *UserMutation) AddSystemIDs(ids ...string) {
 	if m.systems == nil {
-		m.systems = make(map[int64]struct{})
+		m.systems = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.systems[ids[i]] = struct{}{}
@@ -4873,9 +2401,9 @@ func (m *UserMutation) SystemsCleared() bool {
 }
 
 // RemoveSystemIDs removes the "systems" edge to the System entity by IDs.
-func (m *UserMutation) RemoveSystemIDs(ids ...int64) {
+func (m *UserMutation) RemoveSystemIDs(ids ...string) {
 	if m.removedsystems == nil {
-		m.removedsystems = make(map[int64]struct{})
+		m.removedsystems = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.systems, ids[i])
@@ -4884,7 +2412,7 @@ func (m *UserMutation) RemoveSystemIDs(ids ...int64) {
 }
 
 // RemovedSystems returns the removed IDs of the "systems" edge to the System entity.
-func (m *UserMutation) RemovedSystemsIDs() (ids []int64) {
+func (m *UserMutation) RemovedSystemsIDs() (ids []string) {
 	for id := range m.removedsystems {
 		ids = append(ids, id)
 	}
@@ -4892,7 +2420,7 @@ func (m *UserMutation) RemovedSystemsIDs() (ids []int64) {
 }
 
 // SystemsIDs returns the "systems" edge IDs in the mutation.
-func (m *UserMutation) SystemsIDs() (ids []int64) {
+func (m *UserMutation) SystemsIDs() (ids []string) {
 	for id := range m.systems {
 		ids = append(ids, id)
 	}
@@ -4904,60 +2432,6 @@ func (m *UserMutation) ResetSystems() {
 	m.systems = nil
 	m.clearedsystems = false
 	m.removedsystems = nil
-}
-
-// AddUserGroupIDs adds the "user_groups" edge to the UserGroup entity by ids.
-func (m *UserMutation) AddUserGroupIDs(ids ...int) {
-	if m.user_groups == nil {
-		m.user_groups = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.user_groups[ids[i]] = struct{}{}
-	}
-}
-
-// ClearUserGroups clears the "user_groups" edge to the UserGroup entity.
-func (m *UserMutation) ClearUserGroups() {
-	m.cleareduser_groups = true
-}
-
-// UserGroupsCleared reports if the "user_groups" edge to the UserGroup entity was cleared.
-func (m *UserMutation) UserGroupsCleared() bool {
-	return m.cleareduser_groups
-}
-
-// RemoveUserGroupIDs removes the "user_groups" edge to the UserGroup entity by IDs.
-func (m *UserMutation) RemoveUserGroupIDs(ids ...int) {
-	if m.removeduser_groups == nil {
-		m.removeduser_groups = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.user_groups, ids[i])
-		m.removeduser_groups[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedUserGroups returns the removed IDs of the "user_groups" edge to the UserGroup entity.
-func (m *UserMutation) RemovedUserGroupsIDs() (ids []int) {
-	for id := range m.removeduser_groups {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// UserGroupsIDs returns the "user_groups" edge IDs in the mutation.
-func (m *UserMutation) UserGroupsIDs() (ids []int) {
-	for id := range m.user_groups {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetUserGroups resets all changes to the "user_groups" edge.
-func (m *UserMutation) ResetUserGroups() {
-	m.user_groups = nil
-	m.cleareduser_groups = false
-	m.removeduser_groups = nil
 }
 
 // AddUserSystemIDs adds the "user_systems" edge to the UserSystem entity by ids.
@@ -5048,15 +2522,12 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.create_time != nil {
 		fields = append(fields, user.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, user.FieldUpdateTime)
-	}
-	if m.uid != nil {
-		fields = append(fields, user.FieldUID)
 	}
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
@@ -5082,8 +2553,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case user.FieldUpdateTime:
 		return m.UpdateTime()
-	case user.FieldUID:
-		return m.UID()
 	case user.FieldUsername:
 		return m.Username()
 	case user.FieldProvider:
@@ -5105,8 +2574,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCreateTime(ctx)
 	case user.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case user.FieldUID:
-		return m.OldUID(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
 	case user.FieldProvider:
@@ -5137,13 +2604,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
-		return nil
-	case user.FieldUID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUID(v)
 		return nil
 	case user.FieldUsername:
 		v, ok := value.(string)
@@ -5228,9 +2688,6 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case user.FieldUID:
-		m.ResetUID()
-		return nil
 	case user.FieldUsername:
 		m.ResetUsername()
 		return nil
@@ -5249,15 +2706,9 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
-	if m.groups != nil {
-		edges = append(edges, user.EdgeGroups)
-	}
+	edges := make([]string, 0, 2)
 	if m.systems != nil {
 		edges = append(edges, user.EdgeSystems)
-	}
-	if m.user_groups != nil {
-		edges = append(edges, user.EdgeUserGroups)
 	}
 	if m.user_systems != nil {
 		edges = append(edges, user.EdgeUserSystems)
@@ -5269,21 +2720,9 @@ func (m *UserMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeGroups:
-		ids := make([]ent.Value, 0, len(m.groups))
-		for id := range m.groups {
-			ids = append(ids, id)
-		}
-		return ids
 	case user.EdgeSystems:
 		ids := make([]ent.Value, 0, len(m.systems))
 		for id := range m.systems {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeUserGroups:
-		ids := make([]ent.Value, 0, len(m.user_groups))
-		for id := range m.user_groups {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5299,15 +2738,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
-	if m.removedgroups != nil {
-		edges = append(edges, user.EdgeGroups)
-	}
+	edges := make([]string, 0, 2)
 	if m.removedsystems != nil {
 		edges = append(edges, user.EdgeSystems)
-	}
-	if m.removeduser_groups != nil {
-		edges = append(edges, user.EdgeUserGroups)
 	}
 	if m.removeduser_systems != nil {
 		edges = append(edges, user.EdgeUserSystems)
@@ -5319,21 +2752,9 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeGroups:
-		ids := make([]ent.Value, 0, len(m.removedgroups))
-		for id := range m.removedgroups {
-			ids = append(ids, id)
-		}
-		return ids
 	case user.EdgeSystems:
 		ids := make([]ent.Value, 0, len(m.removedsystems))
 		for id := range m.removedsystems {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeUserGroups:
-		ids := make([]ent.Value, 0, len(m.removeduser_groups))
-		for id := range m.removeduser_groups {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5349,15 +2770,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
-	if m.clearedgroups {
-		edges = append(edges, user.EdgeGroups)
-	}
+	edges := make([]string, 0, 2)
 	if m.clearedsystems {
 		edges = append(edges, user.EdgeSystems)
-	}
-	if m.cleareduser_groups {
-		edges = append(edges, user.EdgeUserGroups)
 	}
 	if m.cleareduser_systems {
 		edges = append(edges, user.EdgeUserSystems)
@@ -5369,12 +2784,8 @@ func (m *UserMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
-	case user.EdgeGroups:
-		return m.clearedgroups
 	case user.EdgeSystems:
 		return m.clearedsystems
-	case user.EdgeUserGroups:
-		return m.cleareduser_groups
 	case user.EdgeUserSystems:
 		return m.cleareduser_systems
 	}
@@ -5393,14 +2804,8 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeGroups:
-		m.ResetGroups()
-		return nil
 	case user.EdgeSystems:
 		m.ResetSystems()
-		return nil
-	case user.EdgeUserGroups:
-		m.ResetUserGroups()
 		return nil
 	case user.EdgeUserSystems:
 		m.ResetUserSystems()
@@ -5409,499 +2814,17 @@ func (m *UserMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown User edge %s", name)
 }
 
-// UserGroupMutation represents an operation that mutates the UserGroup nodes in the graph.
-type UserGroupMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	clearedFields map[string]struct{}
-	user          *int64
-	cleareduser   bool
-	group         *int64
-	clearedgroup  bool
-	done          bool
-	oldValue      func(context.Context) (*UserGroup, error)
-	predicates    []predicate.UserGroup
-}
-
-var _ ent.Mutation = (*UserGroupMutation)(nil)
-
-// usergroupOption allows management of the mutation configuration using functional options.
-type usergroupOption func(*UserGroupMutation)
-
-// newUserGroupMutation creates new mutation for the UserGroup entity.
-func newUserGroupMutation(c config, op Op, opts ...usergroupOption) *UserGroupMutation {
-	m := &UserGroupMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeUserGroup,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withUserGroupID sets the ID field of the mutation.
-func withUserGroupID(id int) usergroupOption {
-	return func(m *UserGroupMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *UserGroup
-		)
-		m.oldValue = func(ctx context.Context) (*UserGroup, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().UserGroup.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withUserGroup sets the old UserGroup of the mutation.
-func withUserGroup(node *UserGroup) usergroupOption {
-	return func(m *UserGroupMutation) {
-		m.oldValue = func(context.Context) (*UserGroup, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m UserGroupMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m UserGroupMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *UserGroupMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *UserGroupMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().UserGroup.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetUserID sets the "user_id" field.
-func (m *UserGroupMutation) SetUserID(i int64) {
-	m.user = &i
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *UserGroupMutation) UserID() (r int64, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the UserGroup entity.
-// If the UserGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserGroupMutation) OldUserID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *UserGroupMutation) ResetUserID() {
-	m.user = nil
-}
-
-// SetGroupID sets the "group_id" field.
-func (m *UserGroupMutation) SetGroupID(i int64) {
-	m.group = &i
-}
-
-// GroupID returns the value of the "group_id" field in the mutation.
-func (m *UserGroupMutation) GroupID() (r int64, exists bool) {
-	v := m.group
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGroupID returns the old "group_id" field's value of the UserGroup entity.
-// If the UserGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserGroupMutation) OldGroupID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGroupID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
-	}
-	return oldValue.GroupID, nil
-}
-
-// ResetGroupID resets all changes to the "group_id" field.
-func (m *UserGroupMutation) ResetGroupID() {
-	m.group = nil
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (m *UserGroupMutation) ClearUser() {
-	m.cleareduser = true
-	m.clearedFields[usergroup.FieldUserID] = struct{}{}
-}
-
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *UserGroupMutation) UserCleared() bool {
-	return m.cleareduser
-}
-
-// UserIDs returns the "user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *UserGroupMutation) UserIDs() (ids []int64) {
-	if id := m.user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUser resets all changes to the "user" edge.
-func (m *UserGroupMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-}
-
-// ClearGroup clears the "group" edge to the Group entity.
-func (m *UserGroupMutation) ClearGroup() {
-	m.clearedgroup = true
-	m.clearedFields[usergroup.FieldGroupID] = struct{}{}
-}
-
-// GroupCleared reports if the "group" edge to the Group entity was cleared.
-func (m *UserGroupMutation) GroupCleared() bool {
-	return m.clearedgroup
-}
-
-// GroupIDs returns the "group" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// GroupID instead. It exists only for internal usage by the builders.
-func (m *UserGroupMutation) GroupIDs() (ids []int64) {
-	if id := m.group; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetGroup resets all changes to the "group" edge.
-func (m *UserGroupMutation) ResetGroup() {
-	m.group = nil
-	m.clearedgroup = false
-}
-
-// Where appends a list predicates to the UserGroupMutation builder.
-func (m *UserGroupMutation) Where(ps ...predicate.UserGroup) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the UserGroupMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *UserGroupMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.UserGroup, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *UserGroupMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *UserGroupMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (UserGroup).
-func (m *UserGroupMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *UserGroupMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.user != nil {
-		fields = append(fields, usergroup.FieldUserID)
-	}
-	if m.group != nil {
-		fields = append(fields, usergroup.FieldGroupID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *UserGroupMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case usergroup.FieldUserID:
-		return m.UserID()
-	case usergroup.FieldGroupID:
-		return m.GroupID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *UserGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case usergroup.FieldUserID:
-		return m.OldUserID(ctx)
-	case usergroup.FieldGroupID:
-		return m.OldGroupID(ctx)
-	}
-	return nil, fmt.Errorf("unknown UserGroup field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *UserGroupMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case usergroup.FieldUserID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case usergroup.FieldGroupID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGroupID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown UserGroup field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *UserGroupMutation) AddedFields() []string {
-	var fields []string
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *UserGroupMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *UserGroupMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown UserGroup numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *UserGroupMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *UserGroupMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *UserGroupMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown UserGroup nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *UserGroupMutation) ResetField(name string) error {
-	switch name {
-	case usergroup.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case usergroup.FieldGroupID:
-		m.ResetGroupID()
-		return nil
-	}
-	return fmt.Errorf("unknown UserGroup field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *UserGroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.user != nil {
-		edges = append(edges, usergroup.EdgeUser)
-	}
-	if m.group != nil {
-		edges = append(edges, usergroup.EdgeGroup)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *UserGroupMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case usergroup.EdgeUser:
-		if id := m.user; id != nil {
-			return []ent.Value{*id}
-		}
-	case usergroup.EdgeGroup:
-		if id := m.group; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *UserGroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *UserGroupMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *UserGroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.cleareduser {
-		edges = append(edges, usergroup.EdgeUser)
-	}
-	if m.clearedgroup {
-		edges = append(edges, usergroup.EdgeGroup)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *UserGroupMutation) EdgeCleared(name string) bool {
-	switch name {
-	case usergroup.EdgeUser:
-		return m.cleareduser
-	case usergroup.EdgeGroup:
-		return m.clearedgroup
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *UserGroupMutation) ClearEdge(name string) error {
-	switch name {
-	case usergroup.EdgeUser:
-		m.ClearUser()
-		return nil
-	case usergroup.EdgeGroup:
-		m.ClearGroup()
-		return nil
-	}
-	return fmt.Errorf("unknown UserGroup unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *UserGroupMutation) ResetEdge(name string) error {
-	switch name {
-	case usergroup.EdgeUser:
-		m.ResetUser()
-		return nil
-	case usergroup.EdgeGroup:
-		m.ResetGroup()
-		return nil
-	}
-	return fmt.Errorf("unknown UserGroup edge %s", name)
-}
-
 // UserSystemMutation represents an operation that mutates the UserSystem nodes in the graph.
 type UserSystemMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *int
+	username      *string
 	clearedFields map[string]struct{}
-	user          *int64
+	user          *string
 	cleareduser   bool
-	system        *int64
+	system        *string
 	clearedsystem bool
 	done          bool
 	oldValue      func(context.Context) (*UserSystem, error)
@@ -6007,12 +2930,12 @@ func (m *UserSystemMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetUserID sets the "user_id" field.
-func (m *UserSystemMutation) SetUserID(i int64) {
-	m.user = &i
+func (m *UserSystemMutation) SetUserID(s string) {
+	m.user = &s
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *UserSystemMutation) UserID() (r int64, exists bool) {
+func (m *UserSystemMutation) UserID() (r string, exists bool) {
 	v := m.user
 	if v == nil {
 		return
@@ -6023,7 +2946,7 @@ func (m *UserSystemMutation) UserID() (r int64, exists bool) {
 // OldUserID returns the old "user_id" field's value of the UserSystem entity.
 // If the UserSystem object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserSystemMutation) OldUserID(ctx context.Context) (v int64, err error) {
+func (m *UserSystemMutation) OldUserID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -6043,12 +2966,12 @@ func (m *UserSystemMutation) ResetUserID() {
 }
 
 // SetSystemID sets the "system_id" field.
-func (m *UserSystemMutation) SetSystemID(i int64) {
-	m.system = &i
+func (m *UserSystemMutation) SetSystemID(s string) {
+	m.system = &s
 }
 
 // SystemID returns the value of the "system_id" field in the mutation.
-func (m *UserSystemMutation) SystemID() (r int64, exists bool) {
+func (m *UserSystemMutation) SystemID() (r string, exists bool) {
 	v := m.system
 	if v == nil {
 		return
@@ -6059,7 +2982,7 @@ func (m *UserSystemMutation) SystemID() (r int64, exists bool) {
 // OldSystemID returns the old "system_id" field's value of the UserSystem entity.
 // If the UserSystem object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserSystemMutation) OldSystemID(ctx context.Context) (v int64, err error) {
+func (m *UserSystemMutation) OldSystemID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSystemID is only allowed on UpdateOne operations")
 	}
@@ -6078,6 +3001,42 @@ func (m *UserSystemMutation) ResetSystemID() {
 	m.system = nil
 }
 
+// SetUsername sets the "username" field.
+func (m *UserSystemMutation) SetUsername(s string) {
+	m.username = &s
+}
+
+// Username returns the value of the "username" field in the mutation.
+func (m *UserSystemMutation) Username() (r string, exists bool) {
+	v := m.username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsername returns the old "username" field's value of the UserSystem entity.
+// If the UserSystem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSystemMutation) OldUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsername: %w", err)
+	}
+	return oldValue.Username, nil
+}
+
+// ResetUsername resets all changes to the "username" field.
+func (m *UserSystemMutation) ResetUsername() {
+	m.username = nil
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *UserSystemMutation) ClearUser() {
 	m.cleareduser = true
@@ -6092,7 +3051,7 @@ func (m *UserSystemMutation) UserCleared() bool {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *UserSystemMutation) UserIDs() (ids []int64) {
+func (m *UserSystemMutation) UserIDs() (ids []string) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6119,7 +3078,7 @@ func (m *UserSystemMutation) SystemCleared() bool {
 // SystemIDs returns the "system" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SystemID instead. It exists only for internal usage by the builders.
-func (m *UserSystemMutation) SystemIDs() (ids []int64) {
+func (m *UserSystemMutation) SystemIDs() (ids []string) {
 	if id := m.system; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6166,12 +3125,15 @@ func (m *UserSystemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserSystemMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.user != nil {
 		fields = append(fields, usersystem.FieldUserID)
 	}
 	if m.system != nil {
 		fields = append(fields, usersystem.FieldSystemID)
+	}
+	if m.username != nil {
+		fields = append(fields, usersystem.FieldUsername)
 	}
 	return fields
 }
@@ -6185,6 +3147,8 @@ func (m *UserSystemMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case usersystem.FieldSystemID:
 		return m.SystemID()
+	case usersystem.FieldUsername:
+		return m.Username()
 	}
 	return nil, false
 }
@@ -6198,6 +3162,8 @@ func (m *UserSystemMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldUserID(ctx)
 	case usersystem.FieldSystemID:
 		return m.OldSystemID(ctx)
+	case usersystem.FieldUsername:
+		return m.OldUsername(ctx)
 	}
 	return nil, fmt.Errorf("unknown UserSystem field %s", name)
 }
@@ -6208,18 +3174,25 @@ func (m *UserSystemMutation) OldField(ctx context.Context, name string) (ent.Val
 func (m *UserSystemMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case usersystem.FieldUserID:
-		v, ok := value.(int64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUserID(v)
 		return nil
 	case usersystem.FieldSystemID:
-		v, ok := value.(int64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSystemID(v)
+		return nil
+	case usersystem.FieldUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsername(v)
 		return nil
 	}
 	return fmt.Errorf("unknown UserSystem field %s", name)
@@ -6228,16 +3201,13 @@ func (m *UserSystemMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserSystemMutation) AddedFields() []string {
-	var fields []string
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserSystemMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
 	return nil, false
 }
 
@@ -6278,6 +3248,9 @@ func (m *UserSystemMutation) ResetField(name string) error {
 		return nil
 	case usersystem.FieldSystemID:
 		m.ResetSystemID()
+		return nil
+	case usersystem.FieldUsername:
+		m.ResetUsername()
 		return nil
 	}
 	return fmt.Errorf("unknown UserSystem field %s", name)

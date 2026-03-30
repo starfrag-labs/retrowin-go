@@ -16,7 +16,7 @@ import (
 type System struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int64 `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -37,13 +37,11 @@ type System struct {
 type SystemEdges struct {
 	// Inodes holds the value of the inodes edge.
 	Inodes []*Inode `json:"inodes,omitempty"`
-	// Groups holds the value of the groups edge.
-	Groups []*Group `json:"groups,omitempty"`
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // InodesOrErr returns the Inodes value or an error if the edge
@@ -55,19 +53,10 @@ func (e SystemEdges) InodesOrErr() ([]*Inode, error) {
 	return nil, &NotLoadedError{edge: "inodes"}
 }
 
-// GroupsOrErr returns the Groups value or an error if the edge
-// was not loaded in eager-loading.
-func (e SystemEdges) GroupsOrErr() ([]*Group, error) {
-	if e.loadedTypes[1] {
-		return e.Groups, nil
-	}
-	return nil, &NotLoadedError{edge: "groups"}
-}
-
 // UsersOrErr returns the Users value or an error if the edge
 // was not loaded in eager-loading.
 func (e SystemEdges) UsersOrErr() ([]*User, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
@@ -78,9 +67,7 @@ func (*System) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case system.FieldID:
-			values[i] = new(sql.NullInt64)
-		case system.FieldName, system.FieldDescription, system.FieldStatus:
+		case system.FieldID, system.FieldName, system.FieldDescription, system.FieldStatus:
 			values[i] = new(sql.NullString)
 		case system.FieldCreateTime, system.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -100,11 +87,11 @@ func (_m *System) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case system.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				_m.ID = value.String
 			}
-			_m.ID = int64(value.Int64)
 		case system.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
@@ -152,11 +139,6 @@ func (_m *System) Value(name string) (ent.Value, error) {
 // QueryInodes queries the "inodes" edge of the System entity.
 func (_m *System) QueryInodes() *InodeQuery {
 	return NewSystemClient(_m.config).QueryInodes(_m)
-}
-
-// QueryGroups queries the "groups" edge of the System entity.
-func (_m *System) QueryGroups() *GroupQuery {
-	return NewSystemClient(_m.config).QueryGroups(_m)
 }
 
 // QueryUsers queries the "users" edge of the System entity.
