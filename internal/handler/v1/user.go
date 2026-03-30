@@ -7,7 +7,7 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/middleware"
-	"github.com/starfrag-lab/retrowin-go/internal/core/user"
+	"github.com/starfrag-lab/retrowin-go/internal/user"
 )
 
 // GetUser implements GET /user.

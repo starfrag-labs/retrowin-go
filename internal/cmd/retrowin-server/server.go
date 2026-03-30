@@ -34,8 +34,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	objectrepo "github.com/starfrag-lab/retrowin-go/internal/core/object/repository"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
-	"github.com/starfrag-lab/retrowin-go/internal/core/user"
-	userrepo "github.com/starfrag-lab/retrowin-go/internal/core/user/repository"
+	"github.com/starfrag-lab/retrowin-go/internal/user"
+	userrepo "github.com/starfrag-lab/retrowin-go/internal/user/repository"
 )
 
 // ProvideConfig provides the config from file.

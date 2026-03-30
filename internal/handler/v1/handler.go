@@ -11,7 +11,7 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/upload"
-	"github.com/starfrag-lab/retrowin-go/internal/core/user"
+	"github.com/starfrag-lab/retrowin-go/internal/user"
 )
 
 // Handler implements the ogen API handler interface.
