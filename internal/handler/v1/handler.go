@@ -8,7 +8,7 @@ import (
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
-	"github.com/starfrag-lab/retrowin-go/internal/core/auth"
+	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/upload"
 	"github.com/starfrag-lab/retrowin-go/internal/core/user"
