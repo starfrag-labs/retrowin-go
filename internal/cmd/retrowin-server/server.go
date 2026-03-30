@@ -22,8 +22,8 @@ import (
 	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
-	"github.com/starfrag-lab/retrowin-go/internal/application/upload"
+	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/core/auth"
 	authRepo "github.com/starfrag-lab/retrowin-go/internal/core/auth/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
@@ -300,7 +300,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			object.NewService,
 			// Application services
 			fs.NewService,
-			upload.NewService,
+			storage.NewService,
 			// Storage
 			ProvideStorage,
 			// HTTP layer

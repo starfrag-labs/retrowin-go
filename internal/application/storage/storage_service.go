@@ -1,4 +1,4 @@
-package upload
+package storage
 
 import (
 	"context"
@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
+	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-// UploadService defines the interface for upload operations.
-type UploadService interface {
+// StorageService defines the interface for file storage operations.
+type StorageService interface {
 	Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult, error)
 	GetDownloadURL(ctx context.Context, id string) (string, error)
-	Delete(ctx context.Context, id string) error
 }
 
 // UploadCommand for uploading a file.
@@ -40,14 +40,14 @@ type UploadResult struct {
 }
 
 type service struct {
-	inodeSvc  inode.InodeService
+	fsSvc     fs.FsService
 	objectSvc object.ObjectService
 }
 
-// NewService creates a new upload service.
-func NewService(inodeSvc inode.InodeService, objectSvc object.ObjectService) UploadService {
+// NewService creates a new storage service.
+func NewService(fsSvc fs.FsService, objectSvc object.ObjectService) StorageService {
 	return &service{
-		inodeSvc:  inodeSvc,
+		fsSvc:     fsSvc,
 		objectSvc: objectSvc,
 	}
 }
@@ -78,17 +78,17 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		return nil, errors.WrapInternal(err, "failed to marshal object content")
 	}
 
-	// Create inode with object reference
+	// Create inode via fs
 	mode := cmd.Mode
 	if mode == 0 {
 		mode = inode.ModeObject | inode.PermOwnerRW | inode.PermGroupRX | inode.PermOtherR
 	}
 
-	createdInode, err := s.inodeSvc.Create(ctx, &inode.CreateCommand{
+	createdInode, err := s.fsSvc.CreateFile(ctx, &fs.CreateFileCommand{
 		SystemID: cmd.SystemID,
-		Mode:     mode,
 		UID:      cmd.UID,
 		GID:      cmd.GID,
+		Mode:     mode,
 		Flags:    cmd.Flags,
 		Content:  cBytes,
 	})
@@ -103,7 +103,7 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 }
 
 func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error) {
-	in, err := s.inodeSvc.GetByID(ctx, id)
+	in, err := s.fsSvc.Get(ctx, id)
 	if err != nil {
 		return "", err
 	}
@@ -117,21 +117,4 @@ func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error)
 	}
 
 	return s.objectSvc.GetDownloadURL(ctx, c.ObjectID)
-}
-
-func (s *service) Delete(ctx context.Context, id string) error {
-	in, err := s.inodeSvc.GetByID(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	// Delete object (atomic: deletes from storage + DB)
-	var c content.ObjectContent
-	if err := json.Unmarshal(in.Content(), &c); err == nil && c.ObjectID != "" {
-		if err := s.objectSvc.Delete(ctx, c.ObjectID); err != nil {
-			return errors.WrapInternal(err, "failed to delete object")
-		}
-	}
-
-	return s.inodeSvc.Delete(ctx, id)
 }
