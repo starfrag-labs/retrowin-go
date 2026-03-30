@@ -13,7 +13,7 @@ import (
 // GetUser implements GET /user.
 func (h *Handler) GetUser(ctx context.Context) (apiv1.GetUserRes, error) {
 	userID := middleware.GetUserID(ctx)
-	if userID == 0 {
+	if userID == "" {
 		return &apiv1.GetUserUnauthorized{}, nil
 	}
 
@@ -53,7 +53,7 @@ func (h *Handler) CreateUser(ctx context.Context, req *apiv1.CreateUserRequest) 
 // DeleteUser implements DELETE /user.
 func (h *Handler) DeleteUser(ctx context.Context) (apiv1.DeleteUserRes, error) {
 	userID := middleware.GetUserID(ctx)
-	if userID == 0 {
+	if userID == "" {
 		return &apiv1.DeleteUserUnauthorized{}, nil
 	}
 

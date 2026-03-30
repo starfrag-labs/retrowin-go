@@ -20,11 +20,11 @@ const (
 )
 
 // GetUserID extracts user ID from context.
-func GetUserID(ctx context.Context) int64 {
-	if id, ok := ctx.Value(UserIDKey).(int64); ok {
+func GetUserID(ctx context.Context) string {
+	if id, ok := ctx.Value(UserIDKey).(string); ok {
 		return id
 	}
-	return 0
+	return ""
 }
 
 // GetUserUID extracts user UID from context.
@@ -44,7 +44,7 @@ func GetSessionID(ctx context.Context) string {
 }
 
 // SetUserID adds user ID to context.
-func SetUserID(ctx context.Context, id int64) context.Context {
+func SetUserID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, UserIDKey, id)
 }
 

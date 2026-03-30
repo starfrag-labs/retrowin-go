@@ -13,8 +13,7 @@ import (
 
 func TestSessionService_Create(t *testing.T) {
 	ctx := context.Background()
-	userID := int64(123)
-	userUID := "user-uid-123"
+	userID := "user-123"
 	ttl := 24 * time.Hour
 
 	t.Run("creates session successfully", func(t *testing.T) {
@@ -23,12 +22,11 @@ func TestSessionService_Create(t *testing.T) {
 
 		repo.EXPECT().Save(mock.Anything, mock.AnythingOfType("*auth.Session")).Return(nil)
 
-		session, err := svc.Create(ctx, userID, userUID)
+		session, err := svc.Create(ctx, userID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 		assert.Equal(t, userID, session.UserID())
-		assert.Equal(t, userUID, session.UserUID())
 		assert.NotEmpty(t, session.ID())
 		assert.True(t, session.ExpiresAt().After(time.Now()))
 	})
@@ -39,7 +37,7 @@ func TestSessionService_Create(t *testing.T) {
 
 		repo.EXPECT().Save(mock.Anything, mock.AnythingOfType("*auth.Session")).Return(assert.AnError)
 
-		session, err := svc.Create(ctx, userID, userUID)
+		session, err := svc.Create(ctx, userID)
 
 		assert.Error(t, err)
 		assert.Nil(t, session)
@@ -49,14 +47,14 @@ func TestSessionService_Create(t *testing.T) {
 func TestSessionService_Get(t *testing.T) {
 	ctx := context.Background()
 	sessionID := auth.SessionID("test-session-id")
-	userUID := "user-uid-123"
+	userID := "user-123"
 	ttl := 24 * time.Hour
 
 	t.Run("returns session when found", func(t *testing.T) {
 		repo := authMocks.NewSessionRepositoryMock(t)
 		svc := auth.NewSessionService(repo, ttl)
 
-		expectedSession := auth.NewSession(sessionID, 123, userUID, time.Now().Add(ttl), time.Now())
+		expectedSession := auth.NewSession(sessionID, userID, time.Now().Add(ttl), time.Now())
 		repo.EXPECT().Get(mock.Anything, sessionID).Return(expectedSession, nil)
 
 		session, err := svc.Get(ctx, sessionID)
@@ -81,14 +79,14 @@ func TestSessionService_Get(t *testing.T) {
 func TestSessionService_Validate(t *testing.T) {
 	ctx := context.Background()
 	sessionID := auth.SessionID("test-session-id")
-	userUID := "user-uid-123"
+	userID := "user-123"
 	ttl := 24 * time.Hour
 
 	t.Run("returns session when valid", func(t *testing.T) {
 		repo := authMocks.NewSessionRepositoryMock(t)
 		svc := auth.NewSessionService(repo, ttl)
 
-		validSession := auth.NewSession(sessionID, 123, userUID, time.Now().Add(ttl), time.Now())
+		validSession := auth.NewSession(sessionID, userID, time.Now().Add(ttl), time.Now())
 		repo.EXPECT().Get(mock.Anything, sessionID).Return(validSession, nil)
 
 		session, err := svc.Validate(ctx, sessionID)
@@ -113,7 +111,7 @@ func TestSessionService_Validate(t *testing.T) {
 		repo := authMocks.NewSessionRepositoryMock(t)
 		svc := auth.NewSessionService(repo, ttl)
 
-		expiredSession := auth.NewSession(sessionID, 123, userUID, time.Now().Add(-1*time.Hour), time.Now())
+		expiredSession := auth.NewSession(sessionID, userID, time.Now().Add(-1*time.Hour), time.Now())
 		repo.EXPECT().Get(mock.Anything, sessionID).Return(expiredSession, nil)
 
 		session, err := svc.Validate(ctx, sessionID)
@@ -153,7 +151,7 @@ func TestSessionService_Delete(t *testing.T) {
 
 func TestSessionService_DeleteByUserID(t *testing.T) {
 	ctx := context.Background()
-	userID := int64(123)
+	userID := "user-123"
 	ttl := 24 * time.Hour
 
 	t.Run("deletes all user sessions successfully", func(t *testing.T) {

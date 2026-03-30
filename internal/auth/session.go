@@ -11,18 +11,16 @@ type SessionID string
 // Session represents a user session.
 type Session struct {
 	id        SessionID
-	userID    int64
-	userUID   string
+	userID    string
 	expiresAt time.Time
 	createdAt time.Time
 }
 
 // NewSession creates a new session.
-func NewSession(id SessionID, userID int64, userUID string, expiresAt, createdAt time.Time) *Session {
+func NewSession(id SessionID, userID string, expiresAt, createdAt time.Time) *Session {
 	return &Session{
 		id:        id,
 		userID:    userID,
-		userUID:   userUID,
 		expiresAt: expiresAt,
 		createdAt: createdAt,
 	}
@@ -34,13 +32,8 @@ func (s *Session) ID() SessionID {
 }
 
 // UserID returns the user ID.
-func (s *Session) UserID() int64 {
+func (s *Session) UserID() string {
 	return s.userID
-}
-
-// UserUID returns the user UID.
-func (s *Session) UserUID() string {
-	return s.userUID
 }
 
 // ExpiresAt returns the expiration time.
@@ -61,7 +54,7 @@ func (s *Session) IsExpired() bool {
 // SessionService defines the session service interface.
 type SessionService interface {
 	// Create creates a new session for a user.
-	Create(ctx context.Context, userID int64, userUID string) (*Session, error)
+	Create(ctx context.Context, userID string) (*Session, error)
 
 	// Get retrieves a session by ID.
 	Get(ctx context.Context, id SessionID) (*Session, error)
@@ -73,5 +66,5 @@ type SessionService interface {
 	Delete(ctx context.Context, id SessionID) error
 
 	// DeleteByUserID deletes all sessions for a user.
-	DeleteByUserID(ctx context.Context, userID int64) error
+	DeleteByUserID(ctx context.Context, userID string) error
 }

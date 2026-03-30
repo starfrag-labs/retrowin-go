@@ -35,8 +35,7 @@ type CallbackRequest struct {
 // CallbackResponse contains the session after successful login.
 type CallbackResponse struct {
 	SessionID string    `json:"sessionId"`
-	UserID    int64     `json:"userId"`
-	UserUID   string    `json:"userUid"`
+	UserID    string    `json:"userId"`
 	ExpiresAt time.Time `json:"expiresAt"`
 }
 
@@ -165,7 +164,7 @@ func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) 
 	}
 
 	// Find or create user
-	userID, userUID, err := s.userSvc.FindOrCreate(
+	userID, err := s.userSvc.FindOrCreate(
 		ctx,
 		userInfo.Subject,
 		userInfo.Email,
@@ -177,7 +176,7 @@ func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) 
 	}
 
 	// Create session
-	sess, err := s.sessionSvc.Create(ctx, userID, userUID)
+	sess, err := s.sessionSvc.Create(ctx, userID)
 	if err != nil {
 		return nil, errors.Internal(fmt.Sprintf("failed to create session: %v", err))
 	}
@@ -188,7 +187,6 @@ func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) 
 	return &CallbackResponse{
 		SessionID: string(sess.ID()),
 		UserID:    userID,
-		UserUID:   userUID,
 		ExpiresAt: sess.ExpiresAt(),
 	}, nil
 }

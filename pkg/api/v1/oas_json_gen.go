@@ -141,11 +141,7 @@ func (s *CallbackResponse) encodeFields(e *jx.Encoder) {
 	}
 	{
 		e.FieldStart("userId")
-		e.Int64(s.UserId)
-	}
-	{
-		e.FieldStart("userUid")
-		e.Str(s.UserUid)
+		e.Str(s.UserId)
 	}
 	{
 		if s.ExpiresAt.Set {
@@ -155,11 +151,10 @@ func (s *CallbackResponse) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfCallbackResponse = [4]string{
+var jsonFieldsNameOfCallbackResponse = [3]string{
 	0: "sessionId",
 	1: "userId",
-	2: "userUid",
-	3: "expiresAt",
+	2: "expiresAt",
 }
 
 // Decode decodes CallbackResponse from json.
@@ -186,26 +181,14 @@ func (s *CallbackResponse) Decode(d *jx.Decoder) error {
 		case "userId":
 			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
-				v, err := d.Int64()
-				s.UserId = int64(v)
+				v, err := d.Str()
+				s.UserId = string(v)
 				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"userId\"")
-			}
-		case "userUid":
-			requiredBitSet[0] |= 1 << 2
-			if err := func() error {
-				v, err := d.Str()
-				s.UserUid = string(v)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"userUid\"")
 			}
 		case "expiresAt":
 			if err := func() error {
@@ -227,7 +210,7 @@ func (s *CallbackResponse) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00000011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

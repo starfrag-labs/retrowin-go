@@ -42,9 +42,7 @@ type CallbackResponse struct {
 	// Session ID for the authenticated user.
 	SessionId string `json:"sessionId"`
 	// User ID.
-	UserId int64 `json:"userId"`
-	// User UID (public identifier).
-	UserUid   string       `json:"userUid"`
+	UserId    string       `json:"userId"`
 	ExpiresAt OptTimestamp `json:"expiresAt"`
 }
 
@@ -54,13 +52,8 @@ func (s *CallbackResponse) GetSessionId() string {
 }
 
 // GetUserId returns the value of UserId.
-func (s *CallbackResponse) GetUserId() int64 {
+func (s *CallbackResponse) GetUserId() string {
 	return s.UserId
-}
-
-// GetUserUid returns the value of UserUid.
-func (s *CallbackResponse) GetUserUid() string {
-	return s.UserUid
 }
 
 // GetExpiresAt returns the value of ExpiresAt.
@@ -74,13 +67,8 @@ func (s *CallbackResponse) SetSessionId(val string) {
 }
 
 // SetUserId sets the value of UserId.
-func (s *CallbackResponse) SetUserId(val int64) {
+func (s *CallbackResponse) SetUserId(val string) {
 	s.UserId = val
-}
-
-// SetUserUid sets the value of UserUid.
-func (s *CallbackResponse) SetUserUid(val string) {
-	s.UserUid = val
 }
 
 // SetExpiresAt sets the value of ExpiresAt.
@@ -2560,9 +2548,7 @@ type Session struct {
 	// Session ID.
 	ID string `json:"id"`
 	// User ID.
-	UserId int64 `json:"userId"`
-	// User UID.
-	UserUid   string    `json:"userUid"`
+	UserId    string    `json:"userId"`
 	ExpiresAt Timestamp `json:"expiresAt"`
 	CreatedAt Timestamp `json:"createdAt"`
 }
@@ -2573,13 +2559,8 @@ func (s *Session) GetID() string {
 }
 
 // GetUserId returns the value of UserId.
-func (s *Session) GetUserId() int64 {
+func (s *Session) GetUserId() string {
 	return s.UserId
-}
-
-// GetUserUid returns the value of UserUid.
-func (s *Session) GetUserUid() string {
-	return s.UserUid
 }
 
 // GetExpiresAt returns the value of ExpiresAt.
@@ -2598,13 +2579,8 @@ func (s *Session) SetID(val string) {
 }
 
 // SetUserId sets the value of UserId.
-func (s *Session) SetUserId(val int64) {
+func (s *Session) SetUserId(val string) {
 	s.UserId = val
-}
-
-// SetUserUid sets the value of UserUid.
-func (s *Session) SetUserUid(val string) {
-	s.UserUid = val
 }
 
 // SetExpiresAt sets the value of ExpiresAt.

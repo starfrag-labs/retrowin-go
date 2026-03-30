@@ -22,10 +22,14 @@ import (
 	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
+	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/application/upload"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/storage"
+	s3storage "github.com/starfrag-lab/retrowin-go/internal/storage/s3"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 )
 
@@ -138,6 +142,11 @@ func ProvideSessionTTL(cfg *config.Config) time.Duration {
 // ProvideAuthUserService provides the auth user service.
 func ProvideAuthUserService(userSvc user.Service) auth.UserService {
 	return auth.NewUserService(userSvc)
+}
+
+// ProvideStorage provides the S3 storage.
+func ProvideStorage(cfg *config.Config) (storage.Storage, error) {
+	return s3storage.New(&cfg.Storage)
 }
 
 // ProvideHTTPMux provides the HTTP mux with all routes.
@@ -283,6 +292,11 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			// Domain services
 			user.NewService,
 			inode.NewService,
+			// Application services
+			fs.NewService,
+			upload.NewService,
+			// Storage
+			ProvideStorage,
 			// HTTP layer
 			handler.NewHandler,
 			ProvideOgenServer,

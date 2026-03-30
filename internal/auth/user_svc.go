@@ -19,11 +19,12 @@ func NewUserService(userSvc user.Service) UserService {
 }
 
 // FindOrCreate finds an existing user by OIDC subject or creates a new one.
-func (a *userService) FindOrCreate(ctx context.Context, subject, email, name, picture string) (int64, string, error) {
+func (a *userService) FindOrCreate(ctx context.Context, subject, email, name, picture string) (string, error) {
 	// Find or create user by provider subject (always use keycloak)
-	userID, userUID, err := a.userSvc.FindOrCreateByOIDC(ctx, "keycloak", subject, email, name, picture)
-	if err != nil {
-		return 0, "", err
+	// Use name as username, fallback to email
+	username := name
+	if username == "" {
+		username = email
 	}
-	return userID, userUID, nil
+	return a.userSvc.FindOrCreateByOIDC(ctx, "keycloak", subject, username)
 }

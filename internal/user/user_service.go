@@ -9,28 +9,17 @@ import (
 
 // Service defines the interface for user operations.
 type Service interface {
-	// Get retrieves a user by provider and provider ID.
 	Get(ctx context.Context, provider, providerID string) (*User, error)
-
-	// GetByID retrieves a user by ID.
-	GetByID(ctx context.Context, id int64) (*User, error)
-
-	// GetByUID retrieves a user by UID.
-	GetByUID(ctx context.Context, uid string) (*User, error)
-
-	// Create creates a new user.
+	GetByID(ctx context.Context, id string) (*User, error)
+	GetByUsername(ctx context.Context, username string) (*User, error)
 	Create(ctx context.Context, cmd *CreateCommand) (*User, error)
-
-	// Delete deletes a user.
 	Delete(ctx context.Context, provider, providerID string) error
-
-	// FindOrCreateByOIDC finds an existing user by OIDC subject or creates a new one.
-	// Returns userID (int64) and userUID (string).
-	FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, string, error)
+	FindOrCreateByOIDC(ctx context.Context, provider, subject, username string) (string, error)
 }
 
 // CreateCommand for creating a user (service layer).
 type CreateCommand struct {
+	Username   string
 	Provider   string
 	ProviderID string
 }
@@ -59,7 +48,7 @@ func (s *service) Get(ctx context.Context, provider, providerID string) (*User, 
 	return user, nil
 }
 
-func (s *service) GetByID(ctx context.Context, id int64) (*User, error) {
+func (s *service) GetByID(ctx context.Context, id string) (*User, error) {
 	user, err := s.repo.GetByID(ctx, s.client, id)
 	if err != nil {
 		return nil, err
@@ -70,8 +59,8 @@ func (s *service) GetByID(ctx context.Context, id int64) (*User, error) {
 	return user, nil
 }
 
-func (s *service) GetByUID(ctx context.Context, uid string) (*User, error) {
-	user, err := s.repo.GetByUID(ctx, s.client, uid)
+func (s *service) GetByUsername(ctx context.Context, username string) (*User, error) {
+	user, err := s.repo.GetByUsername(ctx, s.client, username)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +71,6 @@ func (s *service) GetByUID(ctx context.Context, uid string) (*User, error) {
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error) {
-	// Validate input
 	if cmd.Provider == "" {
 		return nil, errors.BadRequest("provider is required")
 	}
@@ -93,7 +81,6 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 		return nil, errors.BadRequest("invalid provider")
 	}
 
-	// Check if user already exists
 	exists, err := s.repo.ExistsByProvider(ctx, s.client, cmd.Provider, cmd.ProviderID)
 	if err != nil {
 		return nil, err
@@ -102,8 +89,8 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 		return nil, errors.Conflict("user already exists")
 	}
 
-	// Create user
 	params := &CreateParams{
+		Username:   cmd.Username,
 		Provider:   cmd.Provider,
 		ProviderID: cmd.ProviderID,
 	}
@@ -118,32 +105,29 @@ func (s *service) Delete(ctx context.Context, provider, providerID string) error
 	if user == nil {
 		return errors.NotFound("user not found")
 	}
-
-	// Delete user
 	return s.repo.Delete(ctx, s.client, user.ID())
 }
 
-func (s *service) FindOrCreateByOIDC(ctx context.Context, provider, subject, email, name, picture string) (int64, string, error) {
-	// Try to find existing user
+func (s *service) FindOrCreateByOIDC(ctx context.Context, provider, subject, username string) (string, error) {
 	user, err := s.repo.GetByProvider(ctx, s.client, provider, subject)
 	if err != nil {
-		return 0, "", err
+		return "", err
 	}
 
 	if user != nil {
-		return user.ID(), user.UID(), nil
+		return user.ID(), nil
 	}
 
-	// Create new user
 	createCmd := &CreateCommand{
+		Username:   username,
 		Provider:   provider,
 		ProviderID: subject,
 	}
 
 	newUser, err := s.Create(ctx, createCmd)
 	if err != nil {
-		return 0, "", err
+		return "", err
 	}
 
-	return newUser.ID(), newUser.UID(), nil
+	return newUser.ID(), nil
 }

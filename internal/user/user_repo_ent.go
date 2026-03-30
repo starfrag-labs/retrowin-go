@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-	"github.com/starfrag-lab/retrowin-go/ent/user"
+	entuser "github.com/starfrag-lab/retrowin-go/ent/user"
 )
 
 // EntRepository implements Repository using Ent.
@@ -16,10 +16,10 @@ func NewEntRepository() Repository {
 	return &EntRepository{}
 }
 
-// Create creates a new user.
 func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *CreateParams) (*User, error) {
 	entUser, err := client.User.
 		Create().
+		SetUsername(params.Username).
 		SetProvider(params.Provider).
 		SetProviderID(params.ProviderID).
 		Save(ctx)
@@ -29,11 +29,10 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return fromEnt(entUser), nil
 }
 
-// GetByID retrieves a user by ID.
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*User, error) {
+func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*User, error) {
 	entUser, err := client.User.
 		Query().
-		Where(user.ID(id)).
+		Where(entuser.ID(id)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -44,11 +43,10 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int6
 	return fromEnt(entUser), nil
 }
 
-// GetByUID retrieves a user by UID.
-func (r *EntRepository) GetByUID(ctx context.Context, client *ent.Client, uid string) (*User, error) {
+func (r *EntRepository) GetByUsername(ctx context.Context, client *ent.Client, username string) (*User, error) {
 	entUser, err := client.User.
 		Query().
-		Where(user.UID(uid)).
+		Where(entuser.Username(username)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -59,13 +57,12 @@ func (r *EntRepository) GetByUID(ctx context.Context, client *ent.Client, uid st
 	return fromEnt(entUser), nil
 }
 
-// GetByProvider retrieves a user by provider and provider ID.
 func (r *EntRepository) GetByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (*User, error) {
 	entUser, err := client.User.
 		Query().
 		Where(
-			user.Provider(provider),
-			user.ProviderID(providerID),
+			entuser.Provider(provider),
+			entuser.ProviderID(providerID),
 		).
 		Only(ctx)
 	if err != nil {
@@ -77,20 +74,16 @@ func (r *EntRepository) GetByProvider(ctx context.Context, client *ent.Client, p
 	return fromEnt(entUser), nil
 }
 
-// Delete deletes a user by ID.
-func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id int64) error {
-	return client.User.
-		DeleteOneID(id).
-		Exec(ctx)
+func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id string) error {
+	return client.User.DeleteOneID(id).Exec(ctx)
 }
 
-// ExistsByProvider checks if a user exists by provider and provider ID.
 func (r *EntRepository) ExistsByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (bool, error) {
 	return client.User.
 		Query().
 		Where(
-			user.Provider(provider),
-			user.ProviderID(providerID),
+			entuser.Provider(provider),
+			entuser.ProviderID(providerID),
 		).
 		Exist(ctx)
 }
@@ -98,7 +91,7 @@ func (r *EntRepository) ExistsByProvider(ctx context.Context, client *ent.Client
 func fromEnt(e *ent.User) *User {
 	return NewUser(
 		e.ID,
-		e.UID,
+		e.Username,
 		e.Provider,
 		e.ProviderID,
 		e.JoinDate,

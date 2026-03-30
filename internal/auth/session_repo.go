@@ -16,5 +16,5 @@ type SessionRepository interface {
 	Delete(ctx context.Context, id SessionID) error
 
 	// DeleteByUserID deletes all sessions for a user.
-	DeleteByUserID(ctx context.Context, userID int64) error
+	DeleteByUserID(ctx context.Context, userID string) error
 }

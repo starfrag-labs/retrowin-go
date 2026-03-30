@@ -22,8 +22,8 @@ func IsValidProvider(provider string) bool {
 
 // User represents a user in the system.
 type User struct {
-	id         int64
-	uid        string
+	id         string
+	username   string
 	provider   string
 	providerID string
 	joinDate   time.Time
@@ -33,8 +33,8 @@ type User struct {
 
 // NewUser creates a new User.
 func NewUser(
-	id int64,
-	uid string,
+	id string,
+	username string,
 	provider string,
 	providerID string,
 	joinDate time.Time,
@@ -43,7 +43,7 @@ func NewUser(
 ) *User {
 	return &User{
 		id:         id,
-		uid:        uid,
+		username:   username,
 		provider:   provider,
 		providerID: providerID,
 		joinDate:   joinDate,
@@ -53,10 +53,10 @@ func NewUser(
 }
 
 // Getters
-func (u *User) ID() int64            { return u.id }
-func (u *User) UID() string          { return u.uid }
-func (u *User) Provider() string     { return u.provider }
-func (u *User) ProviderID() string   { return u.providerID }
-func (u *User) JoinDate() time.Time  { return u.joinDate }
-func (u *User) CreatedAt() time.Time { return u.createdAt }
-func (u *User) UpdatedAt() time.Time { return u.updatedAt }
+func (u *User) ID() string            { return u.id }
+func (u *User) Username() string      { return u.username }
+func (u *User) Provider() string      { return u.provider }
+func (u *User) ProviderID() string    { return u.providerID }
+func (u *User) JoinDate() time.Time   { return u.joinDate }
+func (u *User) CreatedAt() time.Time  { return u.createdAt }
+func (u *User) UpdatedAt() time.Time  { return u.updatedAt }

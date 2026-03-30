@@ -35,8 +35,7 @@ CallbackResponse:
       type: string
       description: Session ID for the authenticated user
     userId:
-      type: integer
-      format: int64
+      type: string
       description: User ID
     expiresAt:
       $ref: './common.yaml#/Timestamp'
