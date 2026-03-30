@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-	"github.com/starfrag-lab/retrowin-go/ent/system"
+	entsystem "github.com/starfrag-lab/retrowin-go/ent/system"
 )
 
 // EntRepository implements Repository using Ent.
@@ -16,25 +16,25 @@ func NewEntRepository() Repository {
 	return &EntRepository{}
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, cmd *CreateCommand) (*System, error) {
+func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *CreateParams) (*System, error) {
 	builder := client.System.Create().
-		SetName(cmd.Name).
-		SetStatus(system.Status(cmd.Status))
+		SetName(params.Name).
+		SetStatus(entsystem.Status(params.Status))
 
-	if cmd.Description != nil {
-		builder.SetDescription(*cmd.Description)
+	if params.Description != nil {
+		builder.SetDescription(*params.Description)
 	}
 
 	entSystem, err := builder.Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system: %w", err)
 	}
-	return fromEntSystem(entSystem), nil
+	return fromEnt(entSystem), nil
 }
 
 func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*System, error) {
 	entSystem, err := client.System.Query().
-		Where(system.ID(id)).
+		Where(entsystem.ID(id)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -42,12 +42,12 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int6
 		}
 		return nil, fmt.Errorf("failed to get system: %w", err)
 	}
-	return fromEntSystem(entSystem), nil
+	return fromEnt(entSystem), nil
 }
 
 func (r *EntRepository) GetByName(ctx context.Context, client *ent.Client, name string) (*System, error) {
 	entSystem, err := client.System.Query().
-		Where(system.Name(name)).
+		Where(entsystem.Name(name)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -55,20 +55,20 @@ func (r *EntRepository) GetByName(ctx context.Context, client *ent.Client, name 
 		}
 		return nil, fmt.Errorf("failed to get system by name: %w", err)
 	}
-	return fromEntSystem(entSystem), nil
+	return fromEnt(entSystem), nil
 }
 
-func (r *EntRepository) Update(ctx context.Context, client *ent.Client, cmd *UpdateCommand) error {
-	builder := client.System.UpdateOneID(cmd.ID)
+func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *UpdateParams) error {
+	builder := client.System.UpdateOneID(params.ID)
 
-	if cmd.Name != nil {
-		builder.SetName(*cmd.Name)
+	if params.Name != nil {
+		builder.SetName(*params.Name)
 	}
-	if cmd.Description != nil {
-		builder.SetDescription(*cmd.Description)
+	if params.Description != nil {
+		builder.SetDescription(*params.Description)
 	}
-	if cmd.Status != nil {
-		builder.SetStatus(system.Status(*cmd.Status))
+	if params.Status != nil {
+		builder.SetStatus(entsystem.Status(*params.Status))
 	}
 
 	return builder.Exec(ctx)
@@ -78,7 +78,7 @@ func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id int64
 	return client.System.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter Filter) ([]*System, error) {
+func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*System, error) {
 	query := client.System.Query()
 	query = applyFilter(query, filter)
 
@@ -86,10 +86,10 @@ func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter Fil
 	if err != nil {
 		return nil, fmt.Errorf("failed to find systems: %w", err)
 	}
-	return fromEntSystems(entSystems), nil
+	return fromEntSlice(entSystems), nil
 }
 
-func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter Filter) (*System, error) {
+func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*System, error) {
 	query := client.System.Query()
 	query = applyFilter(query, filter)
 
@@ -100,43 +100,46 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 		}
 		return nil, fmt.Errorf("failed to find system: %w", err)
 	}
-	return fromEntSystem(entSystem), nil
+	return fromEnt(entSystem), nil
 }
 
-func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter Filter) (bool, error) {
+func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter *QueryFilter) (bool, error) {
 	query := client.System.Query()
 	query = applyFilter(query, filter)
 	return query.Exist(ctx)
 }
 
-func applyFilter(query *ent.SystemQuery, filter Filter) *ent.SystemQuery {
+func applyFilter(query *ent.SystemQuery, filter *QueryFilter) *ent.SystemQuery {
+	if filter == nil {
+		return query
+	}
 	if filter.ID != nil {
-		query = query.Where(system.ID(*filter.ID))
+		query = query.Where(entsystem.ID(*filter.ID))
 	}
 	if filter.Name != nil {
-		query = query.Where(system.Name(*filter.Name))
+		query = query.Where(entsystem.Name(*filter.Name))
 	}
 	if filter.Status != nil {
-		query = query.Where(system.StatusEQ(system.Status(*filter.Status)))
+		query = query.Where(entsystem.StatusEQ(entsystem.Status(*filter.Status)))
 	}
 	return query
 }
 
-func fromEntSystem(e *ent.System) *System {
-	return &System{
-		ID:          e.ID,
-		Name:        e.Name,
-		Description: e.Description,
-		Status:      Status(e.Status),
-		CreatedAt:   e.CreateTime,
-		UpdatedAt:   e.UpdateTime,
-	}
+func fromEnt(e *ent.System) *System {
+	return NewSystem(
+		e.ID,
+		e.Name,
+		e.Description,
+		Status(e.Status),
+		e.CreateTime,
+		e.UpdateTime,
+	)
 }
 
-func fromEntSystems(systems []*ent.System) []*System {
+func fromEntSlice(systems []*ent.System) []*System {
 	result := make([]*System, len(systems))
 	for i, e := range systems {
-		result[i] = fromEntSystem(e)
+		result[i] = fromEnt(e)
 	}
 	return result
 }

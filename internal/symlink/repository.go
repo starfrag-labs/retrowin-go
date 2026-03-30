@@ -8,8 +8,20 @@ import (
 
 // Repository defines the interface for symlink data access.
 type Repository interface {
-	Create(ctx context.Context, client *ent.Client, cmd *CreateCommand) (*Symlink, error)
+	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Symlink, error)
 	GetByInodeID(ctx context.Context, client *ent.Client, inodeID int64) (*Symlink, error)
-	Update(ctx context.Context, client *ent.Client, cmd *UpdateCommand) error
+	Update(ctx context.Context, client *ent.Client, params *UpdateParams) error
 	Delete(ctx context.Context, client *ent.Client, inodeID int64) error
+}
+
+// CreateParams for creating a symlink (repository layer).
+type CreateParams struct {
+	InodeID    int64
+	TargetPath string
+}
+
+// UpdateParams for updating a symlink (repository layer).
+type UpdateParams struct {
+	InodeID    int64
+	TargetPath string
 }

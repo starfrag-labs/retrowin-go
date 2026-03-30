@@ -16,16 +16,16 @@ func NewEntRepository() Repository {
 	return &EntRepository{}
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, cmd *CreateCommand) (*Group, error) {
+func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Group, error) {
 	entGroup, err := client.Group.Create().
-		SetSystemID(cmd.SystemID).
-		SetGid(cmd.GID).
-		SetGroupname(cmd.Groupname).
+		SetSystemID(params.SystemID).
+		SetGid(params.GID).
+		SetGroupname(params.Groupname).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create group: %w", err)
 	}
-	return fromEntGroup(entGroup), nil
+	return fromEnt(entGroup), nil
 }
 
 func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*Group, error) {
@@ -38,7 +38,7 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int6
 		}
 		return nil, fmt.Errorf("failed to get group: %w", err)
 	}
-	return fromEntGroup(entGroup), nil
+	return fromEnt(entGroup), nil
 }
 
 func (r *EntRepository) GetBySystemIDAndGID(ctx context.Context, client *ent.Client, systemID int64, gid string) (*Group, error) {
@@ -54,7 +54,7 @@ func (r *EntRepository) GetBySystemIDAndGID(ctx context.Context, client *ent.Cli
 		}
 		return nil, fmt.Errorf("failed to get group: %w", err)
 	}
-	return fromEntGroup(entGroup), nil
+	return fromEnt(entGroup), nil
 }
 
 func (r *EntRepository) GetBySystemIDAndGroupname(ctx context.Context, client *ent.Client, systemID int64, groupname string) (*Group, error) {
@@ -70,14 +70,14 @@ func (r *EntRepository) GetBySystemIDAndGroupname(ctx context.Context, client *e
 		}
 		return nil, fmt.Errorf("failed to get group: %w", err)
 	}
-	return fromEntGroup(entGroup), nil
+	return fromEnt(entGroup), nil
 }
 
-func (r *EntRepository) Update(ctx context.Context, client *ent.Client, cmd *UpdateCommand) error {
-	builder := client.Group.UpdateOneID(cmd.ID)
+func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *UpdateParams) error {
+	builder := client.Group.UpdateOneID(params.ID)
 
-	if cmd.Groupname != nil {
-		builder.SetGroupname(*cmd.Groupname)
+	if params.Groupname != nil {
+		builder.SetGroupname(*params.Groupname)
 	}
 
 	return builder.Exec(ctx)
@@ -87,7 +87,7 @@ func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id int64
 	return client.Group.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter Filter) ([]*Group, error) {
+func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Group, error) {
 	query := client.Group.Query()
 	query = applyFilter(query, filter)
 
@@ -95,10 +95,10 @@ func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter Fil
 	if err != nil {
 		return nil, fmt.Errorf("failed to find groups: %w", err)
 	}
-	return fromEntGroups(entGroups), nil
+	return fromEntSlice(entGroups), nil
 }
 
-func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter Filter) (*Group, error) {
+func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Group, error) {
 	query := client.Group.Query()
 	query = applyFilter(query, filter)
 
@@ -109,16 +109,19 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 		}
 		return nil, fmt.Errorf("failed to find group: %w", err)
 	}
-	return fromEntGroup(entGroup), nil
+	return fromEnt(entGroup), nil
 }
 
-func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter Filter) (bool, error) {
+func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter *QueryFilter) (bool, error) {
 	query := client.Group.Query()
 	query = applyFilter(query, filter)
 	return query.Exist(ctx)
 }
 
-func applyFilter(query *ent.GroupQuery, filter Filter) *ent.GroupQuery {
+func applyFilter(query *ent.GroupQuery, filter *QueryFilter) *ent.GroupQuery {
+	if filter == nil {
+		return query
+	}
 	if filter.ID != nil {
 		query = query.Where(entgroup.ID(*filter.ID))
 	}
@@ -134,21 +137,21 @@ func applyFilter(query *ent.GroupQuery, filter Filter) *ent.GroupQuery {
 	return query
 }
 
-func fromEntGroup(e *ent.Group) *Group {
-	return &Group{
-		ID:        e.ID,
-		SystemID:  e.SystemID,
-		GID:       e.Gid,
-		Groupname: e.Groupname,
-		CreatedAt: e.CreateTime,
-		UpdatedAt: e.UpdateTime,
-	}
+func fromEnt(e *ent.Group) *Group {
+	return NewGroup(
+		e.ID,
+		e.SystemID,
+		e.Gid,
+		e.Groupname,
+		e.CreateTime,
+		e.UpdateTime,
+	)
 }
 
-func fromEntGroups(groups []*ent.Group) []*Group {
+func fromEntSlice(groups []*ent.Group) []*Group {
 	result := make([]*Group, len(groups))
 	for i, e := range groups {
-		result[i] = fromEntGroup(e)
+		result[i] = fromEnt(e)
 	}
 	return result
 }

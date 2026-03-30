@@ -43,11 +43,11 @@ func (s *service) GetUploadURL(ctx context.Context, inodeID int64) (*UploadURL, 
 		return nil, err
 	}
 
-	if f.FileType != inode.FileTypeRegular {
+	if f.FileType() != inode.FileTypeRegular {
 		return nil, errors.BadRequest("cannot upload content to a directory")
 	}
 
-	storageKey := s.getStorageKey(f.OwnerUID, inodeID)
+	storageKey := s.getStorageKey(f.OwnerUID(), inodeID)
 
 	uploadURL, err := s.storage.GetPresignedUploadURL(ctx, storageKey, DefaultUploadExpiry)
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *service) CompleteUpload(ctx context.Context, inodeID int64, byteSize in
 		return nil, err
 	}
 
-	storageKey := s.getStorageKey(f.OwnerUID, inodeID)
+	storageKey := s.getStorageKey(f.OwnerUID(), inodeID)
 	exists, err := s.storage.ObjectExists(ctx, storageKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check object existence: %w", err)
@@ -99,15 +99,15 @@ func (s *service) GetStreamURL(ctx context.Context, inodeID int64) (*StreamURL, 
 		return nil, err
 	}
 
-	if f.FileType != inode.FileTypeRegular {
+	if f.FileType() != inode.FileTypeRegular {
 		return nil, errors.BadRequest("cannot stream a directory")
 	}
 
-	if f.ByteSize == 0 {
+	if f.ByteSize() == 0 {
 		return nil, errors.NotFound("file content not found in storage")
 	}
 
-	storageKey := s.getStorageKey(f.OwnerUID, inodeID)
+	storageKey := s.getStorageKey(f.OwnerUID(), inodeID)
 
 	downloadURL, err := s.storage.GetPresignedDownloadURL(ctx, storageKey, DefaultStreamExpiry)
 	if err != nil {

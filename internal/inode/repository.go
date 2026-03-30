@@ -2,42 +2,52 @@ package inode
 
 import (
 	"context"
+	"time"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
 // Repository defines the interface for inode data access.
 type Repository interface {
-	Create(ctx context.Context, client *ent.Client, cmd *CreateCommand) (*Inode, error)
+	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Inode, error)
 	GetByID(ctx context.Context, client *ent.Client, id int64) (*Inode, error)
-	Update(ctx context.Context, client *ent.Client, cmd *UpdateCommand) error
+	Update(ctx context.Context, client *ent.Client, params *UpdateParams) error
 	Delete(ctx context.Context, client *ent.Client, id int64) error
-	Find(ctx context.Context, client *ent.Client, filter Filter) ([]*Inode, error)
-	FindOne(ctx context.Context, client *ent.Client, filter Filter) (*Inode, error)
+	Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Inode, error)
+	FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Inode, error)
 	UpdateLinkCount(ctx context.Context, client *ent.Client, id int64, delta int16) error
 }
 
-// FileDataRepository defines the interface for file data access.
-// This is an internal repository, not exposed as a service.
-type FileDataRepository interface {
-	Create(ctx context.Context, client *ent.Client, cmd *CreateFileDataCommand) (*FileData, error)
-	GetByInodeID(ctx context.Context, client *ent.Client, inodeID int64) (*FileData, error)
-	Update(ctx context.Context, client *ent.Client, cmd *UpdateFileDataCommand) error
-	Delete(ctx context.Context, client *ent.Client, inodeID int64) error
+// CreateParams for creating a new inode (repository layer).
+type CreateParams struct {
+	SystemID   *int64
+	FileType   FileType
+	OwnerUID   string
+	OwnerGID   string
+	PermOwner  string
+	PermGroup  string
+	PermOthers string
+	IsSystem   bool
+	SystemType *string
 }
 
-// CreateFileDataCommand for creating file data.
-type CreateFileDataCommand struct {
-	InodeID     int64
-	StorageType StorageType
-	Location    string
-	Checksum    *string
+// UpdateParams for updating an inode (repository layer).
+type UpdateParams struct {
+	ID         int64
+	ByteSize   *int64
+	PermOwner  *string
+	PermGroup  *string
+	PermOthers *string
+	LinkCount  *int16
+	AccessedAt *time.Time
 }
 
-// UpdateFileDataCommand for updating file data.
-type UpdateFileDataCommand struct {
-	InodeID     int64
-	StorageType *StorageType
-	Location    *string
-	Checksum    *string
+// QueryFilter for querying inodes (repository layer).
+type QueryFilter struct {
+	ID         *int64
+	SystemID   *int64
+	OwnerUID   *string
+	FileType   *FileType
+	IsSystem   *bool
+	SystemType *string
 }

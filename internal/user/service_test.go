@@ -255,7 +255,7 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 		}
 		userRepo.EXPECT().Create(mock.Anything, user.ProviderKeycloak, "subject-123").Return(newUser, nil)
 
-	userID, userUID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "test@example.com", "Test User", "")
+		userID, userUID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "test@example.com", "Test User", "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, int64(456), userID)

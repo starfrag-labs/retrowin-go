@@ -7,24 +7,24 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-// CreateCommand for creating a symlink.
-type CreateCommand struct {
-	InodeID    int64
-	TargetPath string
-}
-
-// UpdateCommand for updating a symlink.
-type UpdateCommand struct {
-	InodeID    int64
-	TargetPath string
-}
-
 // Service defines the interface for symlink operations.
 type Service interface {
 	Create(ctx context.Context, cmd *CreateCommand) (*Symlink, error)
 	GetByInodeID(ctx context.Context, inodeID int64) (*Symlink, error)
 	Update(ctx context.Context, cmd *UpdateCommand) error
 	Delete(ctx context.Context, inodeID int64) error
+}
+
+// CreateCommand for creating a symlink (service layer).
+type CreateCommand struct {
+	InodeID    int64
+	TargetPath string
+}
+
+// UpdateCommand for updating a symlink (service layer).
+type UpdateCommand struct {
+	InodeID    int64
+	TargetPath string
 }
 
 type service struct {
@@ -38,7 +38,11 @@ func NewService(repo Repository, client *ent.Client) Service {
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Symlink, error) {
-	return s.repo.Create(ctx, s.client, cmd)
+	params := &CreateParams{
+		InodeID:    cmd.InodeID,
+		TargetPath: cmd.TargetPath,
+	}
+	return s.repo.Create(ctx, s.client, params)
 }
 
 func (s *service) GetByInodeID(ctx context.Context, inodeID int64) (*Symlink, error) {
@@ -53,7 +57,11 @@ func (s *service) GetByInodeID(ctx context.Context, inodeID int64) (*Symlink, er
 }
 
 func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
-	return s.repo.Update(ctx, s.client, cmd)
+	params := &UpdateParams{
+		InodeID:    cmd.InodeID,
+		TargetPath: cmd.TargetPath,
+	}
+	return s.repo.Update(ctx, s.client, params)
 }
 
 func (s *service) Delete(ctx context.Context, inodeID int64) error {

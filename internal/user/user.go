@@ -22,17 +22,41 @@ func IsValidProvider(provider string) bool {
 
 // User represents a user in the system.
 type User struct {
-	ID         int64     `json:"id"`
-	UID        string    `json:"uid"`
-	Provider   string    `json:"provider"`
-	ProviderID string    `json:"providerId"`
-	JoinDate   time.Time `json:"joinDate"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	id         int64
+	uid        string
+	provider   string
+	providerID string
+	joinDate   time.Time
+	createdAt  time.Time
+	updatedAt  time.Time
 }
 
-// CreateCommand represents the command to create a new user.
-type CreateCommand struct {
-	Provider   string `json:"provider"`
-	ProviderID string `json:"providerId"`
+// NewUser creates a new User.
+func NewUser(
+	id int64,
+	uid string,
+	provider string,
+	providerID string,
+	joinDate time.Time,
+	createdAt time.Time,
+	updatedAt time.Time,
+) *User {
+	return &User{
+		id:         id,
+		uid:        uid,
+		provider:   provider,
+		providerID: providerID,
+		joinDate:   joinDate,
+		createdAt:  createdAt,
+		updatedAt:  updatedAt,
+	}
 }
+
+// Getters
+func (u *User) ID() int64            { return u.id }
+func (u *User) UID() string          { return u.uid }
+func (u *User) Provider() string     { return u.provider }
+func (u *User) ProviderID() string   { return u.providerID }
+func (u *User) JoinDate() time.Time  { return u.joinDate }
+func (u *User) CreatedAt() time.Time { return u.createdAt }
+func (u *User) UpdatedAt() time.Time { return u.updatedAt }

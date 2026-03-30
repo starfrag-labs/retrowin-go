@@ -7,20 +7,32 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-// CreateCommand for creating a group.
+// Service defines the interface for group operations.
+type Service interface {
+	Create(ctx context.Context, cmd *CreateCommand) (*Group, error)
+	GetByID(ctx context.Context, id int64) (*Group, error)
+	GetBySystemIDAndGID(ctx context.Context, systemID int64, gid string) (*Group, error)
+	GetBySystemIDAndGroupname(ctx context.Context, systemID int64, groupname string) (*Group, error)
+	Update(ctx context.Context, cmd *UpdateCommand) error
+	Delete(ctx context.Context, id int64) error
+	Find(ctx context.Context, filter Filter) ([]*Group, error)
+	FindOne(ctx context.Context, filter Filter) (*Group, error)
+}
+
+// CreateCommand for creating a group (service layer).
 type CreateCommand struct {
 	SystemID  int64
 	GID       string
 	Groupname string
 }
 
-// UpdateCommand for updating a group.
+// UpdateCommand for updating a group (service layer).
 type UpdateCommand struct {
 	ID        int64
 	Groupname *string
 }
 
-// Filter for querying groups.
+// Filter for querying groups (service layer).
 type Filter struct {
 	ID        *int64
 	SystemID  *int64
@@ -45,16 +57,14 @@ func BySystemIDAndGroupname(systemID int64, groupname string) Filter {
 	return Filter{SystemID: &systemID, Groupname: &groupname}
 }
 
-// Service defines the interface for group operations.
-type Service interface {
-	Create(ctx context.Context, cmd *CreateCommand) (*Group, error)
-	GetByID(ctx context.Context, id int64) (*Group, error)
-	GetBySystemIDAndGID(ctx context.Context, systemID int64, gid string) (*Group, error)
-	GetBySystemIDAndGroupname(ctx context.Context, systemID int64, groupname string) (*Group, error)
-	Update(ctx context.Context, cmd *UpdateCommand) error
-	Delete(ctx context.Context, id int64) error
-	Find(ctx context.Context, filter Filter) ([]*Group, error)
-	FindOne(ctx context.Context, filter Filter) (*Group, error)
+// toQueryFilter converts service Filter to repository QueryFilter.
+func (f Filter) toQueryFilter() *QueryFilter {
+	return &QueryFilter{
+		ID:        f.ID,
+		SystemID:  f.SystemID,
+		GID:       f.GID,
+		Groupname: f.Groupname,
+	}
 }
 
 type service struct {
@@ -68,7 +78,12 @@ func NewService(repo Repository, client *ent.Client) Service {
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Group, error) {
-	return s.repo.Create(ctx, s.client, cmd)
+	params := &CreateParams{
+		SystemID:  cmd.SystemID,
+		GID:       cmd.GID,
+		Groupname: cmd.Groupname,
+	}
+	return s.repo.Create(ctx, s.client, params)
 }
 
 func (s *service) GetByID(ctx context.Context, id int64) (*Group, error) {
@@ -105,7 +120,11 @@ func (s *service) GetBySystemIDAndGroupname(ctx context.Context, systemID int64,
 }
 
 func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
-	return s.repo.Update(ctx, s.client, cmd)
+	params := &UpdateParams{
+		ID:        cmd.ID,
+		Groupname: cmd.Groupname,
+	}
+	return s.repo.Update(ctx, s.client, params)
 }
 
 func (s *service) Delete(ctx context.Context, id int64) error {
@@ -113,9 +132,9 @@ func (s *service) Delete(ctx context.Context, id int64) error {
 }
 
 func (s *service) Find(ctx context.Context, filter Filter) ([]*Group, error) {
-	return s.repo.Find(ctx, s.client, filter)
+	return s.repo.Find(ctx, s.client, filter.toQueryFilter())
 }
 
 func (s *service) FindOne(ctx context.Context, filter Filter) (*Group, error) {
-	return s.repo.FindOne(ctx, s.client, filter)
+	return s.repo.FindOne(ctx, s.client, filter.toQueryFilter())
 }

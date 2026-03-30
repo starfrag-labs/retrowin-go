@@ -8,7 +8,19 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-// CreateCommand for creating a new inode.
+// Service defines the interface for inode operations.
+type Service interface {
+	Create(ctx context.Context, cmd *CreateCommand) (*Inode, error)
+	GetByID(ctx context.Context, id int64) (*Inode, error)
+	Update(ctx context.Context, cmd *UpdateCommand) error
+	Delete(ctx context.Context, id int64) error
+	Find(ctx context.Context, filter Filter) ([]*Inode, error)
+	FindOne(ctx context.Context, filter Filter) (*Inode, error)
+	FindByOwnerAndSystemType(ctx context.Context, ownerUID, systemType string) (*Inode, error)
+	UpdateLinkCount(ctx context.Context, id int64, delta int16) error
+}
+
+// CreateCommand for creating a new inode (service layer).
 type CreateCommand struct {
 	SystemID   *int64
 	FileType   FileType
@@ -21,18 +33,18 @@ type CreateCommand struct {
 	SystemType *string
 }
 
-// UpdateCommand for updating an inode.
+// UpdateCommand for updating an inode (service layer).
 type UpdateCommand struct {
-	ID          int64
-	ByteSize    *int64
-	PermOwner   *string
-	PermGroup   *string
-	PermOthers  *string
-	LinkCount   *int16
-	AccessedAt  *time.Time
+	ID         int64
+	ByteSize   *int64
+	PermOwner  *string
+	PermGroup  *string
+	PermOthers *string
+	LinkCount  *int16
+	AccessedAt *time.Time
 }
 
-// Filter for querying inodes.
+// Filter for querying inodes (service layer).
 type Filter struct {
 	ID         *int64
 	SystemID   *int64
@@ -64,16 +76,16 @@ func ByOwnerAndSystemType(ownerUID, systemType string) Filter {
 	}
 }
 
-// Service defines the interface for inode operations.
-type Service interface {
-	Create(ctx context.Context, cmd *CreateCommand) (*Inode, error)
-	GetByID(ctx context.Context, id int64) (*Inode, error)
-	Update(ctx context.Context, cmd *UpdateCommand) error
-	Delete(ctx context.Context, id int64) error
-	Find(ctx context.Context, filter Filter) ([]*Inode, error)
-	FindOne(ctx context.Context, filter Filter) (*Inode, error)
-	FindByOwnerAndSystemType(ctx context.Context, ownerUID, systemType string) (*Inode, error)
-	UpdateLinkCount(ctx context.Context, id int64, delta int16) error
+// toQueryFilter converts service Filter to repository QueryFilter.
+func (f Filter) toQueryFilter() *QueryFilter {
+	return &QueryFilter{
+		ID:         f.ID,
+		SystemID:   f.SystemID,
+		OwnerUID:   f.OwnerUID,
+		FileType:   f.FileType,
+		IsSystem:   f.IsSystem,
+		SystemType: f.SystemType,
+	}
 }
 
 type service struct {
@@ -101,7 +113,19 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Inode, error
 	if cmd.PermOthers == "" {
 		cmd.PermOthers = "r--"
 	}
-	return s.repo.Create(ctx, s.client, cmd)
+
+	params := &CreateParams{
+		SystemID:   cmd.SystemID,
+		FileType:   cmd.FileType,
+		OwnerUID:   cmd.OwnerUID,
+		OwnerGID:   cmd.OwnerGID,
+		PermOwner:  cmd.PermOwner,
+		PermGroup:  cmd.PermGroup,
+		PermOthers: cmd.PermOthers,
+		IsSystem:   cmd.IsSystem,
+		SystemType: cmd.SystemType,
+	}
+	return s.repo.Create(ctx, s.client, params)
 }
 
 func (s *service) GetByID(ctx context.Context, id int64) (*Inode, error) {
@@ -116,7 +140,16 @@ func (s *service) GetByID(ctx context.Context, id int64) (*Inode, error) {
 }
 
 func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
-	return s.repo.Update(ctx, s.client, cmd)
+	params := &UpdateParams{
+		ID:         cmd.ID,
+		ByteSize:   cmd.ByteSize,
+		PermOwner:  cmd.PermOwner,
+		PermGroup:  cmd.PermGroup,
+		PermOthers: cmd.PermOthers,
+		LinkCount:  cmd.LinkCount,
+		AccessedAt: cmd.AccessedAt,
+	}
+	return s.repo.Update(ctx, s.client, params)
 }
 
 func (s *service) Delete(ctx context.Context, id int64) error {
@@ -124,16 +157,16 @@ func (s *service) Delete(ctx context.Context, id int64) error {
 }
 
 func (s *service) Find(ctx context.Context, filter Filter) ([]*Inode, error) {
-	return s.repo.Find(ctx, s.client, filter)
+	return s.repo.Find(ctx, s.client, filter.toQueryFilter())
 }
 
 func (s *service) FindOne(ctx context.Context, filter Filter) (*Inode, error) {
-	return s.repo.FindOne(ctx, s.client, filter)
+	return s.repo.FindOne(ctx, s.client, filter.toQueryFilter())
 }
 
 func (s *service) FindByOwnerAndSystemType(ctx context.Context, ownerUID, systemType string) (*Inode, error) {
 	filter := ByOwnerAndSystemType(ownerUID, systemType)
-	inode, err := s.repo.FindOne(ctx, s.client, filter)
+	inode, err := s.repo.FindOne(ctx, s.client, filter.toQueryFilter())
 	if err != nil {
 		return nil, err
 	}

@@ -16,11 +16,11 @@ func NewEntRepository() Repository {
 	return &EntRepository{}
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, cmd *CreateCommand) (*Entry, error) {
+func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Entry, error) {
 	entEntry, err := client.DirectoryEntry.Create().
-		SetParentID(cmd.ParentID).
-		SetName(cmd.Name).
-		SetChildID(cmd.ChildID).
+		SetParentID(params.ParentID).
+		SetName(params.Name).
+		SetChildID(params.ChildID).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create directory entry: %w", err)
@@ -41,19 +41,27 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int6
 	return fromEnt(entEntry), nil
 }
 
-func (r *EntRepository) Update(ctx context.Context, client *ent.Client, entry *Entry) error {
-	return client.DirectoryEntry.UpdateOneID(entry.ID).
-		SetParentID(entry.ParentID).
-		SetName(entry.Name).
-		SetChildID(entry.ChildID).
-		Exec(ctx)
+func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *UpdateParams) error {
+	builder := client.DirectoryEntry.UpdateOneID(params.ID)
+
+	if params.ParentID != nil {
+		builder.SetParentID(*params.ParentID)
+	}
+	if params.Name != nil {
+		builder.SetName(*params.Name)
+	}
+	if params.ChildID != nil {
+		builder.SetChildID(*params.ChildID)
+	}
+
+	return builder.Exec(ctx)
 }
 
 func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id int64) error {
 	return client.DirectoryEntry.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter Filter) ([]*Entry, error) {
+func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Entry, error) {
 	query := client.DirectoryEntry.Query()
 	query = applyFilter(query, filter)
 
@@ -64,7 +72,7 @@ func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter Fil
 	return fromEntSlice(entEntries), nil
 }
 
-func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter Filter) (*Entry, error) {
+func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Entry, error) {
 	query := client.DirectoryEntry.Query()
 	query = applyFilter(query, filter)
 
@@ -78,13 +86,16 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 	return fromEnt(entEntry), nil
 }
 
-func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter Filter) (bool, error) {
+func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter *QueryFilter) (bool, error) {
 	query := client.DirectoryEntry.Query()
 	query = applyFilter(query, filter)
 	return query.Exist(ctx)
 }
 
-func applyFilter(query *ent.DirectoryEntryQuery, filter Filter) *ent.DirectoryEntryQuery {
+func applyFilter(query *ent.DirectoryEntryQuery, filter *QueryFilter) *ent.DirectoryEntryQuery {
+	if filter == nil {
+		return query
+	}
 	if filter.ID != nil {
 		query = query.Where(directoryentry.ID(*filter.ID))
 	}
@@ -101,12 +112,12 @@ func applyFilter(query *ent.DirectoryEntryQuery, filter Filter) *ent.DirectoryEn
 }
 
 func fromEnt(e *ent.DirectoryEntry) *Entry {
-	return &Entry{
-		ID:       e.ID,
-		ParentID: e.ParentID,
-		Name:     e.Name,
-		ChildID:  e.ChildID,
-	}
+	return NewEntry(
+		e.ID,
+		e.ParentID,
+		e.Name,
+		e.ChildID,
+	)
 }
 
 func fromEntSlice(entries []*ent.DirectoryEntry) []*Entry {

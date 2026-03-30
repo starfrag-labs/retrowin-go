@@ -2,25 +2,30 @@ package user
 
 import (
 	"context"
+
+	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
 // Repository defines the interface for user data access.
 type Repository interface {
-	// Create creates a new user.
-	Create(ctx context.Context, provider, providerID string) (*User, error)
+	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*User, error)
+	GetByID(ctx context.Context, client *ent.Client, id int64) (*User, error)
+	GetByUID(ctx context.Context, client *ent.Client, uid string) (*User, error)
+	GetByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (*User, error)
+	Delete(ctx context.Context, client *ent.Client, id int64) error
+	ExistsByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (bool, error)
+}
 
-	// GetByID retrieves a user by ID.
-	GetByID(ctx context.Context, id int64) (*User, error)
+// CreateParams for creating a user (repository layer).
+type CreateParams struct {
+	Provider   string
+	ProviderID string
+}
 
-	// GetByUID retrieves a user by UID.
-	GetByUID(ctx context.Context, uid string) (*User, error)
-
-	// GetByProvider retrieves a user by provider and provider ID.
-	GetByProvider(ctx context.Context, provider, providerID string) (*User, error)
-
-	// Delete deletes a user by ID.
-	Delete(ctx context.Context, id int64) error
-
-	// ExistsByProvider checks if a user exists by provider and provider ID.
-	ExistsByProvider(ctx context.Context, provider, providerID string) (bool, error)
+// QueryFilter for querying users (repository layer).
+type QueryFilter struct {
+	ID         *int64
+	UID        *string
+	Provider   *string
+	ProviderID *string
 }

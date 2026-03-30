@@ -17,14 +17,6 @@ const (
 	FileTypeFifo      FileType = "fifo"
 )
 
-// StorageType represents the storage backend type.
-type StorageType string
-
-const (
-	StorageTypeS3    StorageType = "s3"
-	StorageTypeLocal StorageType = "local"
-)
-
 // System file types
 const (
 	SystemTypeRoot  = "root"
@@ -34,28 +26,73 @@ const (
 
 // Inode represents a file system inode (metadata only, no filename).
 type Inode struct {
-	ID          int64      `json:"id"`
-	SystemID    *int64     `json:"systemId,omitempty"`
-	FileType    FileType   `json:"fileType"`
-	ByteSize    int64      `json:"byteSize"`
-	OwnerUID    string     `json:"ownerUid"`
-	OwnerGID    string     `json:"ownerGid"`
-	PermOwner   string     `json:"permOwner"`
-	PermGroup   string     `json:"permGroup"`
-	PermOthers  string     `json:"permOthers"`
-	LinkCount   int16      `json:"linkCount"`
-	AccessedAt  *time.Time `json:"accessedAt,omitempty"`
-	IsSystem    bool       `json:"isSystem"`
-	SystemType  *string    `json:"systemType,omitempty"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
+	id         int64
+	systemID   *int64
+	fileType   FileType
+	byteSize   int64
+	ownerUID   string
+	ownerGID   string
+	permOwner  string
+	permGroup  string
+	permOthers string
+	linkCount  int16
+	accessedAt *time.Time
+	isSystem   bool
+	systemType *string
+	createdAt  time.Time
+	updatedAt  time.Time
 }
 
-// FileData represents the storage info for a regular file.
-// This is an internal detail, not exposed as a service.
-type FileData struct {
-	InodeID     int64       `json:"inodeId"`
-	StorageType StorageType `json:"storageType"`
-	Location    string      `json:"location"`
-	Checksum    *string     `json:"checksum,omitempty"`
+// NewInode creates a new Inode.
+func NewInode(
+	id int64,
+	systemID *int64,
+	fileType FileType,
+	byteSize int64,
+	ownerUID string,
+	ownerGID string,
+	permOwner string,
+	permGroup string,
+	permOthers string,
+	linkCount int16,
+	accessedAt *time.Time,
+	isSystem bool,
+	systemType *string,
+	createdAt time.Time,
+	updatedAt time.Time,
+) *Inode {
+	return &Inode{
+		id:         id,
+		systemID:   systemID,
+		fileType:   fileType,
+		byteSize:   byteSize,
+		ownerUID:   ownerUID,
+		ownerGID:   ownerGID,
+		permOwner:  permOwner,
+		permGroup:  permGroup,
+		permOthers: permOthers,
+		linkCount:  linkCount,
+		accessedAt: accessedAt,
+		isSystem:   isSystem,
+		systemType: systemType,
+		createdAt:  createdAt,
+		updatedAt:  updatedAt,
+	}
 }
+
+// Getters
+func (i *Inode) ID() int64              { return i.id }
+func (i *Inode) SystemID() *int64       { return i.systemID }
+func (i *Inode) FileType() FileType     { return i.fileType }
+func (i *Inode) ByteSize() int64        { return i.byteSize }
+func (i *Inode) OwnerUID() string       { return i.ownerUID }
+func (i *Inode) OwnerGID() string       { return i.ownerGID }
+func (i *Inode) PermOwner() string      { return i.permOwner }
+func (i *Inode) PermGroup() string      { return i.permGroup }
+func (i *Inode) PermOthers() string     { return i.permOthers }
+func (i *Inode) LinkCount() int16       { return i.linkCount }
+func (i *Inode) AccessedAt() *time.Time { return i.accessedAt }
+func (i *Inode) IsSystem() bool         { return i.isSystem }
+func (i *Inode) SystemType() *string    { return i.systemType }
+func (i *Inode) CreatedAt() time.Time   { return i.createdAt }
+func (i *Inode) UpdatedAt() time.Time   { return i.updatedAt }
