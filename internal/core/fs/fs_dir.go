@@ -10,7 +10,7 @@ import (
 )
 
 // Link adds a directory entry to a directory inode.
-func (s *service) Link(ctx context.Context, uid int, dirID string, entry content.DirEntry) error {
+func (s *service) Link(ctx context.Context, dirID string, entry content.DirEntry) error {
 	dir, err := s.inodeSvc.GetByID(ctx, dirID)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (s *service) Link(ctx context.Context, uid int, dirID string, entry content
 		return errors.BadRequest("not a directory")
 	}
 
-	if err := s.checkPerm(dir, uid, AccessWrite); err != nil {
+	if err := s.checkPermFromContext(ctx, dir, AccessWrite); err != nil {
 		return err
 	}
 
@@ -50,7 +50,7 @@ func (s *service) Link(ctx context.Context, uid int, dirID string, entry content
 }
 
 // Unlink removes a directory entry from a directory inode.
-func (s *service) Unlink(ctx context.Context, uid int, dirID string, name string) error {
+func (s *service) Unlink(ctx context.Context, dirID string, name string) error {
 	dir, err := s.inodeSvc.GetByID(ctx, dirID)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func (s *service) Unlink(ctx context.Context, uid int, dirID string, name string
 		return errors.BadRequest("not a directory")
 	}
 
-	if err := s.checkPerm(dir, uid, AccessWrite); err != nil {
+	if err := s.checkPermFromContext(ctx, dir, AccessWrite); err != nil {
 		return err
 	}
 

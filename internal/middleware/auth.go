@@ -5,42 +5,33 @@ import (
 	"net/http"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
-)
-
-// ContextKey type for context keys.
-type ContextKey string
-
-const (
-	// UserIDKey is the context key for user ID.
-	UserIDKey ContextKey = "user_id"
-	// SessionIDKey is the context key for session ID.
-	SessionIDKey ContextKey = "session_id"
+	"github.com/starfrag-lab/retrowin-go/internal/utils"
 )
 
 // GetUserID extracts user ID from context.
+// Deprecated: Use utils.GetUserID instead.
 func GetUserID(ctx context.Context) string {
-	if id, ok := ctx.Value(UserIDKey).(string); ok {
-		return id
-	}
-	return ""
+	id, _ := utils.GetUserID(ctx)
+	return id
 }
 
 // GetSessionID extracts session ID from context.
+// Deprecated: Use utils.GetSessionID instead.
 func GetSessionID(ctx context.Context) string {
-	if id, ok := ctx.Value(SessionIDKey).(string); ok {
-		return id
-	}
-	return ""
+	id, _ := utils.GetSessionID(ctx)
+	return id
 }
 
 // SetUserID adds user ID to context.
+// Deprecated: Use utils.ContextWithUserID instead.
 func SetUserID(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, UserIDKey, id)
+	return utils.ContextWithUserID(ctx, id)
 }
 
 // SetSessionID adds session ID to context.
+// Deprecated: Use utils.ContextWithSession instead.
 func SetSessionID(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, SessionIDKey, id)
+	return utils.ContextWithSession(ctx, id)
 }
 
 // WriteError writes an error response.

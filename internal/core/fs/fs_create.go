@@ -9,9 +9,14 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-func (s *service) CreateFile(ctx context.Context, uid int, cmd *CreateFileCommand) (*inode.Inode, error) {
+func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inode.Inode, error) {
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
+	}
+
+	uid, err := s.userSvc.ResolveUID(ctx, cmd.SystemID)
+	if err != nil {
+		return nil, err
 	}
 
 	mode := cmd.Mode
@@ -29,9 +34,14 @@ func (s *service) CreateFile(ctx context.Context, uid int, cmd *CreateFileComman
 	})
 }
 
-func (s *service) CreateDirectory(ctx context.Context, uid int, cmd *CreateDirectoryCommand) (*inode.Inode, error) {
+func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryCommand) (*inode.Inode, error) {
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
+	}
+
+	uid, err := s.userSvc.ResolveUID(ctx, cmd.SystemID)
+	if err != nil {
+		return nil, err
 	}
 
 	mode := cmd.Mode
@@ -55,12 +65,17 @@ func (s *service) CreateDirectory(ctx context.Context, uid int, cmd *CreateDirec
 	})
 }
 
-func (s *service) CreateSymlink(ctx context.Context, uid int, cmd *CreateSymlinkCommand) (*inode.Inode, error) {
+func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) (*inode.Inode, error) {
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
 	}
 	if cmd.Target == "" {
 		return nil, errors.BadRequest("target is required")
+	}
+
+	uid, err := s.userSvc.ResolveUID(ctx, cmd.SystemID)
+	if err != nil {
+		return nil, err
 	}
 
 	mode := cmd.Mode

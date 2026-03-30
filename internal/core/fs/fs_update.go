@@ -6,13 +6,13 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 )
 
-func (s *service) UpdateContent(ctx context.Context, uid int, cmd *UpdateContentCommand) (*inode.Inode, error) {
+func (s *service) UpdateContent(ctx context.Context, cmd *UpdateContentCommand) (*inode.Inode, error) {
 	current, err := s.inodeSvc.GetByID(ctx, cmd.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.checkPerm(current, uid, AccessWrite); err != nil {
+	if err := s.checkPermFromContext(ctx, current, AccessWrite); err != nil {
 		return nil, err
 	}
 
@@ -27,13 +27,13 @@ func (s *service) UpdateContent(ctx context.Context, uid int, cmd *UpdateContent
 	return current, nil
 }
 
-func (s *service) UpdateMode(ctx context.Context, uid int, cmd *UpdateModeCommand) error {
+func (s *service) UpdateMode(ctx context.Context, cmd *UpdateModeCommand) error {
 	current, err := s.inodeSvc.GetByID(ctx, cmd.ID)
 	if err != nil {
 		return err
 	}
 
-	if err := s.checkPerm(current, uid, AccessWrite); err != nil {
+	if err := s.checkPermFromContext(ctx, current, AccessWrite); err != nil {
 		return err
 	}
 

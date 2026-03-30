@@ -1,16 +1,16 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/session"
+	"github.com/starfrag-lab/retrowin-go/internal/utils"
 )
 
 const (
 	// SessionCookieName is the name of the session cookie.
-	SessionCookieName = "retrowin_session"
+	SessionCookieName = "sid"
 )
 
 // SessionAuth holds session authentication configuration.
@@ -50,7 +50,7 @@ func (a *SessionAuth) RequireSession(next http.Handler) http.Handler {
 
 		// Add session info to context
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, UserIDKey, sess.UserID())
+		ctx = utils.ContextWithUserID(ctx, sess.UserID())
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

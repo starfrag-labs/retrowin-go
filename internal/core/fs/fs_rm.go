@@ -8,13 +8,13 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
-func (s *service) Delete(ctx context.Context, uid int, id string) error {
+func (s *service) Delete(ctx context.Context, id string) error {
 	in, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	if err := s.checkPerm(in, uid, AccessWrite); err != nil {
+	if err := s.checkPermFromContext(ctx, in, AccessWrite); err != nil {
 		return err
 	}
 

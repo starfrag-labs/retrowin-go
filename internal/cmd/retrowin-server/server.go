@@ -22,19 +22,19 @@ import (
 	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
-	"github.com/starfrag-lab/retrowin-go/internal/session"
-	sessionRepo "github.com/starfrag-lab/retrowin-go/internal/session/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
+	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	inoderepo "github.com/starfrag-lab/retrowin-go/internal/core/inode/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	objectrepo "github.com/starfrag-lab/retrowin-go/internal/core/object/repository"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
-	"github.com/starfrag-lab/retrowin-go/internal/system"
+	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
+	"github.com/starfrag-lab/retrowin-go/internal/session"
+	sessionRepo "github.com/starfrag-lab/retrowin-go/internal/session/repository"
 	surepo "github.com/starfrag-lab/retrowin-go/internal/system/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 	userrepo "github.com/starfrag-lab/retrowin-go/internal/user/repository"
@@ -302,7 +302,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			user.NewService,
 			inode.NewService,
 			object.NewService,
-			system.NewSystemUserService,
+			coreuser.NewService // core/user for UID resolution,
 			// Application services
 			fs.NewService,
 			storage.NewService,
