@@ -79,6 +79,9 @@ func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *
 	if params.Flags != nil {
 		builder.SetFlags(*params.Flags)
 	}
+	if params.Content != nil {
+		builder.SetContent(*params.Content)
+	}
 	if params.Atime != nil {
 		builder.SetAtime(*params.Atime)
 	}

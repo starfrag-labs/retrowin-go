@@ -2,7 +2,6 @@ package object
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"time"
 
@@ -119,7 +118,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Object, erro
 
 	// Stream upload to storage
 	if err := s.storage.PutObject(ctx, cmd.Bucket, cmd.StorageKey, cmd.Reader, cmd.Size); err != nil {
-		return nil, fmt.Errorf("failed to upload to storage: %w", err)
+		return nil, errors.WrapInternal(err, "failed to upload to storage")
 	}
 
 	// Create object record in DB
@@ -133,7 +132,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Object, erro
 	if err != nil {
 		// Attempt cleanup on DB failure
 		_ = s.storage.DeleteObject(ctx, cmd.Bucket, cmd.StorageKey)
-		return nil, fmt.Errorf("failed to create object record: %w", err)
+		return nil, errors.WrapInternal(err, "failed to create object record")
 	}
 
 	return obj, nil
@@ -171,7 +170,7 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	}
 
 	if err := s.storage.DeleteObject(ctx, obj.Bucket(), obj.StorageKey()); err != nil {
-		return fmt.Errorf("failed to delete from storage: %w", err)
+		return errors.WrapInternal(err, "failed to delete from storage")
 	}
 
 	return s.repo.Delete(ctx, s.client, id)
@@ -203,7 +202,7 @@ func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error)
 
 	url, err := s.storage.GetPresignedDownloadURL(ctx, obj.Bucket(), obj.StorageKey(), DefaultDownloadExpiry)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate download URL: %w", err)
+		return "", errors.WrapInternal(err, "failed to generate download URL")
 	}
 	return url, nil
 }

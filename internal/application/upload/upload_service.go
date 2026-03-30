@@ -8,6 +8,7 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/object"
 )
 
@@ -34,13 +35,8 @@ type UploadCommand struct {
 
 // UploadResult contains the created inode and object.
 type UploadResult struct {
-	Inode *inode.Inode
+	Inode  *inode.Inode
 	Object *object.Object
-}
-
-// ObjectRef is stored in inode content to reference the Object entity.
-type ObjectRef struct {
-	ObjectID string `json:"object_id"`
 }
 
 type service struct {
@@ -61,11 +57,9 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		return nil, errors.BadRequest("system_id is required")
 	}
 
-	// Create object: streams to storage + creates DB record (atomic)
-	// Storage key = inode ID (will be set after inode creation)
-	// For now, use system_id/filename as storage key
 	storageKey := fmt.Sprintf("%s/%s", cmd.SystemID, cmd.Filename)
 
+	// Create object: streams to storage + creates DB record (atomic)
 	obj, err := s.objectSvc.Create(ctx, &object.CreateCommand{
 		Bucket:     cmd.Bucket,
 		SystemID:   cmd.SystemID,
@@ -74,14 +68,14 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		Size:       cmd.Size,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create object: %w", err)
+		return nil, errors.WrapInternal(err, "failed to create object")
 	}
 
-	// Store Object ID in inode content
-	ref := &ObjectRef{ObjectID: obj.ID()}
-	refBytes, err := json.Marshal(ref)
+	// Store ObjectContent in inode content
+	c := &content.ObjectContent{ObjectID: obj.ID()}
+	cBytes, err := json.Marshal(c)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal object ref: %w", err)
+		return nil, errors.WrapInternal(err, "failed to marshal object content")
 	}
 
 	// Create inode with object reference
@@ -96,10 +90,10 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		UID:      cmd.UID,
 		GID:      cmd.GID,
 		Flags:    cmd.Flags,
-		Content:  refBytes,
+		Content:  cBytes,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create inode: %w", err)
+		return nil, errors.WrapInternal(err, "failed to create inode")
 	}
 
 	return &UploadResult{
@@ -114,15 +108,15 @@ func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error)
 		return "", err
 	}
 
-	var ref ObjectRef
-	if err := json.Unmarshal(in.Content(), &ref); err != nil {
-		return "", fmt.Errorf("failed to parse object ref: %w", err)
+	var c content.ObjectContent
+	if err := json.Unmarshal(in.Content(), &c); err != nil {
+		return "", errors.WrapInternal(err, "failed to parse object content")
 	}
-	if ref.ObjectID == "" {
+	if c.ObjectID == "" {
 		return "", errors.BadRequest("inode has no object reference")
 	}
 
-	return s.objectSvc.GetDownloadURL(ctx, ref.ObjectID)
+	return s.objectSvc.GetDownloadURL(ctx, c.ObjectID)
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
@@ -132,10 +126,10 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	}
 
 	// Delete object (atomic: deletes from storage + DB)
-	var ref ObjectRef
-	if err := json.Unmarshal(in.Content(), &ref); err == nil && ref.ObjectID != "" {
-		if err := s.objectSvc.Delete(ctx, ref.ObjectID); err != nil {
-			return fmt.Errorf("failed to delete object: %w", err)
+	var c content.ObjectContent
+	if err := json.Unmarshal(in.Content(), &c); err == nil && c.ObjectID != "" {
+		if err := s.objectSvc.Delete(ctx, c.ObjectID); err != nil {
+			return errors.WrapInternal(err, "failed to delete object")
 		}
 	}
 

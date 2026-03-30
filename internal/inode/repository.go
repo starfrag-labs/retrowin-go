@@ -30,15 +30,16 @@ type CreateParams struct {
 
 // UpdateParams for updating an inode (repository layer).
 type UpdateParams struct {
-	ID    string
-	Mode  *int
-	UID   *int64
-	GID   *int64
-	Size  *int64
-	Flags *int
-	Atime *time.Time
-	Mtime *time.Time
-	Ctime *time.Time
+	ID      string
+	Mode    *int
+	UID     *int64
+	GID     *int64
+	Size    *int64
+	Flags   *int
+	Content *[]byte
+	Atime   *time.Time
+	Mtime   *time.Time
+	Ctime   *time.Time
 }
 
 // QueryFilter for querying inodes (repository layer).
