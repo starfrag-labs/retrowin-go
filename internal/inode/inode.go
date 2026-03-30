@@ -90,20 +90,20 @@ func NewInode(
 }
 
 // Getters
-func (i *Inode) ID() int64              { return i.id }
-func (i *Inode) SystemID() string       { return i.systemID }
-func (i *Inode) Mode() int              { return i.mode }
-func (i *Inode) UID() int64             { return i.uid }
-func (i *Inode) GID() int64             { return i.gid }
-func (i *Inode) Size() int64            { return i.size }
-func (i *Inode) LinkCount() int         { return i.linkCount }
-func (i *Inode) Flags() int             { return i.flags }
-func (i *Inode) Atime() time.Time       { return i.atime }
-func (i *Inode) Mtime() time.Time       { return i.mtime }
-func (i *Inode) Ctime() time.Time       { return i.ctime }
-func (i *Inode) Content() []byte        { return i.content }
-func (i *Inode) CreatedAt() time.Time   { return i.createdAt }
-func (i *Inode) UpdatedAt() time.Time   { return i.updatedAt }
+func (i *Inode) ID() int64            { return i.id }
+func (i *Inode) SystemID() string     { return i.systemID }
+func (i *Inode) Mode() int            { return i.mode }
+func (i *Inode) UID() int64           { return i.uid }
+func (i *Inode) GID() int64           { return i.gid }
+func (i *Inode) Size() int64          { return i.size }
+func (i *Inode) LinkCount() int       { return i.linkCount }
+func (i *Inode) Flags() int           { return i.flags }
+func (i *Inode) Atime() time.Time     { return i.atime }
+func (i *Inode) Mtime() time.Time     { return i.mtime }
+func (i *Inode) Ctime() time.Time     { return i.ctime }
+func (i *Inode) Content() []byte      { return i.content }
+func (i *Inode) CreatedAt() time.Time { return i.createdAt }
+func (i *Inode) UpdatedAt() time.Time { return i.updatedAt }
 
 // FileType returns the file type portion of the mode.
 func (i *Inode) FileType() int {
