@@ -16,18 +16,18 @@ import (
 
 // Handler implements the ogen API handler interface.
 type Handler struct {
-	userSvc   user.Service
+	userSvc   user.UserService
 	fileSvc   file.Service
 	uploadSvc upload.Service
-	authSvc   auth.Service
+	authSvc   auth.AuthService
 }
 
 // NewHandler creates a new Handler.
 func NewHandler(
-	userSvc user.Service,
+	userSvc user.UserService,
 	fileSvc file.Service,
 	uploadSvc upload.Service,
-	authSvc auth.Service,
+	authSvc auth.AuthService,
 ) *Handler {
 	return &Handler{
 		userSvc:   userSvc,

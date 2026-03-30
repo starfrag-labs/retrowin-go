@@ -54,8 +54,8 @@ func (s *System) Status() Status       { return s.status }
 func (s *System) CreatedAt() time.Time { return s.createdAt }
 func (s *System) UpdatedAt() time.Time { return s.updatedAt }
 
-// Service defines the interface for system operations.
-type Service interface {
+// SystemService defines the interface for system operations.
+type SystemService interface {
 	Create(ctx context.Context, cmd *CreateCommand) (*System, error)
 	GetByID(ctx context.Context, id string) (*System, error)
 	GetByName(ctx context.Context, name string) (*System, error)
@@ -114,8 +114,8 @@ type service struct {
 	client *ent.Client
 }
 
-// NewService creates a new Service.
-func NewService(repo SystemRepository, client *ent.Client) Service {
+// NewService creates a new SystemService.
+func NewService(repo SystemRepository, client *ent.Client) SystemService {
 	return &service{repo: repo, client: client}
 }
 

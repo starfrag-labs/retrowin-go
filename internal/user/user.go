@@ -65,8 +65,8 @@ func (u *User) JoinDate() time.Time  { return u.joinDate }
 func (u *User) CreatedAt() time.Time { return u.createdAt }
 func (u *User) UpdatedAt() time.Time { return u.updatedAt }
 
-// Service defines the interface for user operations.
-type Service interface {
+// UserService defines the interface for user operations.
+type UserService interface {
 	Get(ctx context.Context, provider, providerID string) (*User, error)
 	GetByID(ctx context.Context, id string) (*User, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
@@ -88,7 +88,7 @@ type service struct {
 }
 
 // NewService creates a new user service.
-func NewService(repo UserRepository, client *ent.Client) Service {
+func NewService(repo UserRepository, client *ent.Client) UserService {
 	return &service{
 		repo:   repo,
 		client: client,

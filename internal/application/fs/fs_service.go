@@ -7,8 +7,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
 )
 
-// Service defines the interface for filesystem operations.
-type Service interface {
+// FsService defines the interface for filesystem operations.
+type FsService interface {
 	CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inode.Inode, error)
 	CreateDirectory(ctx context.Context, cmd *CreateDirectoryCommand) (*inode.Inode, error)
 	Get(ctx context.Context, id int64) (*inode.Inode, error)
@@ -57,11 +57,11 @@ type ListFilter struct {
 }
 
 type service struct {
-	inodeSvc inode.Service
+	inodeSvc inode.InodeService
 }
 
 // NewService creates a new filesystem service.
-func NewService(inodeSvc inode.Service) Service {
+func NewService(inodeSvc inode.InodeService) FsService {
 	return &service{inodeSvc: inodeSvc}
 }
 

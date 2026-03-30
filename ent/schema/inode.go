@@ -41,6 +41,7 @@ func (Inode) Fields() []ent.Field {
 		// System this inode belongs to
 		field.String("system_id"),
 
+		// File mode (type and permissions)
 		field.Int("mode"),
 
 		// Owner user ID

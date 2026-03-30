@@ -15,8 +15,8 @@ const (
 	DefaultDownloadExpiry = 3600    // 1 hour in seconds
 )
 
-// Service defines the interface for upload operations.
-type Service interface {
+// UploadService defines the interface for upload operations.
+type UploadService interface {
 	Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult, error)
 	GetDownloadURL(ctx context.Context, id int64) (string, error)
 	Delete(ctx context.Context, id int64) error
@@ -49,12 +49,12 @@ type StorageMetadata struct {
 }
 
 type service struct {
-	inodeSvc inode.Service
+	inodeSvc inode.InodeService
 	storage  storage.Storage
 }
 
 // NewService creates a new upload service.
-func NewService(inodeSvc inode.Service, storage storage.Storage) Service {
+func NewService(inodeSvc inode.InodeService, storage storage.Storage) UploadService {
 	return &service{
 		inodeSvc: inodeSvc,
 		storage:  storage,

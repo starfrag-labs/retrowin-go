@@ -143,7 +143,7 @@ func ProvideSessionTTL(cfg *config.Config) time.Duration {
 }
 
 // ProvideAuthUserService provides the auth user service.
-func ProvideAuthUserService(userSvc user.Service) auth.UserService {
+func ProvideAuthUserService(userSvc user.UserService) auth.UserService {
 	return auth.NewUserService(userSvc)
 }
 
@@ -364,7 +364,7 @@ func ProvideOIDCService(
 	userSvc auth.UserService,
 	client valkey.Client,
 	cfg *config.Config,
-) (auth.Service, error) {
+) (auth.AuthService, error) {
 	stateTTL := time.Duration(cfg.Auth.Session.StateTTL) * time.Second
 	return auth.NewService(keycloak, sessionSvc, userSvc, client, cfg.Auth.Session.RedisKey, stateTTL)
 }

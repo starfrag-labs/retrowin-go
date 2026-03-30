@@ -14,11 +14,11 @@ type UserService interface {
 }
 
 type userService struct {
-	userSvc user.Service
+	userSvc user.UserService
 }
 
 // NewUserService creates a new user adapter.
-func NewUserService(userSvc user.Service) UserService {
+func NewUserService(userSvc user.UserService) UserService {
 	return &userService{
 		userSvc: userSvc,
 	}

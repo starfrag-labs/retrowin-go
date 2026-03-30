@@ -134,8 +134,8 @@ func (i *Inode) IsSymlink() bool {
 	return i.FileType() == ModeSymlink
 }
 
-// Service defines the interface for inode operations.
-type Service interface {
+// InodeService defines the interface for inode operations.
+type InodeService interface {
 	Create(ctx context.Context, cmd *CreateCommand) (*Inode, error)
 	GetByID(ctx context.Context, id int64) (*Inode, error)
 	Update(ctx context.Context, cmd *UpdateCommand) error
@@ -179,8 +179,8 @@ type service struct {
 	client *ent.Client
 }
 
-// NewService creates a new Service.
-func NewService(repo InodeRepository, client *ent.Client) Service {
+// NewService creates a new InodeService.
+func NewService(repo InodeRepository, client *ent.Client) InodeService {
 	return &service{repo: repo, client: client}
 }
 

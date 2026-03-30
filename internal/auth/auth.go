@@ -39,8 +39,8 @@ type CallbackResponse struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 }
 
-// Service defines the authentication service interface.
-type Service interface {
+// AuthService defines the authentication service interface.
+type AuthService interface {
 	// GetKeycloak returns the Keycloak provider.
 	GetKeycloak() *Keycloak
 
@@ -78,7 +78,7 @@ func NewService(
 	valkey valkey.Client,
 	valkeyPrefix string,
 	stateTTL time.Duration,
-) (Service, error) {
+) (AuthService, error) {
 	client, err := NewClient(context.Background(), keycloak)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OIDC client: %w", err)
