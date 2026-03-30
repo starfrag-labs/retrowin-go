@@ -27,8 +27,8 @@ type FsService interface {
 // CreateFileCommand for creating a regular file.
 type CreateFileCommand struct {
 	SystemID string
-	UID      int64
-	GID      int64
+	UID      int
+	GID      int
 	Mode     int
 	Flags    int
 	Content  []byte
@@ -37,8 +37,8 @@ type CreateFileCommand struct {
 // CreateDirectoryCommand for creating a directory.
 type CreateDirectoryCommand struct {
 	SystemID string
-	UID      int64
-	GID      int64
+	UID      int
+	GID      int
 	Mode     int
 	Flags    int
 }
@@ -46,8 +46,8 @@ type CreateDirectoryCommand struct {
 // CreateSymlinkCommand for creating a symbolic link.
 type CreateSymlinkCommand struct {
 	SystemID string
-	UID      int64
-	GID      int64
+	UID      int
+	GID      int
 	Mode     int
 	Flags    int
 	Target   string
@@ -68,7 +68,7 @@ type UpdateModeCommand struct {
 // ListFilter for listing inodes.
 type ListFilter struct {
 	SystemID *string
-	UID      *int64
+	UID      *int
 }
 
 type service struct {

@@ -35,11 +35,11 @@ func init() {
 	// inodeDescUID is the schema descriptor for uid field.
 	inodeDescUID := inodeFields[3].Descriptor()
 	// inode.DefaultUID holds the default value on creation for the uid field.
-	inode.DefaultUID = inodeDescUID.Default.(int64)
+	inode.DefaultUID = inodeDescUID.Default.(int)
 	// inodeDescGid is the schema descriptor for gid field.
 	inodeDescGid := inodeFields[4].Descriptor()
 	// inode.DefaultGid holds the default value on creation for the gid field.
-	inode.DefaultGid = inodeDescGid.Default.(int64)
+	inode.DefaultGid = inodeDescGid.Default.(int)
 	// inodeDescSize is the schema descriptor for size field.
 	inodeDescSize := inodeFields[5].Descriptor()
 	// inode.DefaultSize holds the default value on creation for the size field.

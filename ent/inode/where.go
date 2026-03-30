@@ -86,12 +86,12 @@ func Mode(v int) predicate.Inode {
 }
 
 // UID applies equality check predicate on the "uid" field. It's identical to UIDEQ.
-func UID(v int64) predicate.Inode {
+func UID(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldUID, v))
 }
 
 // Gid applies equality check predicate on the "gid" field. It's identical to GidEQ.
-func Gid(v int64) predicate.Inode {
+func Gid(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldGid, v))
 }
 
@@ -316,82 +316,82 @@ func ModeLTE(v int) predicate.Inode {
 }
 
 // UIDEQ applies the EQ predicate on the "uid" field.
-func UIDEQ(v int64) predicate.Inode {
+func UIDEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldUID, v))
 }
 
 // UIDNEQ applies the NEQ predicate on the "uid" field.
-func UIDNEQ(v int64) predicate.Inode {
+func UIDNEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldNEQ(FieldUID, v))
 }
 
 // UIDIn applies the In predicate on the "uid" field.
-func UIDIn(vs ...int64) predicate.Inode {
+func UIDIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldIn(FieldUID, vs...))
 }
 
 // UIDNotIn applies the NotIn predicate on the "uid" field.
-func UIDNotIn(vs ...int64) predicate.Inode {
+func UIDNotIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldNotIn(FieldUID, vs...))
 }
 
 // UIDGT applies the GT predicate on the "uid" field.
-func UIDGT(v int64) predicate.Inode {
+func UIDGT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGT(FieldUID, v))
 }
 
 // UIDGTE applies the GTE predicate on the "uid" field.
-func UIDGTE(v int64) predicate.Inode {
+func UIDGTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGTE(FieldUID, v))
 }
 
 // UIDLT applies the LT predicate on the "uid" field.
-func UIDLT(v int64) predicate.Inode {
+func UIDLT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLT(FieldUID, v))
 }
 
 // UIDLTE applies the LTE predicate on the "uid" field.
-func UIDLTE(v int64) predicate.Inode {
+func UIDLTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLTE(FieldUID, v))
 }
 
 // GidEQ applies the EQ predicate on the "gid" field.
-func GidEQ(v int64) predicate.Inode {
+func GidEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldGid, v))
 }
 
 // GidNEQ applies the NEQ predicate on the "gid" field.
-func GidNEQ(v int64) predicate.Inode {
+func GidNEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldNEQ(FieldGid, v))
 }
 
 // GidIn applies the In predicate on the "gid" field.
-func GidIn(vs ...int64) predicate.Inode {
+func GidIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldIn(FieldGid, vs...))
 }
 
 // GidNotIn applies the NotIn predicate on the "gid" field.
-func GidNotIn(vs ...int64) predicate.Inode {
+func GidNotIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldNotIn(FieldGid, vs...))
 }
 
 // GidGT applies the GT predicate on the "gid" field.
-func GidGT(v int64) predicate.Inode {
+func GidGT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGT(FieldGid, v))
 }
 
 // GidGTE applies the GTE predicate on the "gid" field.
-func GidGTE(v int64) predicate.Inode {
+func GidGTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGTE(FieldGid, v))
 }
 
 // GidLT applies the LT predicate on the "gid" field.
-func GidLT(v int64) predicate.Inode {
+func GidLT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLT(FieldGid, v))
 }
 
 // GidLTE applies the LTE predicate on the "gid" field.
-func GidLTE(v int64) predicate.Inode {
+func GidLTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLTE(FieldGid, v))
 }
 

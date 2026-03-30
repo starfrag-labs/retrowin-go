@@ -46,8 +46,8 @@ type Inode struct {
 	id        string
 	systemID  string
 	mode      int
-	uid       int64
-	gid       int64
+	uid       int
+	gid       int
 	size      int64
 	linkCount int
 	flags     int
@@ -64,8 +64,8 @@ func NewInode(
 	id string,
 	systemID string,
 	mode int,
-	uid int64,
-	gid int64,
+	uid       int,
+	gid       int,
 	size int64,
 	linkCount int,
 	flags int,
@@ -98,8 +98,8 @@ func NewInode(
 func (i *Inode) ID() string            { return i.id }
 func (i *Inode) SystemID() string      { return i.systemID }
 func (i *Inode) Mode() int             { return i.mode }
-func (i *Inode) UID() int64            { return i.uid }
-func (i *Inode) GID() int64            { return i.gid }
+func (i *Inode) UID() int            { return i.uid }
+func (i *Inode) GID() int            { return i.gid }
 func (i *Inode) Size() int64           { return i.size }
 func (i *Inode) LinkCount() int        { return i.linkCount }
 func (i *Inode) Flags() int            { return i.flags }
@@ -155,8 +155,8 @@ type InodeService interface {
 type CreateCommand struct {
 	SystemID string
 	Mode     int
-	UID      int64
-	GID      int64
+	UID      int
+	GID      int
 	Flags    int
 	Content  []byte
 }
@@ -176,7 +176,7 @@ func BySystemID(systemID string) Filter {
 	return Filter{SystemID: &systemID}
 }
 
-func ByUID(uid int64) Filter {
+func ByUID(uid int) Filter {
 	return Filter{UID: &uid}
 }
 

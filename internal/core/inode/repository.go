@@ -22,8 +22,8 @@ type InodeRepository interface {
 type CreateParams struct {
 	SystemID string
 	Mode     int
-	UID      int64
-	GID      int64
+	UID      int
+	GID      int
 	Flags    int
 	Content  []byte
 }
@@ -32,8 +32,8 @@ type CreateParams struct {
 type UpdateParams struct {
 	ID      string
 	Mode    *int
-	UID     *int64
-	GID     *int64
+	UID     *int
+	GID     *int
 	Size    *int64
 	Flags   *int
 	Content *[]byte
@@ -46,7 +46,7 @@ type UpdateParams struct {
 type QueryFilter struct {
 	ID       *string
 	SystemID *string
-	UID      *int64
-	GID      *int64
+	UID      *int
+	GID      *int
 	Mode     *int
 }

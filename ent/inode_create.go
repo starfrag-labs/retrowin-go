@@ -62,13 +62,13 @@ func (_c *InodeCreate) SetMode(v int) *InodeCreate {
 }
 
 // SetUID sets the "uid" field.
-func (_c *InodeCreate) SetUID(v int64) *InodeCreate {
+func (_c *InodeCreate) SetUID(v int) *InodeCreate {
 	_c.mutation.SetUID(v)
 	return _c
 }
 
 // SetNillableUID sets the "uid" field if the given value is not nil.
-func (_c *InodeCreate) SetNillableUID(v *int64) *InodeCreate {
+func (_c *InodeCreate) SetNillableUID(v *int) *InodeCreate {
 	if v != nil {
 		_c.SetUID(*v)
 	}
@@ -76,13 +76,13 @@ func (_c *InodeCreate) SetNillableUID(v *int64) *InodeCreate {
 }
 
 // SetGid sets the "gid" field.
-func (_c *InodeCreate) SetGid(v int64) *InodeCreate {
+func (_c *InodeCreate) SetGid(v int) *InodeCreate {
 	_c.mutation.SetGid(v)
 	return _c
 }
 
 // SetNillableGid sets the "gid" field if the given value is not nil.
-func (_c *InodeCreate) SetNillableGid(v *int64) *InodeCreate {
+func (_c *InodeCreate) SetNillableGid(v *int) *InodeCreate {
 	if v != nil {
 		_c.SetGid(*v)
 	}
@@ -308,11 +308,11 @@ func (_c *InodeCreate) createSpec() (*Inode, *sqlgraph.CreateSpec) {
 		_node.Mode = value
 	}
 	if value, ok := _c.mutation.UID(); ok {
-		_spec.SetField(inode.FieldUID, field.TypeInt64, value)
+		_spec.SetField(inode.FieldUID, field.TypeInt, value)
 		_node.UID = value
 	}
 	if value, ok := _c.mutation.Gid(); ok {
-		_spec.SetField(inode.FieldGid, field.TypeInt64, value)
+		_spec.SetField(inode.FieldGid, field.TypeInt, value)
 		_node.Gid = value
 	}
 	if value, ok := _c.mutation.Size(); ok {

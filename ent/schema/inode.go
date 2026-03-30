@@ -43,11 +43,11 @@ func (Inode) Fields() []ent.Field {
 		field.Int("mode"),
 
 		// Owner user ID
-		field.Int64("uid").
+		field.Int("uid").
 			Default(0),
 
 		// Owner group ID
-		field.Int64("gid").
+		field.Int("gid").
 			Default(0),
 
 		// File size in bytes

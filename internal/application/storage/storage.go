@@ -22,8 +22,8 @@ type StorageService interface {
 // UploadCommand for uploading a file.
 type UploadCommand struct {
 	SystemID string
-	UID      int64
-	GID      int64
+	UID      int
+	GID      int
 	Mode     int
 	Flags    int
 	Bucket   string

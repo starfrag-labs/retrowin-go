@@ -45,10 +45,10 @@ type InodeMutation struct {
 	update_time   *time.Time
 	mode          *int
 	addmode       *int
-	uid           *int64
-	adduid        *int64
-	gid           *int64
-	addgid        *int64
+	uid           *int
+	adduid        *int
+	gid           *int
+	addgid        *int
 	size          *int64
 	addsize       *int64
 	link_count    *int
@@ -336,13 +336,13 @@ func (m *InodeMutation) ResetMode() {
 }
 
 // SetUID sets the "uid" field.
-func (m *InodeMutation) SetUID(i int64) {
+func (m *InodeMutation) SetUID(i int) {
 	m.uid = &i
 	m.adduid = nil
 }
 
 // UID returns the value of the "uid" field in the mutation.
-func (m *InodeMutation) UID() (r int64, exists bool) {
+func (m *InodeMutation) UID() (r int, exists bool) {
 	v := m.uid
 	if v == nil {
 		return
@@ -353,7 +353,7 @@ func (m *InodeMutation) UID() (r int64, exists bool) {
 // OldUID returns the old "uid" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldUID(ctx context.Context) (v int64, err error) {
+func (m *InodeMutation) OldUID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUID is only allowed on UpdateOne operations")
 	}
@@ -368,7 +368,7 @@ func (m *InodeMutation) OldUID(ctx context.Context) (v int64, err error) {
 }
 
 // AddUID adds i to the "uid" field.
-func (m *InodeMutation) AddUID(i int64) {
+func (m *InodeMutation) AddUID(i int) {
 	if m.adduid != nil {
 		*m.adduid += i
 	} else {
@@ -377,7 +377,7 @@ func (m *InodeMutation) AddUID(i int64) {
 }
 
 // AddedUID returns the value that was added to the "uid" field in this mutation.
-func (m *InodeMutation) AddedUID() (r int64, exists bool) {
+func (m *InodeMutation) AddedUID() (r int, exists bool) {
 	v := m.adduid
 	if v == nil {
 		return
@@ -392,13 +392,13 @@ func (m *InodeMutation) ResetUID() {
 }
 
 // SetGid sets the "gid" field.
-func (m *InodeMutation) SetGid(i int64) {
+func (m *InodeMutation) SetGid(i int) {
 	m.gid = &i
 	m.addgid = nil
 }
 
 // Gid returns the value of the "gid" field in the mutation.
-func (m *InodeMutation) Gid() (r int64, exists bool) {
+func (m *InodeMutation) Gid() (r int, exists bool) {
 	v := m.gid
 	if v == nil {
 		return
@@ -409,7 +409,7 @@ func (m *InodeMutation) Gid() (r int64, exists bool) {
 // OldGid returns the old "gid" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldGid(ctx context.Context) (v int64, err error) {
+func (m *InodeMutation) OldGid(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldGid is only allowed on UpdateOne operations")
 	}
@@ -424,7 +424,7 @@ func (m *InodeMutation) OldGid(ctx context.Context) (v int64, err error) {
 }
 
 // AddGid adds i to the "gid" field.
-func (m *InodeMutation) AddGid(i int64) {
+func (m *InodeMutation) AddGid(i int) {
 	if m.addgid != nil {
 		*m.addgid += i
 	} else {
@@ -433,7 +433,7 @@ func (m *InodeMutation) AddGid(i int64) {
 }
 
 // AddedGid returns the value that was added to the "gid" field in this mutation.
-func (m *InodeMutation) AddedGid() (r int64, exists bool) {
+func (m *InodeMutation) AddedGid() (r int, exists bool) {
 	v := m.addgid
 	if v == nil {
 		return
@@ -980,14 +980,14 @@ func (m *InodeMutation) SetField(name string, value ent.Value) error {
 		m.SetMode(v)
 		return nil
 	case inode.FieldUID:
-		v, ok := value.(int64)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUID(v)
 		return nil
 	case inode.FieldGid:
-		v, ok := value.(int64)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1105,14 +1105,14 @@ func (m *InodeMutation) AddField(name string, value ent.Value) error {
 		m.AddMode(v)
 		return nil
 	case inode.FieldUID:
-		v, ok := value.(int64)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUID(v)
 		return nil
 	case inode.FieldGid:
-		v, ok := value.(int64)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

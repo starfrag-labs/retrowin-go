@@ -27,9 +27,9 @@ type Inode struct {
 	// Mode holds the value of the "mode" field.
 	Mode int `json:"mode,omitempty"`
 	// UID holds the value of the "uid" field.
-	UID int64 `json:"uid,omitempty"`
+	UID int `json:"uid,omitempty"`
 	// Gid holds the value of the "gid" field.
-	Gid int64 `json:"gid,omitempty"`
+	Gid int `json:"gid,omitempty"`
 	// Size holds the value of the "size" field.
 	Size int64 `json:"size,omitempty"`
 	// LinkCount holds the value of the "link_count" field.
@@ -132,13 +132,13 @@ func (_m *Inode) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field uid", values[i])
 			} else if value.Valid {
-				_m.UID = value.Int64
+				_m.UID = int(value.Int64)
 			}
 		case inode.FieldGid:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field gid", values[i])
 			} else if value.Valid {
-				_m.Gid = value.Int64
+				_m.Gid = int(value.Int64)
 			}
 		case inode.FieldSize:
 			if value, ok := values[i].(*sql.NullInt64); !ok {

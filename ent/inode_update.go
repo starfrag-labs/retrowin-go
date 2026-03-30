@@ -71,14 +71,14 @@ func (_u *InodeUpdate) AddMode(v int) *InodeUpdate {
 }
 
 // SetUID sets the "uid" field.
-func (_u *InodeUpdate) SetUID(v int64) *InodeUpdate {
+func (_u *InodeUpdate) SetUID(v int) *InodeUpdate {
 	_u.mutation.ResetUID()
 	_u.mutation.SetUID(v)
 	return _u
 }
 
 // SetNillableUID sets the "uid" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableUID(v *int64) *InodeUpdate {
+func (_u *InodeUpdate) SetNillableUID(v *int) *InodeUpdate {
 	if v != nil {
 		_u.SetUID(*v)
 	}
@@ -86,20 +86,20 @@ func (_u *InodeUpdate) SetNillableUID(v *int64) *InodeUpdate {
 }
 
 // AddUID adds value to the "uid" field.
-func (_u *InodeUpdate) AddUID(v int64) *InodeUpdate {
+func (_u *InodeUpdate) AddUID(v int) *InodeUpdate {
 	_u.mutation.AddUID(v)
 	return _u
 }
 
 // SetGid sets the "gid" field.
-func (_u *InodeUpdate) SetGid(v int64) *InodeUpdate {
+func (_u *InodeUpdate) SetGid(v int) *InodeUpdate {
 	_u.mutation.ResetGid()
 	_u.mutation.SetGid(v)
 	return _u
 }
 
 // SetNillableGid sets the "gid" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableGid(v *int64) *InodeUpdate {
+func (_u *InodeUpdate) SetNillableGid(v *int) *InodeUpdate {
 	if v != nil {
 		_u.SetGid(*v)
 	}
@@ -107,7 +107,7 @@ func (_u *InodeUpdate) SetNillableGid(v *int64) *InodeUpdate {
 }
 
 // AddGid adds value to the "gid" field.
-func (_u *InodeUpdate) AddGid(v int64) *InodeUpdate {
+func (_u *InodeUpdate) AddGid(v int) *InodeUpdate {
 	_u.mutation.AddGid(v)
 	return _u
 }
@@ -311,16 +311,16 @@ func (_u *InodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.AddField(inode.FieldMode, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UID(); ok {
-		_spec.SetField(inode.FieldUID, field.TypeInt64, value)
+		_spec.SetField(inode.FieldUID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedUID(); ok {
-		_spec.AddField(inode.FieldUID, field.TypeInt64, value)
+		_spec.AddField(inode.FieldUID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Gid(); ok {
-		_spec.SetField(inode.FieldGid, field.TypeInt64, value)
+		_spec.SetField(inode.FieldGid, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedGid(); ok {
-		_spec.AddField(inode.FieldGid, field.TypeInt64, value)
+		_spec.AddField(inode.FieldGid, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Size(); ok {
 		_spec.SetField(inode.FieldSize, field.TypeInt64, value)
@@ -446,14 +446,14 @@ func (_u *InodeUpdateOne) AddMode(v int) *InodeUpdateOne {
 }
 
 // SetUID sets the "uid" field.
-func (_u *InodeUpdateOne) SetUID(v int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetUID(v int) *InodeUpdateOne {
 	_u.mutation.ResetUID()
 	_u.mutation.SetUID(v)
 	return _u
 }
 
 // SetNillableUID sets the "uid" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableUID(v *int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetNillableUID(v *int) *InodeUpdateOne {
 	if v != nil {
 		_u.SetUID(*v)
 	}
@@ -461,20 +461,20 @@ func (_u *InodeUpdateOne) SetNillableUID(v *int64) *InodeUpdateOne {
 }
 
 // AddUID adds value to the "uid" field.
-func (_u *InodeUpdateOne) AddUID(v int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) AddUID(v int) *InodeUpdateOne {
 	_u.mutation.AddUID(v)
 	return _u
 }
 
 // SetGid sets the "gid" field.
-func (_u *InodeUpdateOne) SetGid(v int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetGid(v int) *InodeUpdateOne {
 	_u.mutation.ResetGid()
 	_u.mutation.SetGid(v)
 	return _u
 }
 
 // SetNillableGid sets the "gid" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableGid(v *int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetNillableGid(v *int) *InodeUpdateOne {
 	if v != nil {
 		_u.SetGid(*v)
 	}
@@ -482,7 +482,7 @@ func (_u *InodeUpdateOne) SetNillableGid(v *int64) *InodeUpdateOne {
 }
 
 // AddGid adds value to the "gid" field.
-func (_u *InodeUpdateOne) AddGid(v int64) *InodeUpdateOne {
+func (_u *InodeUpdateOne) AddGid(v int) *InodeUpdateOne {
 	_u.mutation.AddGid(v)
 	return _u
 }
@@ -716,16 +716,16 @@ func (_u *InodeUpdateOne) sqlSave(ctx context.Context) (_node *Inode, err error)
 		_spec.AddField(inode.FieldMode, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UID(); ok {
-		_spec.SetField(inode.FieldUID, field.TypeInt64, value)
+		_spec.SetField(inode.FieldUID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedUID(); ok {
-		_spec.AddField(inode.FieldUID, field.TypeInt64, value)
+		_spec.AddField(inode.FieldUID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Gid(); ok {
-		_spec.SetField(inode.FieldGid, field.TypeInt64, value)
+		_spec.SetField(inode.FieldGid, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedGid(); ok {
-		_spec.AddField(inode.FieldGid, field.TypeInt64, value)
+		_spec.AddField(inode.FieldGid, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Size(); ok {
 		_spec.SetField(inode.FieldSize, field.TypeInt64, value)

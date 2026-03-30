@@ -89,9 +89,9 @@ var (
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
 	// DefaultUID holds the default value on creation for the "uid" field.
-	DefaultUID int64
+	DefaultUID int
 	// DefaultGid holds the default value on creation for the "gid" field.
-	DefaultGid int64
+	DefaultGid int
 	// DefaultSize holds the default value on creation for the "size" field.
 	DefaultSize int64
 	// DefaultLinkCount holds the default value on creation for the "link_count" field.
