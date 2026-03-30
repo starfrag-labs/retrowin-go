@@ -3,10 +3,14 @@ package inode
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	entinode "github.com/starfrag-lab/retrowin-go/ent/inode"
 )
+
+// timeNow returns the current time. Extracted for testability.
+var timeNow = time.Now
 
 // EntRepository implements Repository using Ent.
 type EntRepository struct{}
@@ -17,22 +21,22 @@ func NewEntRepository() Repository {
 }
 
 func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Inode, error) {
-	builder := client.Inode.Create().
-		SetFileType(inode.FileType(params.FileType)).
-		SetOwnerUID(params.OwnerUID).
-		SetOwnerGid(params.OwnerGID).
-		SetPermOwner(params.PermOwner).
-		SetPermGroup(params.PermGroup).
-		SetPermOthers(params.PermOthers).
-		SetByteSize(0).
-		SetLinkCount(1).
-		SetIsSystem(params.IsSystem)
+	now := timeNow()
 
-	if params.SystemID != nil {
-		builder.SetSystemID(*params.SystemID)
-	}
-	if params.SystemType != nil {
-		builder.SetSystemType(*params.SystemType)
+	builder := client.Inode.Create().
+		SetSystemID(params.SystemID).
+		SetMode(params.Mode).
+		SetUID(params.UID).
+		SetGid(params.GID).
+		SetSize(0).
+		SetLinkCount(1).
+		SetFlags(params.Flags).
+		SetAtime(now).
+		SetMtime(now).
+		SetCtime(now)
+
+	if params.Content != nil {
+		builder.SetContent(params.Content)
 	}
 
 	entInode, err := builder.Save(ctx)
@@ -45,7 +49,7 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 
 func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*Inode, error) {
 	entInode, err := client.Inode.Query().
-		Where(inode.ID(id)).
+		Where(entinode.ID(id)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -59,23 +63,29 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int6
 func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *UpdateParams) error {
 	builder := client.Inode.UpdateOneID(params.ID)
 
-	if params.ByteSize != nil {
-		builder.SetByteSize(*params.ByteSize)
+	if params.Mode != nil {
+		builder.SetMode(*params.Mode)
 	}
-	if params.PermOwner != nil {
-		builder.SetPermOwner(*params.PermOwner)
+	if params.UID != nil {
+		builder.SetUID(*params.UID)
 	}
-	if params.PermGroup != nil {
-		builder.SetPermGroup(*params.PermGroup)
+	if params.GID != nil {
+		builder.SetGid(*params.GID)
 	}
-	if params.PermOthers != nil {
-		builder.SetPermOthers(*params.PermOthers)
+	if params.Size != nil {
+		builder.SetSize(*params.Size)
 	}
-	if params.LinkCount != nil {
-		builder.SetLinkCount(*params.LinkCount)
+	if params.Flags != nil {
+		builder.SetFlags(*params.Flags)
 	}
-	if params.AccessedAt != nil {
-		builder.SetAccessedAt(*params.AccessedAt)
+	if params.Atime != nil {
+		builder.SetAtime(*params.Atime)
+	}
+	if params.Mtime != nil {
+		builder.SetMtime(*params.Mtime)
+	}
+	if params.Ctime != nil {
+		builder.SetCtime(*params.Ctime)
 	}
 
 	return builder.Exec(ctx)
@@ -110,7 +120,7 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) UpdateLinkCount(ctx context.Context, client *ent.Client, id int64, delta int16) error {
+func (r *EntRepository) UpdateLinkCount(ctx context.Context, client *ent.Client, id int64, delta int) error {
 	return client.Inode.UpdateOneID(id).
 		AddLinkCount(delta).
 		Exec(ctx)
@@ -121,41 +131,39 @@ func applyFilter(query *ent.InodeQuery, filter *QueryFilter) *ent.InodeQuery {
 		return query
 	}
 	if filter.ID != nil {
-		query = query.Where(inode.ID(*filter.ID))
+		query = query.Where(entinode.ID(*filter.ID))
 	}
 	if filter.SystemID != nil {
-		query = query.Where(inode.SystemIDEQ(*filter.SystemID))
+		query = query.Where(entinode.SystemIDEQ(*filter.SystemID))
 	}
-	if filter.OwnerUID != nil {
-		query = query.Where(inode.OwnerUID(*filter.OwnerUID))
+	if filter.UID != nil {
+		query = query.Where(entinode.UIDEQ(*filter.UID))
 	}
-	if filter.IsSystem != nil {
-		query = query.Where(inode.IsSystem(*filter.IsSystem))
-	}
-	if filter.SystemType != nil {
-		query = query.Where(inode.SystemType(*filter.SystemType))
-	}
-	if filter.FileType != nil {
-		query = query.Where(inode.FileTypeEQ(inode.FileType(string(*filter.FileType))))
+	if filter.GID != nil {
+		query = query.Where(entinode.GidEQ(*filter.GID))
 	}
 	return query
 }
 
 func fromEnt(e *ent.Inode) *Inode {
+	var content []byte
+	if e.Content != nil {
+		content = e.Content
+	}
+
 	return NewInode(
 		e.ID,
 		e.SystemID,
-		FileType(e.FileType),
-		e.ByteSize,
-		e.OwnerUID,
-		e.OwnerGid,
-		e.PermOwner,
-		e.PermGroup,
-		e.PermOthers,
+		e.Mode,
+		e.UID,
+		e.Gid,
+		e.Size,
 		e.LinkCount,
-		e.AccessedAt,
-		e.IsSystem,
-		e.SystemType,
+		e.Flags,
+		e.Atime,
+		e.Mtime,
+		e.Ctime,
+		content,
 		e.CreateTime,
 		e.UpdateTime,
 	)

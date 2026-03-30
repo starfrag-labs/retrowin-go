@@ -41,8 +41,8 @@ type InodeMutation struct {
 	id            *int64
 	create_time   *time.Time
 	update_time   *time.Time
-	mode          *int16
-	addmode       *int16
+	mode          *int
+	addmode       *int
 	uid           *int64
 	adduid        *int64
 	gid           *int64
@@ -51,8 +51,8 @@ type InodeMutation struct {
 	addsize       *int64
 	link_count    *int
 	addlink_count *int
-	flags         *int16
-	addflags      *int16
+	flags         *int
+	addflags      *int
 	atime         *time.Time
 	mtime         *time.Time
 	ctime         *time.Time
@@ -278,13 +278,13 @@ func (m *InodeMutation) ResetSystemID() {
 }
 
 // SetMode sets the "mode" field.
-func (m *InodeMutation) SetMode(i int16) {
+func (m *InodeMutation) SetMode(i int) {
 	m.mode = &i
 	m.addmode = nil
 }
 
 // Mode returns the value of the "mode" field in the mutation.
-func (m *InodeMutation) Mode() (r int16, exists bool) {
+func (m *InodeMutation) Mode() (r int, exists bool) {
 	v := m.mode
 	if v == nil {
 		return
@@ -295,7 +295,7 @@ func (m *InodeMutation) Mode() (r int16, exists bool) {
 // OldMode returns the old "mode" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldMode(ctx context.Context) (v int16, err error) {
+func (m *InodeMutation) OldMode(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMode is only allowed on UpdateOne operations")
 	}
@@ -310,7 +310,7 @@ func (m *InodeMutation) OldMode(ctx context.Context) (v int16, err error) {
 }
 
 // AddMode adds i to the "mode" field.
-func (m *InodeMutation) AddMode(i int16) {
+func (m *InodeMutation) AddMode(i int) {
 	if m.addmode != nil {
 		*m.addmode += i
 	} else {
@@ -319,7 +319,7 @@ func (m *InodeMutation) AddMode(i int16) {
 }
 
 // AddedMode returns the value that was added to the "mode" field in this mutation.
-func (m *InodeMutation) AddedMode() (r int16, exists bool) {
+func (m *InodeMutation) AddedMode() (r int, exists bool) {
 	v := m.addmode
 	if v == nil {
 		return
@@ -558,13 +558,13 @@ func (m *InodeMutation) ResetLinkCount() {
 }
 
 // SetFlags sets the "flags" field.
-func (m *InodeMutation) SetFlags(i int16) {
+func (m *InodeMutation) SetFlags(i int) {
 	m.flags = &i
 	m.addflags = nil
 }
 
 // Flags returns the value of the "flags" field in the mutation.
-func (m *InodeMutation) Flags() (r int16, exists bool) {
+func (m *InodeMutation) Flags() (r int, exists bool) {
 	v := m.flags
 	if v == nil {
 		return
@@ -575,7 +575,7 @@ func (m *InodeMutation) Flags() (r int16, exists bool) {
 // OldFlags returns the old "flags" field's value of the Inode entity.
 // If the Inode object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InodeMutation) OldFlags(ctx context.Context) (v int16, err error) {
+func (m *InodeMutation) OldFlags(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldFlags is only allowed on UpdateOne operations")
 	}
@@ -590,7 +590,7 @@ func (m *InodeMutation) OldFlags(ctx context.Context) (v int16, err error) {
 }
 
 // AddFlags adds i to the "flags" field.
-func (m *InodeMutation) AddFlags(i int16) {
+func (m *InodeMutation) AddFlags(i int) {
 	if m.addflags != nil {
 		*m.addflags += i
 	} else {
@@ -599,7 +599,7 @@ func (m *InodeMutation) AddFlags(i int16) {
 }
 
 // AddedFlags returns the value that was added to the "flags" field in this mutation.
-func (m *InodeMutation) AddedFlags() (r int16, exists bool) {
+func (m *InodeMutation) AddedFlags() (r int, exists bool) {
 	v := m.addflags
 	if v == nil {
 		return
@@ -971,7 +971,7 @@ func (m *InodeMutation) SetField(name string, value ent.Value) error {
 		m.SetSystemID(v)
 		return nil
 	case inode.FieldMode:
-		v, ok := value.(int16)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1006,7 +1006,7 @@ func (m *InodeMutation) SetField(name string, value ent.Value) error {
 		m.SetLinkCount(v)
 		return nil
 	case inode.FieldFlags:
-		v, ok := value.(int16)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1096,7 +1096,7 @@ func (m *InodeMutation) AddedField(name string) (ent.Value, bool) {
 func (m *InodeMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case inode.FieldMode:
-		v, ok := value.(int16)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1131,7 +1131,7 @@ func (m *InodeMutation) AddField(name string, value ent.Value) error {
 		m.AddLinkCount(v)
 		return nil
 	case inode.FieldFlags:
-		v, ok := value.(int16)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

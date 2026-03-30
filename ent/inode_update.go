@@ -50,14 +50,14 @@ func (_u *InodeUpdate) SetNillableSystemID(v *string) *InodeUpdate {
 }
 
 // SetMode sets the "mode" field.
-func (_u *InodeUpdate) SetMode(v int16) *InodeUpdate {
+func (_u *InodeUpdate) SetMode(v int) *InodeUpdate {
 	_u.mutation.ResetMode()
 	_u.mutation.SetMode(v)
 	return _u
 }
 
 // SetNillableMode sets the "mode" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableMode(v *int16) *InodeUpdate {
+func (_u *InodeUpdate) SetNillableMode(v *int) *InodeUpdate {
 	if v != nil {
 		_u.SetMode(*v)
 	}
@@ -65,7 +65,7 @@ func (_u *InodeUpdate) SetNillableMode(v *int16) *InodeUpdate {
 }
 
 // AddMode adds value to the "mode" field.
-func (_u *InodeUpdate) AddMode(v int16) *InodeUpdate {
+func (_u *InodeUpdate) AddMode(v int) *InodeUpdate {
 	_u.mutation.AddMode(v)
 	return _u
 }
@@ -155,14 +155,14 @@ func (_u *InodeUpdate) AddLinkCount(v int) *InodeUpdate {
 }
 
 // SetFlags sets the "flags" field.
-func (_u *InodeUpdate) SetFlags(v int16) *InodeUpdate {
+func (_u *InodeUpdate) SetFlags(v int) *InodeUpdate {
 	_u.mutation.ResetFlags()
 	_u.mutation.SetFlags(v)
 	return _u
 }
 
 // SetNillableFlags sets the "flags" field if the given value is not nil.
-func (_u *InodeUpdate) SetNillableFlags(v *int16) *InodeUpdate {
+func (_u *InodeUpdate) SetNillableFlags(v *int) *InodeUpdate {
 	if v != nil {
 		_u.SetFlags(*v)
 	}
@@ -170,7 +170,7 @@ func (_u *InodeUpdate) SetNillableFlags(v *int16) *InodeUpdate {
 }
 
 // AddFlags adds value to the "flags" field.
-func (_u *InodeUpdate) AddFlags(v int16) *InodeUpdate {
+func (_u *InodeUpdate) AddFlags(v int) *InodeUpdate {
 	_u.mutation.AddFlags(v)
 	return _u
 }
@@ -305,10 +305,10 @@ func (_u *InodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.SetField(inode.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Mode(); ok {
-		_spec.SetField(inode.FieldMode, field.TypeInt16, value)
+		_spec.SetField(inode.FieldMode, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedMode(); ok {
-		_spec.AddField(inode.FieldMode, field.TypeInt16, value)
+		_spec.AddField(inode.FieldMode, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UID(); ok {
 		_spec.SetField(inode.FieldUID, field.TypeInt64, value)
@@ -335,10 +335,10 @@ func (_u *InodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.AddField(inode.FieldLinkCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Flags(); ok {
-		_spec.SetField(inode.FieldFlags, field.TypeInt16, value)
+		_spec.SetField(inode.FieldFlags, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedFlags(); ok {
-		_spec.AddField(inode.FieldFlags, field.TypeInt16, value)
+		_spec.AddField(inode.FieldFlags, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Atime(); ok {
 		_spec.SetField(inode.FieldAtime, field.TypeTime, value)
@@ -425,14 +425,14 @@ func (_u *InodeUpdateOne) SetNillableSystemID(v *string) *InodeUpdateOne {
 }
 
 // SetMode sets the "mode" field.
-func (_u *InodeUpdateOne) SetMode(v int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetMode(v int) *InodeUpdateOne {
 	_u.mutation.ResetMode()
 	_u.mutation.SetMode(v)
 	return _u
 }
 
 // SetNillableMode sets the "mode" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableMode(v *int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetNillableMode(v *int) *InodeUpdateOne {
 	if v != nil {
 		_u.SetMode(*v)
 	}
@@ -440,7 +440,7 @@ func (_u *InodeUpdateOne) SetNillableMode(v *int16) *InodeUpdateOne {
 }
 
 // AddMode adds value to the "mode" field.
-func (_u *InodeUpdateOne) AddMode(v int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) AddMode(v int) *InodeUpdateOne {
 	_u.mutation.AddMode(v)
 	return _u
 }
@@ -530,14 +530,14 @@ func (_u *InodeUpdateOne) AddLinkCount(v int) *InodeUpdateOne {
 }
 
 // SetFlags sets the "flags" field.
-func (_u *InodeUpdateOne) SetFlags(v int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetFlags(v int) *InodeUpdateOne {
 	_u.mutation.ResetFlags()
 	_u.mutation.SetFlags(v)
 	return _u
 }
 
 // SetNillableFlags sets the "flags" field if the given value is not nil.
-func (_u *InodeUpdateOne) SetNillableFlags(v *int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) SetNillableFlags(v *int) *InodeUpdateOne {
 	if v != nil {
 		_u.SetFlags(*v)
 	}
@@ -545,7 +545,7 @@ func (_u *InodeUpdateOne) SetNillableFlags(v *int16) *InodeUpdateOne {
 }
 
 // AddFlags adds value to the "flags" field.
-func (_u *InodeUpdateOne) AddFlags(v int16) *InodeUpdateOne {
+func (_u *InodeUpdateOne) AddFlags(v int) *InodeUpdateOne {
 	_u.mutation.AddFlags(v)
 	return _u
 }
@@ -710,10 +710,10 @@ func (_u *InodeUpdateOne) sqlSave(ctx context.Context) (_node *Inode, err error)
 		_spec.SetField(inode.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Mode(); ok {
-		_spec.SetField(inode.FieldMode, field.TypeInt16, value)
+		_spec.SetField(inode.FieldMode, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedMode(); ok {
-		_spec.AddField(inode.FieldMode, field.TypeInt16, value)
+		_spec.AddField(inode.FieldMode, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UID(); ok {
 		_spec.SetField(inode.FieldUID, field.TypeInt64, value)
@@ -740,10 +740,10 @@ func (_u *InodeUpdateOne) sqlSave(ctx context.Context) (_node *Inode, err error)
 		_spec.AddField(inode.FieldLinkCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Flags(); ok {
-		_spec.SetField(inode.FieldFlags, field.TypeInt16, value)
+		_spec.SetField(inode.FieldFlags, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedFlags(); ok {
-		_spec.AddField(inode.FieldFlags, field.TypeInt16, value)
+		_spec.AddField(inode.FieldFlags, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Atime(); ok {
 		_spec.SetField(inode.FieldAtime, field.TypeTime, value)

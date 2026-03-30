@@ -71,7 +71,7 @@ func SystemID(v string) predicate.Inode {
 }
 
 // Mode applies equality check predicate on the "mode" field. It's identical to ModeEQ.
-func Mode(v int16) predicate.Inode {
+func Mode(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldMode, v))
 }
 
@@ -96,7 +96,7 @@ func LinkCount(v int) predicate.Inode {
 }
 
 // Flags applies equality check predicate on the "flags" field. It's identical to FlagsEQ.
-func Flags(v int16) predicate.Inode {
+func Flags(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldFlags, v))
 }
 
@@ -266,42 +266,42 @@ func SystemIDContainsFold(v string) predicate.Inode {
 }
 
 // ModeEQ applies the EQ predicate on the "mode" field.
-func ModeEQ(v int16) predicate.Inode {
+func ModeEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldMode, v))
 }
 
 // ModeNEQ applies the NEQ predicate on the "mode" field.
-func ModeNEQ(v int16) predicate.Inode {
+func ModeNEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldNEQ(FieldMode, v))
 }
 
 // ModeIn applies the In predicate on the "mode" field.
-func ModeIn(vs ...int16) predicate.Inode {
+func ModeIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldIn(FieldMode, vs...))
 }
 
 // ModeNotIn applies the NotIn predicate on the "mode" field.
-func ModeNotIn(vs ...int16) predicate.Inode {
+func ModeNotIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldNotIn(FieldMode, vs...))
 }
 
 // ModeGT applies the GT predicate on the "mode" field.
-func ModeGT(v int16) predicate.Inode {
+func ModeGT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGT(FieldMode, v))
 }
 
 // ModeGTE applies the GTE predicate on the "mode" field.
-func ModeGTE(v int16) predicate.Inode {
+func ModeGTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGTE(FieldMode, v))
 }
 
 // ModeLT applies the LT predicate on the "mode" field.
-func ModeLT(v int16) predicate.Inode {
+func ModeLT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLT(FieldMode, v))
 }
 
 // ModeLTE applies the LTE predicate on the "mode" field.
-func ModeLTE(v int16) predicate.Inode {
+func ModeLTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLTE(FieldMode, v))
 }
 
@@ -466,42 +466,42 @@ func LinkCountLTE(v int) predicate.Inode {
 }
 
 // FlagsEQ applies the EQ predicate on the "flags" field.
-func FlagsEQ(v int16) predicate.Inode {
+func FlagsEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldEQ(FieldFlags, v))
 }
 
 // FlagsNEQ applies the NEQ predicate on the "flags" field.
-func FlagsNEQ(v int16) predicate.Inode {
+func FlagsNEQ(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldNEQ(FieldFlags, v))
 }
 
 // FlagsIn applies the In predicate on the "flags" field.
-func FlagsIn(vs ...int16) predicate.Inode {
+func FlagsIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldIn(FieldFlags, vs...))
 }
 
 // FlagsNotIn applies the NotIn predicate on the "flags" field.
-func FlagsNotIn(vs ...int16) predicate.Inode {
+func FlagsNotIn(vs ...int) predicate.Inode {
 	return predicate.Inode(sql.FieldNotIn(FieldFlags, vs...))
 }
 
 // FlagsGT applies the GT predicate on the "flags" field.
-func FlagsGT(v int16) predicate.Inode {
+func FlagsGT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGT(FieldFlags, v))
 }
 
 // FlagsGTE applies the GTE predicate on the "flags" field.
-func FlagsGTE(v int16) predicate.Inode {
+func FlagsGTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldGTE(FieldFlags, v))
 }
 
 // FlagsLT applies the LT predicate on the "flags" field.
-func FlagsLT(v int16) predicate.Inode {
+func FlagsLT(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLT(FieldFlags, v))
 }
 
 // FlagsLTE applies the LTE predicate on the "flags" field.
-func FlagsLTE(v int16) predicate.Inode {
+func FlagsLTE(v int) predicate.Inode {
 	return predicate.Inode(sql.FieldLTE(FieldFlags, v))
 }
 

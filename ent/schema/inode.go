@@ -41,7 +41,7 @@ func (Inode) Fields() []ent.Field {
 		// System this inode belongs to
 		field.String("system_id"),
 
-		field.Int16("mode"),
+		field.Int("mode"),
 
 		// Owner user ID
 		field.Int64("uid").
@@ -59,7 +59,7 @@ func (Inode) Fields() []ent.Field {
 		field.Int("link_count").
 			Default(1),
 
-		field.Int16("flags"),
+		field.Int("flags"),
 
 		// Accessed timestamp
 		field.Time("atime"),

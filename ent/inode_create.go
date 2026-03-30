@@ -56,7 +56,7 @@ func (_c *InodeCreate) SetSystemID(v string) *InodeCreate {
 }
 
 // SetMode sets the "mode" field.
-func (_c *InodeCreate) SetMode(v int16) *InodeCreate {
+func (_c *InodeCreate) SetMode(v int) *InodeCreate {
 	_c.mutation.SetMode(v)
 	return _c
 }
@@ -118,7 +118,7 @@ func (_c *InodeCreate) SetNillableLinkCount(v *int) *InodeCreate {
 }
 
 // SetFlags sets the "flags" field.
-func (_c *InodeCreate) SetFlags(v int16) *InodeCreate {
+func (_c *InodeCreate) SetFlags(v int) *InodeCreate {
 	_c.mutation.SetFlags(v)
 	return _c
 }
@@ -301,7 +301,7 @@ func (_c *InodeCreate) createSpec() (*Inode, *sqlgraph.CreateSpec) {
 		_node.UpdateTime = value
 	}
 	if value, ok := _c.mutation.Mode(); ok {
-		_spec.SetField(inode.FieldMode, field.TypeInt16, value)
+		_spec.SetField(inode.FieldMode, field.TypeInt, value)
 		_node.Mode = value
 	}
 	if value, ok := _c.mutation.UID(); ok {
@@ -321,7 +321,7 @@ func (_c *InodeCreate) createSpec() (*Inode, *sqlgraph.CreateSpec) {
 		_node.LinkCount = value
 	}
 	if value, ok := _c.mutation.Flags(); ok {
-		_spec.SetField(inode.FieldFlags, field.TypeInt16, value)
+		_spec.SetField(inode.FieldFlags, field.TypeInt, value)
 		_node.Flags = value
 	}
 	if value, ok := _c.mutation.Atime(); ok {

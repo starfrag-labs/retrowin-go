@@ -15,39 +15,37 @@ type Repository interface {
 	Delete(ctx context.Context, client *ent.Client, id int64) error
 	Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Inode, error)
 	FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Inode, error)
-	UpdateLinkCount(ctx context.Context, client *ent.Client, id int64, delta int16) error
+	UpdateLinkCount(ctx context.Context, client *ent.Client, id int64, delta int) error
 }
 
 // CreateParams for creating a new inode (repository layer).
 type CreateParams struct {
-	SystemID   *int64
-	FileType   FileType
-	OwnerUID   string
-	OwnerGID   string
-	PermOwner  string
-	PermGroup  string
-	PermOthers string
-	IsSystem   bool
-	SystemType *string
+	SystemID string
+	Mode     int
+	UID      int64
+	GID      int64
+	Flags    int
+	Content  []byte
 }
 
 // UpdateParams for updating an inode (repository layer).
 type UpdateParams struct {
-	ID         int64
-	ByteSize   *int64
-	PermOwner  *string
-	PermGroup  *string
-	PermOthers *string
-	LinkCount  *int16
-	AccessedAt *time.Time
+	ID    int64
+	Mode  *int
+	UID   *int64
+	GID   *int64
+	Size  *int64
+	Flags *int
+	Atime *time.Time
+	Mtime *time.Time
+	Ctime *time.Time
 }
 
 // QueryFilter for querying inodes (repository layer).
 type QueryFilter struct {
-	ID         *int64
-	SystemID   *int64
-	OwnerUID   *string
-	FileType   *FileType
-	IsSystem   *bool
-	SystemType *string
+	ID       *int64
+	SystemID *string
+	UID      *int64
+	GID      *int64
+	Mode     *int
 }

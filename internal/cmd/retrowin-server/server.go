@@ -24,14 +24,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
-	"github.com/starfrag-lab/retrowin-go/internal/directory"
-	"github.com/starfrag-lab/retrowin-go/internal/fs"
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/storage"
-	s3storage "github.com/starfrag-lab/retrowin-go/internal/storage/s3"
-	"github.com/starfrag-lab/retrowin-go/internal/symlink"
-	"github.com/starfrag-lab/retrowin-go/internal/upload"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 )
 
@@ -278,9 +272,6 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			// Repositories
 			user.NewEntRepository,
 			inode.NewEntRepository,
-			inode.NewEntFileDataRepository,
-			directory.NewEntRepository,
-			symlink.NewEntRepository,
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
@@ -292,11 +283,6 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			// Domain services
 			user.NewService,
 			inode.NewService,
-			directory.NewService,
-			symlink.NewService,
-			fs.NewService,
-			ProvideStorage,
-			upload.NewService,
 			// HTTP layer
 			handler.NewHandler,
 			ProvideOgenServer,
@@ -364,9 +350,4 @@ func ProvideOIDCService(
 ) (auth.Service, error) {
 	stateTTL := time.Duration(cfg.Auth.Session.StateTTL) * time.Second
 	return auth.NewService(keycloak, sessionSvc, userSvc, client, cfg.Auth.Session.RedisKey, stateTTL)
-}
-
-// ProvideStorage provides the S3 storage.
-func ProvideStorage(cfg *config.Config) (storage.Storage, error) {
-	return s3storage.New(&cfg.Storage)
 }

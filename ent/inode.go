@@ -25,7 +25,7 @@ type Inode struct {
 	// SystemID holds the value of the "system_id" field.
 	SystemID string `json:"system_id,omitempty"`
 	// Mode holds the value of the "mode" field.
-	Mode int16 `json:"mode,omitempty"`
+	Mode int `json:"mode,omitempty"`
 	// UID holds the value of the "uid" field.
 	UID int64 `json:"uid,omitempty"`
 	// Gid holds the value of the "gid" field.
@@ -35,7 +35,7 @@ type Inode struct {
 	// LinkCount holds the value of the "link_count" field.
 	LinkCount int `json:"link_count,omitempty"`
 	// Flags holds the value of the "flags" field.
-	Flags int16 `json:"flags,omitempty"`
+	Flags int `json:"flags,omitempty"`
 	// Atime holds the value of the "atime" field.
 	Atime time.Time `json:"atime,omitempty"`
 	// Mtime holds the value of the "mtime" field.
@@ -126,7 +126,7 @@ func (_m *Inode) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field mode", values[i])
 			} else if value.Valid {
-				_m.Mode = int16(value.Int64)
+				_m.Mode = int(value.Int64)
 			}
 		case inode.FieldUID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -156,7 +156,7 @@ func (_m *Inode) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field flags", values[i])
 			} else if value.Valid {
-				_m.Flags = int16(value.Int64)
+				_m.Flags = int(value.Int64)
 			}
 		case inode.FieldAtime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
