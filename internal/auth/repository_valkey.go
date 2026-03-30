@@ -12,7 +12,7 @@ import (
 // sessionData is the serializable representation of Session for Valkey storage.
 type sessionData struct {
 	UserID    int64     `json:"user_id"`
-	UserUID   string   `json:"user_uid"`
+	UserUID   string    `json:"user_uid"`
 	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
