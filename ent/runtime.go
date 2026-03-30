@@ -119,8 +119,12 @@ func init() {
 	user.DefaultJoinDate = userDescJoinDate.Default.(func() time.Time)
 	usersystemFields := schema.UserSystem{}.Fields()
 	_ = usersystemFields
+	// usersystemDescUID is the schema descriptor for uid field.
+	usersystemDescUID := usersystemFields[2].Descriptor()
+	// usersystem.DefaultUID holds the default value on creation for the uid field.
+	usersystem.DefaultUID = usersystemDescUID.Default.(int)
 	// usersystemDescUsername is the schema descriptor for username field.
-	usersystemDescUsername := usersystemFields[2].Descriptor()
+	usersystemDescUsername := usersystemFields[3].Descriptor()
 	// usersystem.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	usersystem.UsernameValidator = usersystemDescUsername.Validators[0].(func(string) error)
 }

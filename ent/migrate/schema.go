@@ -146,6 +146,7 @@ var (
 	// UserSystemsColumns holds the columns for the "user_systems" table.
 	UserSystemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "uid", Type: field.TypeInt, Default: 0},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 32},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "system_id", Type: field.TypeString},
@@ -158,13 +159,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_systems_users_user",
-				Columns:    []*schema.Column{UserSystemsColumns[2]},
+				Columns:    []*schema.Column{UserSystemsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "user_systems_systems_system",
-				Columns:    []*schema.Column{UserSystemsColumns[3]},
+				Columns:    []*schema.Column{UserSystemsColumns[4]},
 				RefColumns: []*schema.Column{SystemsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -173,12 +174,22 @@ var (
 			{
 				Name:    "usersystem_user_id_system_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserSystemsColumns[2], UserSystemsColumns[3]},
+				Columns: []*schema.Column{UserSystemsColumns[3], UserSystemsColumns[4]},
+			},
+			{
+				Name:    "usersystem_system_id_uid",
+				Unique:  true,
+				Columns: []*schema.Column{UserSystemsColumns[4], UserSystemsColumns[1]},
+			},
+			{
+				Name:    "usersystem_system_id_username",
+				Unique:  true,
+				Columns: []*schema.Column{UserSystemsColumns[4], UserSystemsColumns[2]},
 			},
 			{
 				Name:    "usersystem_system_id",
 				Unique:  false,
-				Columns: []*schema.Column{UserSystemsColumns[3]},
+				Columns: []*schema.Column{UserSystemsColumns[4]},
 			},
 		},
 	}

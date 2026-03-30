@@ -54,6 +54,7 @@ type SystemUserCreateParams struct {
 	UserID   string
 	SystemID string
 	Username string
+	UID      int
 }
 
 // SystemUserQueryFilter for querying system-users (repository layer).

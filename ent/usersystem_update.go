@@ -57,6 +57,27 @@ func (_u *UserSystemUpdate) SetNillableSystemID(v *string) *UserSystemUpdate {
 	return _u
 }
 
+// SetUID sets the "uid" field.
+func (_u *UserSystemUpdate) SetUID(v int) *UserSystemUpdate {
+	_u.mutation.ResetUID()
+	_u.mutation.SetUID(v)
+	return _u
+}
+
+// SetNillableUID sets the "uid" field if the given value is not nil.
+func (_u *UserSystemUpdate) SetNillableUID(v *int) *UserSystemUpdate {
+	if v != nil {
+		_u.SetUID(*v)
+	}
+	return _u
+}
+
+// AddUID adds value to the "uid" field.
+func (_u *UserSystemUpdate) AddUID(v int) *UserSystemUpdate {
+	_u.mutation.AddUID(v)
+	return _u
+}
+
 // SetUsername sets the "username" field.
 func (_u *UserSystemUpdate) SetUsername(v string) *UserSystemUpdate {
 	_u.mutation.SetUsername(v)
@@ -152,6 +173,12 @@ func (_u *UserSystemUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UID(); ok {
+		_spec.SetField(usersystem.FieldUID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUID(); ok {
+		_spec.AddField(usersystem.FieldUID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(usersystem.FieldUsername, field.TypeString, value)
@@ -259,6 +286,27 @@ func (_u *UserSystemUpdateOne) SetNillableSystemID(v *string) *UserSystemUpdateO
 	if v != nil {
 		_u.SetSystemID(*v)
 	}
+	return _u
+}
+
+// SetUID sets the "uid" field.
+func (_u *UserSystemUpdateOne) SetUID(v int) *UserSystemUpdateOne {
+	_u.mutation.ResetUID()
+	_u.mutation.SetUID(v)
+	return _u
+}
+
+// SetNillableUID sets the "uid" field if the given value is not nil.
+func (_u *UserSystemUpdateOne) SetNillableUID(v *int) *UserSystemUpdateOne {
+	if v != nil {
+		_u.SetUID(*v)
+	}
+	return _u
+}
+
+// AddUID adds value to the "uid" field.
+func (_u *UserSystemUpdateOne) AddUID(v int) *UserSystemUpdateOne {
+	_u.mutation.AddUID(v)
 	return _u
 }
 
@@ -387,6 +435,12 @@ func (_u *UserSystemUpdateOne) sqlSave(ctx context.Context) (_node *UserSystem, 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UID(); ok {
+		_spec.SetField(usersystem.FieldUID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUID(); ok {
+		_spec.AddField(usersystem.FieldUID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(usersystem.FieldUsername, field.TypeString, value)

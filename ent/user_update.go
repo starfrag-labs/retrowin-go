@@ -263,6 +263,10 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.RemovedSystemsIDs(); len(nodes) > 0 && !_u.mutation.SystemsCleared() {
@@ -279,6 +283,10 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.SystemsIDs(); len(nodes) > 0 {
@@ -295,6 +303,10 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.UserSystemsCleared() {
@@ -625,6 +637,10 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
 			},
 		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.RemovedSystemsIDs(); len(nodes) > 0 && !_u.mutation.SystemsCleared() {
@@ -641,6 +657,10 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.SystemsIDs(); len(nodes) > 0 {
@@ -657,6 +677,10 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.UserSystemsCleared() {

@@ -33,6 +33,20 @@ func (_c *UserSystemCreate) SetSystemID(v string) *UserSystemCreate {
 	return _c
 }
 
+// SetUID sets the "uid" field.
+func (_c *UserSystemCreate) SetUID(v int) *UserSystemCreate {
+	_c.mutation.SetUID(v)
+	return _c
+}
+
+// SetNillableUID sets the "uid" field if the given value is not nil.
+func (_c *UserSystemCreate) SetNillableUID(v *int) *UserSystemCreate {
+	if v != nil {
+		_c.SetUID(*v)
+	}
+	return _c
+}
+
 // SetUsername sets the "username" field.
 func (_c *UserSystemCreate) SetUsername(v string) *UserSystemCreate {
 	_c.mutation.SetUsername(v)
@@ -56,6 +70,7 @@ func (_c *UserSystemCreate) Mutation() *UserSystemMutation {
 
 // Save creates the UserSystem in the database.
 func (_c *UserSystemCreate) Save(ctx context.Context) (*UserSystem, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -81,6 +96,14 @@ func (_c *UserSystemCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *UserSystemCreate) defaults() {
+	if _, ok := _c.mutation.UID(); !ok {
+		v := usersystem.DefaultUID
+		_c.mutation.SetUID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *UserSystemCreate) check() error {
 	if _, ok := _c.mutation.UserID(); !ok {
@@ -88,6 +111,9 @@ func (_c *UserSystemCreate) check() error {
 	}
 	if _, ok := _c.mutation.SystemID(); !ok {
 		return &ValidationError{Name: "system_id", err: errors.New(`ent: missing required field "UserSystem.system_id"`)}
+	}
+	if _, ok := _c.mutation.UID(); !ok {
+		return &ValidationError{Name: "uid", err: errors.New(`ent: missing required field "UserSystem.uid"`)}
 	}
 	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "UserSystem.username"`)}
@@ -129,6 +155,10 @@ func (_c *UserSystemCreate) createSpec() (*UserSystem, *sqlgraph.CreateSpec) {
 		_node = &UserSystem{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(usersystem.Table, sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.UID(); ok {
+		_spec.SetField(usersystem.FieldUID, field.TypeInt, value)
+		_node.UID = value
+	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(usersystem.FieldUsername, field.TypeString, value)
 		_node.Username = value
@@ -188,6 +218,7 @@ func (_c *UserSystemCreateBulk) Save(ctx context.Context) ([]*UserSystem, error)
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserSystemMutation)
 				if !ok {

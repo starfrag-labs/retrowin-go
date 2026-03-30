@@ -22,6 +22,8 @@ type UserSystem struct {
 	UserID string `json:"user_id,omitempty"`
 	// SystemID holds the value of the "system_id" field.
 	SystemID string `json:"system_id,omitempty"`
+	// UID holds the value of the "uid" field.
+	UID int `json:"uid,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -68,7 +70,7 @@ func (*UserSystem) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case usersystem.FieldID:
+		case usersystem.FieldID, usersystem.FieldUID:
 			values[i] = new(sql.NullInt64)
 		case usersystem.FieldUserID, usersystem.FieldSystemID, usersystem.FieldUsername:
 			values[i] = new(sql.NullString)
@@ -104,6 +106,12 @@ func (_m *UserSystem) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field system_id", values[i])
 			} else if value.Valid {
 				_m.SystemID = value.String
+			}
+		case usersystem.FieldUID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field uid", values[i])
+			} else if value.Valid {
+				_m.UID = int(value.Int64)
 			}
 		case usersystem.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -162,6 +170,9 @@ func (_m *UserSystem) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("system_id=")
 	builder.WriteString(_m.SystemID)
+	builder.WriteString(", ")
+	builder.WriteString("uid=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UID))
 	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(_m.Username)

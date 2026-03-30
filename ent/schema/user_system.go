@@ -27,6 +27,10 @@ func (UserSystem) Fields() []ent.Field {
 		field.String("user_id"),
 		field.String("system_id"),
 
+		// Internal user ID within the system
+		field.Int("uid").
+			Default(0),
+
 		// Username for display
 		field.String("username").
 			Unique().
@@ -38,6 +42,8 @@ func (UserSystem) Fields() []ent.Field {
 func (UserSystem) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("user_id", "system_id").Unique(),
+		index.Fields("system_id", "uid").Unique(),
+		index.Fields("system_id", "username").Unique(),
 		index.Fields("system_id"),
 	}
 }

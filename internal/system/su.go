@@ -13,6 +13,7 @@ type SystemUser struct {
 	userID   string
 	systemID string
 	username string
+	uid      int
 }
 
 // NewSystemUser creates a new SystemUser.
@@ -21,12 +22,14 @@ func NewSystemUser(
 	userID string,
 	systemID string,
 	username string,
+	uid int,
 ) *SystemUser {
 	return &SystemUser{
 		id:       id,
 		userID:   userID,
 		systemID: systemID,
 		username: username,
+		uid:      uid,
 	}
 }
 
@@ -35,6 +38,7 @@ func (su *SystemUser) ID() int          { return su.id }
 func (su *SystemUser) UserID() string   { return su.userID }
 func (su *SystemUser) SystemID() string { return su.systemID }
 func (su *SystemUser) Username() string { return su.username }
+func (su *SystemUser) UID() int         { return su.uid }
 
 // SystemUserService defines the interface for system-user operations.
 type SystemUserService interface {
@@ -51,6 +55,7 @@ type SystemUserCreateCommand struct {
 	UserID   string
 	SystemID string
 	Username string
+	UID      int
 }
 
 // SystemUserFilter for querying system-users (service layer).
@@ -94,6 +99,7 @@ func (s *systemUserService) Create(ctx context.Context, cmd *SystemUserCreateCom
 		UserID:   cmd.UserID,
 		SystemID: cmd.SystemID,
 		Username: cmd.Username,
+		UID:      cmd.UID,
 	}
 	return s.repo.Create(ctx, s.client, params)
 }

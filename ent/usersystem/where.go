@@ -63,6 +63,11 @@ func SystemID(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldSystemID, v))
 }
 
+// UID applies equality check predicate on the "uid" field. It's identical to UIDEQ.
+func UID(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEQ(FieldUID, v))
+}
+
 // Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
 func Username(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldUsername, v))
@@ -196,6 +201,46 @@ func SystemIDEqualFold(v string) predicate.UserSystem {
 // SystemIDContainsFold applies the ContainsFold predicate on the "system_id" field.
 func SystemIDContainsFold(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldContainsFold(FieldSystemID, v))
+}
+
+// UIDEQ applies the EQ predicate on the "uid" field.
+func UIDEQ(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEQ(FieldUID, v))
+}
+
+// UIDNEQ applies the NEQ predicate on the "uid" field.
+func UIDNEQ(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldNEQ(FieldUID, v))
+}
+
+// UIDIn applies the In predicate on the "uid" field.
+func UIDIn(vs ...int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldIn(FieldUID, vs...))
+}
+
+// UIDNotIn applies the NotIn predicate on the "uid" field.
+func UIDNotIn(vs ...int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldNotIn(FieldUID, vs...))
+}
+
+// UIDGT applies the GT predicate on the "uid" field.
+func UIDGT(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGT(FieldUID, v))
+}
+
+// UIDGTE applies the GTE predicate on the "uid" field.
+func UIDGTE(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGTE(FieldUID, v))
+}
+
+// UIDLT applies the LT predicate on the "uid" field.
+func UIDLT(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLT(FieldUID, v))
+}
+
+// UIDLTE applies the LTE predicate on the "uid" field.
+func UIDLTE(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLTE(FieldUID, v))
 }
 
 // UsernameEQ applies the EQ predicate on the "username" field.

@@ -22,6 +22,7 @@ func (r *EntSystemUserRepository) Create(ctx context.Context, client *ent.Client
 		SetUserID(params.UserID).
 		SetSystemID(params.SystemID).
 		SetUsername(params.Username).
+		SetUID(params.UID).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system user: %w", err)
@@ -91,6 +92,7 @@ func systemUserFromEnt(e *ent.UserSystem) *domain.SystemUser {
 		e.UserID,
 		e.SystemID,
 		e.Username,
+		e.UID,
 	)
 }
 
