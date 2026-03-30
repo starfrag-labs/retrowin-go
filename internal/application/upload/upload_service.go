@@ -4,60 +4,55 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/storage"
-)
-
-const (
-	DefaultUploadExpiry   = 15 * 60 // 15 minutes in seconds
-	DefaultDownloadExpiry = 3600    // 1 hour in seconds
+	"github.com/starfrag-lab/retrowin-go/internal/object"
 )
 
 // UploadService defines the interface for upload operations.
 type UploadService interface {
 	Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult, error)
-	GetDownloadURL(ctx context.Context, id int64) (string, error)
-	Delete(ctx context.Context, id int64) error
+	GetDownloadURL(ctx context.Context, id string) (string, error)
+	Delete(ctx context.Context, id string) error
 }
 
-// UploadCommand for initiating a file upload.
+// UploadCommand for uploading a file.
 type UploadCommand struct {
 	SystemID string
 	UID      int64
 	GID      int64
 	Mode     int
 	Flags    int
+	Bucket   string
 	Filename string
 	MimeType string
+	Reader   io.Reader
+	Size     int64
 }
 
-// UploadResult contains the upload URL and created inode.
+// UploadResult contains the created inode and object.
 type UploadResult struct {
-	Inode     *inode.Inode
-	UploadURL string
+	Inode *inode.Inode
+	Object *object.Object
 }
 
-// StorageMetadata is stored in inode content for externally-stored files.
-type StorageMetadata struct {
-	StorageType string `json:"storage_type"`
-	Key         string `json:"key"`
-	Bucket      string `json:"bucket,omitempty"`
-	Filename    string `json:"filename,omitempty"`
-	MimeType    string `json:"mime_type,omitempty"`
+// ObjectRef is stored in inode content to reference the Object entity.
+type ObjectRef struct {
+	ObjectID string `json:"object_id"`
 }
 
 type service struct {
-	inodeSvc inode.InodeService
-	storage  storage.Storage
+	inodeSvc  inode.InodeService
+	objectSvc object.ObjectService
 }
 
 // NewService creates a new upload service.
-func NewService(inodeSvc inode.InodeService, storage storage.Storage) UploadService {
+func NewService(inodeSvc inode.InodeService, objectSvc object.ObjectService) UploadService {
 	return &service{
-		inodeSvc: inodeSvc,
-		storage:  storage,
+		inodeSvc:  inodeSvc,
+		objectSvc: objectSvc,
 	}
 }
 
@@ -65,35 +60,34 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 	if cmd.SystemID == "" {
 		return nil, errors.BadRequest("system_id is required")
 	}
-	if cmd.Filename == "" {
-		return nil, errors.BadRequest("filename is required")
-	}
 
-	// Generate storage key
-	key := fmt.Sprintf("%s/%s", cmd.SystemID, cmd.Filename)
+	// Create object: streams to storage + creates DB record (atomic)
+	// Storage key = inode ID (will be set after inode creation)
+	// For now, use system_id/filename as storage key
+	storageKey := fmt.Sprintf("%s/%s", cmd.SystemID, cmd.Filename)
 
-	// Generate presigned upload URL
-	uploadURL, err := s.storage.GetPresignedUploadURL(ctx, key, DefaultUploadExpiry)
+	obj, err := s.objectSvc.Create(ctx, &object.CreateCommand{
+		Bucket:     cmd.Bucket,
+		SystemID:   cmd.SystemID,
+		StorageKey: storageKey,
+		Reader:     cmd.Reader,
+		Size:       cmd.Size,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate upload URL: %w", err)
+		return nil, fmt.Errorf("failed to create object: %w", err)
 	}
 
-	// Create storage metadata
-	meta := &StorageMetadata{
-		StorageType: "s3",
-		Key:         key,
-		Filename:    cmd.Filename,
-		MimeType:    cmd.MimeType,
-	}
-	metaBytes, err := json.Marshal(meta)
+	// Store Object ID in inode content
+	ref := &ObjectRef{ObjectID: obj.ID()}
+	refBytes, err := json.Marshal(ref)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal storage metadata: %w", err)
+		return nil, fmt.Errorf("failed to marshal object ref: %w", err)
 	}
 
-	// Create inode with storage metadata as content
+	// Create inode with object reference
 	mode := cmd.Mode
 	if mode == 0 {
-		mode = inode.ModeRegular | inode.PermOwnerRW | inode.PermGroupRX | inode.PermOtherR
+		mode = inode.ModeObject | inode.PermOwnerRW | inode.PermGroupRX | inode.PermOtherR
 	}
 
 	createdInode, err := s.inodeSvc.Create(ctx, &inode.CreateCommand{
@@ -102,52 +96,46 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		UID:      cmd.UID,
 		GID:      cmd.GID,
 		Flags:    cmd.Flags,
-		Content:  metaBytes,
+		Content:  refBytes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create inode: %w", err)
 	}
 
 	return &UploadResult{
-		Inode:     createdInode,
-		UploadURL: uploadURL,
+		Inode:  createdInode,
+		Object: obj,
 	}, nil
 }
 
-func (s *service) GetDownloadURL(ctx context.Context, id int64) (string, error) {
-	inode, err := s.inodeSvc.GetByID(ctx, id)
+func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error) {
+	in, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {
 		return "", err
 	}
 
-	var meta StorageMetadata
-	if err := json.Unmarshal(inode.Content(), &meta); err != nil {
-		return "", fmt.Errorf("failed to parse storage metadata: %w", err)
+	var ref ObjectRef
+	if err := json.Unmarshal(in.Content(), &ref); err != nil {
+		return "", fmt.Errorf("failed to parse object ref: %w", err)
+	}
+	if ref.ObjectID == "" {
+		return "", errors.BadRequest("inode has no object reference")
 	}
 
-	if meta.Key == "" {
-		return "", errors.BadRequest("inode has no storage key")
-	}
-
-	url, err := s.storage.GetPresignedDownloadURL(ctx, meta.Key, DefaultDownloadExpiry)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate download URL: %w", err)
-	}
-
-	return url, nil
+	return s.objectSvc.GetDownloadURL(ctx, ref.ObjectID)
 }
 
-func (s *service) Delete(ctx context.Context, id int64) error {
-	inode, err := s.inodeSvc.GetByID(ctx, id)
+func (s *service) Delete(ctx context.Context, id string) error {
+	in, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	// Try to delete from external storage
-	var meta StorageMetadata
-	if err := json.Unmarshal(inode.Content(), &meta); err == nil && meta.Key != "" {
-		if err := s.storage.DeleteObject(ctx, meta.Key); err != nil {
-			return fmt.Errorf("failed to delete storage object: %w", err)
+	// Delete object (atomic: deletes from storage + DB)
+	var ref ObjectRef
+	if err := json.Unmarshal(in.Content(), &ref); err == nil && ref.ObjectID != "" {
+		if err := s.objectSvc.Delete(ctx, ref.ObjectID); err != nil {
+			return fmt.Errorf("failed to delete object: %w", err)
 		}
 	}
 

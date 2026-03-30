@@ -9,6 +9,9 @@ import (
 // Inode is the predicate function for inode builders.
 type Inode func(*sql.Selector)
 
+// Object is the predicate function for object builders.
+type Object func(*sql.Selector)
+
 // System is the predicate function for system builders.
 type System func(*sql.Selector)
 

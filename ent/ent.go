@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
@@ -77,6 +78,7 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			inode.Table:      inode.ValidColumn,
+			object.Table:     object.ValidColumn,
 			system.Table:     system.ValidColumn,
 			user.Table:       user.ValidColumn,
 			usersystem.Table: usersystem.ValidColumn,

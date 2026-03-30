@@ -11,7 +11,7 @@ import (
 var (
 	// InodesColumns holds the columns for the "inodes" table.
 	InodesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "mode", Type: field.TypeInt},
@@ -44,6 +44,47 @@ var (
 				Name:    "inode_system_id",
 				Unique:  false,
 				Columns: []*schema.Column{InodesColumns[13]},
+			},
+		},
+	}
+	// ObjectsColumns holds the columns for the "objects" table.
+	ObjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "provider", Type: field.TypeEnum, Enums: []string{"s3"}, Default: "s3"},
+		{Name: "bucket", Type: field.TypeString},
+		{Name: "storage_key", Type: field.TypeString},
+		{Name: "system_id", Type: field.TypeString},
+	}
+	// ObjectsTable holds the schema information for the "objects" table.
+	ObjectsTable = &schema.Table{
+		Name:       "objects",
+		Columns:    ObjectsColumns,
+		PrimaryKey: []*schema.Column{ObjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "objects_systems_objects",
+				Columns:    []*schema.Column{ObjectsColumns[6]},
+				RefColumns: []*schema.Column{SystemsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "object_system_id_provider_bucket_storage_key",
+				Unique:  true,
+				Columns: []*schema.Column{ObjectsColumns[6], ObjectsColumns[3], ObjectsColumns[4], ObjectsColumns[5]},
+			},
+			{
+				Name:    "object_system_id",
+				Unique:  false,
+				Columns: []*schema.Column{ObjectsColumns[6]},
+			},
+			{
+				Name:    "object_provider_bucket",
+				Unique:  false,
+				Columns: []*schema.Column{ObjectsColumns[3], ObjectsColumns[4]},
 			},
 		},
 	}
@@ -144,6 +185,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		InodesTable,
+		ObjectsTable,
 		SystemsTable,
 		UsersTable,
 		UserSystemsTable,
@@ -154,6 +196,10 @@ func init() {
 	InodesTable.ForeignKeys[0].RefTable = SystemsTable
 	InodesTable.Annotation = &entsql.Annotation{
 		Table: "inodes",
+	}
+	ObjectsTable.ForeignKeys[0].RefTable = SystemsTable
+	ObjectsTable.Annotation = &entsql.Annotation{
+		Table: "objects",
 	}
 	SystemsTable.Annotation = &entsql.Annotation{
 		Table: "systems",

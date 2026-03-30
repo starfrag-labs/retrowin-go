@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 )
@@ -91,18 +92,33 @@ func (_c *SystemCreate) SetID(v string) *SystemCreate {
 }
 
 // AddInodeIDs adds the "inodes" edge to the Inode entity by IDs.
-func (_c *SystemCreate) AddInodeIDs(ids ...int64) *SystemCreate {
+func (_c *SystemCreate) AddInodeIDs(ids ...string) *SystemCreate {
 	_c.mutation.AddInodeIDs(ids...)
 	return _c
 }
 
 // AddInodes adds the "inodes" edges to the Inode entity.
 func (_c *SystemCreate) AddInodes(v ...*Inode) *SystemCreate {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _c.AddInodeIDs(ids...)
+}
+
+// AddObjectIDs adds the "objects" edge to the Object entity by IDs.
+func (_c *SystemCreate) AddObjectIDs(ids ...string) *SystemCreate {
+	_c.mutation.AddObjectIDs(ids...)
+	return _c
+}
+
+// AddObjects adds the "objects" edges to the Object entity.
+func (_c *SystemCreate) AddObjects(v ...*Object) *SystemCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddObjectIDs(ids...)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -261,7 +277,23 @@ func (_c *SystemCreate) createSpec() (*System, *sqlgraph.CreateSpec) {
 			Columns: []string{system.InodesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ObjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   system.ObjectsTable,
+			Columns: []string{system.ObjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(object.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

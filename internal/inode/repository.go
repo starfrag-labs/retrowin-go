@@ -10,12 +10,12 @@ import (
 // InodeRepository defines the interface for inode data access.
 type InodeRepository interface {
 	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Inode, error)
-	GetByID(ctx context.Context, client *ent.Client, id int64) (*Inode, error)
+	GetByID(ctx context.Context, client *ent.Client, id string) (*Inode, error)
 	Update(ctx context.Context, client *ent.Client, params *UpdateParams) error
-	Delete(ctx context.Context, client *ent.Client, id int64) error
+	Delete(ctx context.Context, client *ent.Client, id string) error
 	Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Inode, error)
 	FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Inode, error)
-	UpdateLinkCount(ctx context.Context, client *ent.Client, id int64, delta int) error
+	UpdateLinkCount(ctx context.Context, client *ent.Client, id string, delta int) error
 }
 
 // CreateParams for creating a new inode (repository layer).
@@ -30,7 +30,7 @@ type CreateParams struct {
 
 // UpdateParams for updating an inode (repository layer).
 type UpdateParams struct {
-	ID    int64
+	ID    string
 	Mode  *int
 	UID   *int64
 	GID   *int64
@@ -43,7 +43,7 @@ type UpdateParams struct {
 
 // QueryFilter for querying inodes (repository layer).
 type QueryFilter struct {
-	ID       *int64
+	ID       *string
 	SystemID *string
 	UID      *int64
 	GID      *int64

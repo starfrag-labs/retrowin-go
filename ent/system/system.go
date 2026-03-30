@@ -27,6 +27,8 @@ const (
 	FieldStatus = "status"
 	// EdgeInodes holds the string denoting the inodes edge name in mutations.
 	EdgeInodes = "inodes"
+	// EdgeObjects holds the string denoting the objects edge name in mutations.
+	EdgeObjects = "objects"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// Table holds the table name of the system in the database.
@@ -38,6 +40,13 @@ const (
 	InodesInverseTable = "inodes"
 	// InodesColumn is the table column denoting the inodes relation/edge.
 	InodesColumn = "system_id"
+	// ObjectsTable is the table that holds the objects relation/edge.
+	ObjectsTable = "objects"
+	// ObjectsInverseTable is the table name for the Object entity.
+	// It exists in this package in order to avoid circular dependency with the "object" package.
+	ObjectsInverseTable = "objects"
+	// ObjectsColumn is the table column denoting the objects relation/edge.
+	ObjectsColumn = "system_id"
 	// UsersTable is the table that holds the users relation/edge. The primary key declared below.
 	UsersTable = "user_systems"
 	// UsersInverseTable is the table name for the User entity.
@@ -158,6 +167,20 @@ func ByInodes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByObjectsCount orders the results by objects count.
+func ByObjectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newObjectsStep(), opts...)
+	}
+}
+
+// ByObjects orders the results by objects terms.
+func ByObjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newObjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByUsersCount orders the results by users count.
 func ByUsersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -176,6 +199,13 @@ func newInodesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(InodesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, InodesTable, InodesColumn),
+	)
+}
+func newObjectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ObjectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ObjectsTable, ObjectsColumn),
 	)
 }
 func newUsersStep() *sqlgraph.Step {

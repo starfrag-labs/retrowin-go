@@ -34,8 +34,7 @@ func (User) Mixin() []ent.Mixin {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").
-			StorageKey("id"),
+		field.String("id"),
 
 		// Username for display
 		field.String("username").

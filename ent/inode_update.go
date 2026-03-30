@@ -293,7 +293,7 @@ func (_u *InodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(inode.Table, inode.Columns, sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(inode.Table, inode.Columns, sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -681,7 +681,7 @@ func (_u *InodeUpdateOne) sqlSave(ctx context.Context) (_node *Inode, err error)
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(inode.Table, inode.Columns, sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(inode.Table, inode.Columns, sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Inode.id" for update`)}

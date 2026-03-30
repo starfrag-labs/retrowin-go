@@ -32,8 +32,7 @@ func (System) Mixin() []ent.Mixin {
 // Fields of the System.
 func (System) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").
-			StorageKey("id"),
+		field.String("id"),
 
 		// System name/hostname
 		field.String("name").
@@ -65,6 +64,9 @@ func (System) Edges() []ent.Edge {
 	return []ent.Edge{
 		// System has many inodes
 		edge.To("inodes", Inode.Type),
+
+		// System has many objects
+		edge.To("objects", Object.Type),
 
 		// System has many users (M2M)
 		edge.From("users", User.Type).

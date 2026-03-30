@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
@@ -21,12 +22,13 @@ import (
 // SystemQuery is the builder for querying System entities.
 type SystemQuery struct {
 	config
-	ctx        *QueryContext
-	order      []system.OrderOption
-	inters     []Interceptor
-	predicates []predicate.System
-	withInodes *InodeQuery
-	withUsers  *UserQuery
+	ctx         *QueryContext
+	order       []system.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.System
+	withInodes  *InodeQuery
+	withObjects *ObjectQuery
+	withUsers   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +80,28 @@ func (_q *SystemQuery) QueryInodes() *InodeQuery {
 			sqlgraph.From(system.Table, system.FieldID, selector),
 			sqlgraph.To(inode.Table, inode.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, system.InodesTable, system.InodesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryObjects chains the current query on the "objects" edge.
+func (_q *SystemQuery) QueryObjects() *ObjectQuery {
+	query := (&ObjectClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(system.Table, system.FieldID, selector),
+			sqlgraph.To(object.Table, object.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, system.ObjectsTable, system.ObjectsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +318,14 @@ func (_q *SystemQuery) Clone() *SystemQuery {
 		return nil
 	}
 	return &SystemQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]system.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.System{}, _q.predicates...),
-		withInodes: _q.withInodes.Clone(),
-		withUsers:  _q.withUsers.Clone(),
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]system.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.System{}, _q.predicates...),
+		withInodes:  _q.withInodes.Clone(),
+		withObjects: _q.withObjects.Clone(),
+		withUsers:   _q.withUsers.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -315,6 +340,17 @@ func (_q *SystemQuery) WithInodes(opts ...func(*InodeQuery)) *SystemQuery {
 		opt(query)
 	}
 	_q.withInodes = query
+	return _q
+}
+
+// WithObjects tells the query-builder to eager-load the nodes that are connected to
+// the "objects" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SystemQuery) WithObjects(opts ...func(*ObjectQuery)) *SystemQuery {
+	query := (&ObjectClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withObjects = query
 	return _q
 }
 
@@ -407,8 +443,9 @@ func (_q *SystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Syste
 	var (
 		nodes       = []*System{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withInodes != nil,
+			_q.withObjects != nil,
 			_q.withUsers != nil,
 		}
 	)
@@ -437,6 +474,13 @@ func (_q *SystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Syste
 			return nil, err
 		}
 	}
+	if query := _q.withObjects; query != nil {
+		if err := _q.loadObjects(ctx, query, nodes,
+			func(n *System) { n.Edges.Objects = []*Object{} },
+			func(n *System, e *Object) { n.Edges.Objects = append(n.Edges.Objects, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withUsers; query != nil {
 		if err := _q.loadUsers(ctx, query, nodes,
 			func(n *System) { n.Edges.Users = []*User{} },
@@ -462,6 +506,36 @@ func (_q *SystemQuery) loadInodes(ctx context.Context, query *InodeQuery, nodes 
 	}
 	query.Where(predicate.Inode(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(system.InodesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SystemID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "system_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SystemQuery) loadObjects(ctx context.Context, query *ObjectQuery, nodes []*System, init func(*System), assign func(*System, *Object)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*System)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(object.FieldSystemID)
+	}
+	query.Where(predicate.Object(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(system.ObjectsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

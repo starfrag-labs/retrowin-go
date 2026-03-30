@@ -34,9 +34,7 @@ func (Inode) Mixin() []ent.Mixin {
 // Fields of the Inode.
 func (Inode) Fields() []ent.Field {
 	return []ent.Field{
-		// Custom int64 ID (inode number)
-		field.Int64("id").
-			StorageKey("id"),
+		field.String("id"),
 
 		// System this inode belongs to
 		field.String("system_id"),

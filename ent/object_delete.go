@@ -8,30 +8,30 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 )
 
-// InodeDelete is the builder for deleting a Inode entity.
-type InodeDelete struct {
+// ObjectDelete is the builder for deleting a Object entity.
+type ObjectDelete struct {
 	config
 	hooks    []Hook
-	mutation *InodeMutation
+	mutation *ObjectMutation
 }
 
-// Where appends a list predicates to the InodeDelete builder.
-func (_d *InodeDelete) Where(ps ...predicate.Inode) *InodeDelete {
+// Where appends a list predicates to the ObjectDelete builder.
+func (_d *ObjectDelete) Where(ps ...predicate.Object) *ObjectDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *InodeDelete) Exec(ctx context.Context) (int, error) {
+func (_d *ObjectDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *InodeDelete) ExecX(ctx context.Context) int {
+func (_d *ObjectDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *InodeDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *InodeDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(inode.Table, sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString))
+func (_d *ObjectDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(object.Table, sqlgraph.NewFieldSpec(object.FieldID, field.TypeString))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *InodeDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// InodeDeleteOne is the builder for deleting a single Inode entity.
-type InodeDeleteOne struct {
-	_d *InodeDelete
+// ObjectDeleteOne is the builder for deleting a single Object entity.
+type ObjectDeleteOne struct {
+	_d *ObjectDelete
 }
 
-// Where appends a list predicates to the InodeDelete builder.
-func (_d *InodeDeleteOne) Where(ps ...predicate.Inode) *InodeDeleteOne {
+// Where appends a list predicates to the ObjectDelete builder.
+func (_d *ObjectDeleteOne) Where(ps ...predicate.Object) *ObjectDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *InodeDeleteOne) Exec(ctx context.Context) error {
+func (_d *ObjectDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{inode.Label}
+		return &NotFoundError{object.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *InodeDeleteOne) ExecX(ctx context.Context) {
+func (_d *ObjectDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

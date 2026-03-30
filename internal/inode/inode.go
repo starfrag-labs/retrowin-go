@@ -20,6 +20,7 @@ const (
 	ModeChar      = 0x2000 // character device
 	ModeFifo      = 0x1000 // FIFO
 	ModeSocket    = 0xC000 // socket
+	ModeObject    = 0x3000 // external storage object (S3, etc.)
 
 	// Permission bits (mode & 0x0FFF)
 	PermOwnerRead  = 0x0100
@@ -42,7 +43,7 @@ const (
 // Inode represents a file system inode (metadata only, no filename).
 // Follows Linux inode structure: mode, uid, gid, size, timestamps.
 type Inode struct {
-	id        int64
+	id        string
 	systemID  string
 	mode      int
 	uid       int64
@@ -60,7 +61,7 @@ type Inode struct {
 
 // NewInode creates a new Inode.
 func NewInode(
-	id int64,
+	id string,
 	systemID string,
 	mode int,
 	uid int64,
@@ -94,20 +95,20 @@ func NewInode(
 }
 
 // Getters
-func (i *Inode) ID() int64            { return i.id }
-func (i *Inode) SystemID() string     { return i.systemID }
-func (i *Inode) Mode() int            { return i.mode }
-func (i *Inode) UID() int64           { return i.uid }
-func (i *Inode) GID() int64           { return i.gid }
-func (i *Inode) Size() int64          { return i.size }
-func (i *Inode) LinkCount() int       { return i.linkCount }
-func (i *Inode) Flags() int           { return i.flags }
-func (i *Inode) Atime() time.Time     { return i.atime }
-func (i *Inode) Mtime() time.Time     { return i.mtime }
-func (i *Inode) Ctime() time.Time     { return i.ctime }
-func (i *Inode) Content() []byte      { return i.content }
-func (i *Inode) CreatedAt() time.Time { return i.createdAt }
-func (i *Inode) UpdatedAt() time.Time { return i.updatedAt }
+func (i *Inode) ID() string            { return i.id }
+func (i *Inode) SystemID() string      { return i.systemID }
+func (i *Inode) Mode() int             { return i.mode }
+func (i *Inode) UID() int64            { return i.uid }
+func (i *Inode) GID() int64            { return i.gid }
+func (i *Inode) Size() int64           { return i.size }
+func (i *Inode) LinkCount() int        { return i.linkCount }
+func (i *Inode) Flags() int            { return i.flags }
+func (i *Inode) Atime() time.Time      { return i.atime }
+func (i *Inode) Mtime() time.Time      { return i.mtime }
+func (i *Inode) Ctime() time.Time      { return i.ctime }
+func (i *Inode) Content() []byte       { return i.content }
+func (i *Inode) CreatedAt() time.Time  { return i.createdAt }
+func (i *Inode) UpdatedAt() time.Time  { return i.updatedAt }
 
 // FileType returns the file type portion of the mode.
 func (i *Inode) FileType() int {
@@ -134,15 +135,20 @@ func (i *Inode) IsSymlink() bool {
 	return i.FileType() == ModeSymlink
 }
 
+// IsObject returns true if the inode represents an external storage object.
+func (i *Inode) IsObject() bool {
+	return i.FileType() == ModeObject
+}
+
 // InodeService defines the interface for inode operations.
 type InodeService interface {
 	Create(ctx context.Context, cmd *CreateCommand) (*Inode, error)
-	GetByID(ctx context.Context, id int64) (*Inode, error)
+	GetByID(ctx context.Context, id string) (*Inode, error)
 	Update(ctx context.Context, cmd *UpdateCommand) error
-	Delete(ctx context.Context, id int64) error
+	Delete(ctx context.Context, id string) error
 	Find(ctx context.Context, filter Filter) ([]*Inode, error)
 	FindOne(ctx context.Context, filter Filter) (*Inode, error)
-	UpdateLinkCount(ctx context.Context, id int64, delta int) error
+	UpdateLinkCount(ctx context.Context, id string, delta int) error
 }
 
 // CreateCommand for creating a new inode (service layer).
@@ -162,7 +168,7 @@ type UpdateCommand = UpdateParams
 type Filter = QueryFilter
 
 // Filter helpers
-func ByID(id int64) Filter {
+func ByID(id string) Filter {
 	return Filter{ID: &id}
 }
 
@@ -196,7 +202,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Inode, error
 	return s.repo.Create(ctx, s.client, params)
 }
 
-func (s *service) GetByID(ctx context.Context, id int64) (*Inode, error) {
+func (s *service) GetByID(ctx context.Context, id string) (*Inode, error) {
 	inode, err := s.repo.GetByID(ctx, s.client, id)
 	if err != nil {
 		return nil, err
@@ -211,7 +217,7 @@ func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
 	return s.repo.Update(ctx, s.client, cmd)
 }
 
-func (s *service) Delete(ctx context.Context, id int64) error {
+func (s *service) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, s.client, id)
 }
 
@@ -230,6 +236,6 @@ func (s *service) FindOne(ctx context.Context, filter Filter) (*Inode, error) {
 	return inode, nil
 }
 
-func (s *service) UpdateLinkCount(ctx context.Context, id int64, delta int) error {
+func (s *service) UpdateLinkCount(ctx context.Context, id string, delta int) error {
 	return s.repo.UpdateLinkCount(ctx, s.client, id, delta)
 }

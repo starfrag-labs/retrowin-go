@@ -48,7 +48,7 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id int64) (*domain.Inode, error) {
+func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*domain.Inode, error) {
 	entInode, err := client.Inode.Query().
 		Where(entinode.ID(id)).
 		Only(ctx)
@@ -92,7 +92,7 @@ func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *
 	return builder.Exec(ctx)
 }
 
-func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id int64) error {
+func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id string) error {
 	return client.Inode.DeleteOneID(id).Exec(ctx)
 }
 
@@ -121,7 +121,7 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) UpdateLinkCount(ctx context.Context, client *ent.Client, id int64, delta int) error {
+func (r *EntRepository) UpdateLinkCount(ctx context.Context, client *ent.Client, id string, delta int) error {
 	return client.Inode.UpdateOneID(id).
 		AddLinkCount(delta).
 		Exec(ctx)

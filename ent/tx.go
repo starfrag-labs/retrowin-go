@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Inode is the client for interacting with the Inode builders.
 	Inode *InodeClient
+	// Object is the client for interacting with the Object builders.
+	Object *ObjectClient
 	// System is the client for interacting with the System builders.
 	System *SystemClient
 	// User is the client for interacting with the User builders.
@@ -152,6 +154,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Inode = NewInodeClient(tx.config)
+	tx.Object = NewObjectClient(tx.config)
 	tx.System = NewSystemClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserSystem = NewUserSystemClient(tx.config)

@@ -148,7 +148,7 @@ func (_c *InodeCreate) SetContent(v []byte) *InodeCreate {
 }
 
 // SetID sets the "id" field.
-func (_c *InodeCreate) SetID(v int64) *InodeCreate {
+func (_c *InodeCreate) SetID(v string) *InodeCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
@@ -274,9 +274,12 @@ func (_c *InodeCreate) sqlSave(ctx context.Context) (*Inode, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int64(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Inode.ID type: %T", _spec.ID.Value)
+		}
 	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
@@ -286,7 +289,7 @@ func (_c *InodeCreate) sqlSave(ctx context.Context) (*Inode, error) {
 func (_c *InodeCreate) createSpec() (*Inode, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Inode{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(inode.Table, sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64))
+		_spec = sqlgraph.NewCreateSpec(inode.Table, sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
@@ -405,10 +408,6 @@ func (_c *InodeCreateBulk) Save(ctx context.Context) ([]*Inode, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int64(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

@@ -21,6 +21,18 @@ func (f InodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InodeMutation", m)
 }
 
+// The ObjectFunc type is an adapter to allow the use of ordinary
+// function as Object mutator.
+type ObjectFunc func(context.Context, *ent.ObjectMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ObjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ObjectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ObjectMutation", m)
+}
+
 // The SystemFunc type is an adapter to allow the use of ordinary
 // function as System mutator.
 type SystemFunc func(context.Context, *ent.SystemMutation) (ent.Value, error)

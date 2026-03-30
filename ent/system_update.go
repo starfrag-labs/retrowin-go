@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
@@ -85,18 +86,33 @@ func (_u *SystemUpdate) SetNillableStatus(v *system.Status) *SystemUpdate {
 }
 
 // AddInodeIDs adds the "inodes" edge to the Inode entity by IDs.
-func (_u *SystemUpdate) AddInodeIDs(ids ...int64) *SystemUpdate {
+func (_u *SystemUpdate) AddInodeIDs(ids ...string) *SystemUpdate {
 	_u.mutation.AddInodeIDs(ids...)
 	return _u
 }
 
 // AddInodes adds the "inodes" edges to the Inode entity.
 func (_u *SystemUpdate) AddInodes(v ...*Inode) *SystemUpdate {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.AddInodeIDs(ids...)
+}
+
+// AddObjectIDs adds the "objects" edge to the Object entity by IDs.
+func (_u *SystemUpdate) AddObjectIDs(ids ...string) *SystemUpdate {
+	_u.mutation.AddObjectIDs(ids...)
+	return _u
+}
+
+// AddObjects adds the "objects" edges to the Object entity.
+func (_u *SystemUpdate) AddObjects(v ...*Object) *SystemUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddObjectIDs(ids...)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -126,18 +142,39 @@ func (_u *SystemUpdate) ClearInodes() *SystemUpdate {
 }
 
 // RemoveInodeIDs removes the "inodes" edge to Inode entities by IDs.
-func (_u *SystemUpdate) RemoveInodeIDs(ids ...int64) *SystemUpdate {
+func (_u *SystemUpdate) RemoveInodeIDs(ids ...string) *SystemUpdate {
 	_u.mutation.RemoveInodeIDs(ids...)
 	return _u
 }
 
 // RemoveInodes removes "inodes" edges to Inode entities.
 func (_u *SystemUpdate) RemoveInodes(v ...*Inode) *SystemUpdate {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveInodeIDs(ids...)
+}
+
+// ClearObjects clears all "objects" edges to the Object entity.
+func (_u *SystemUpdate) ClearObjects() *SystemUpdate {
+	_u.mutation.ClearObjects()
+	return _u
+}
+
+// RemoveObjectIDs removes the "objects" edge to Object entities by IDs.
+func (_u *SystemUpdate) RemoveObjectIDs(ids ...string) *SystemUpdate {
+	_u.mutation.RemoveObjectIDs(ids...)
+	return _u
+}
+
+// RemoveObjects removes "objects" edges to Object entities.
+func (_u *SystemUpdate) RemoveObjects(v ...*Object) *SystemUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveObjectIDs(ids...)
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -252,7 +289,7 @@ func (_u *SystemUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{system.InodesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -265,7 +302,7 @@ func (_u *SystemUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{system.InodesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -281,7 +318,52 @@ func (_u *SystemUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{system.InodesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ObjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   system.ObjectsTable,
+			Columns: []string{system.ObjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(object.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedObjectsIDs(); len(nodes) > 0 && !_u.mutation.ObjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   system.ObjectsTable,
+			Columns: []string{system.ObjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(object.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ObjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   system.ObjectsTable,
+			Columns: []string{system.ObjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(object.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -409,18 +491,33 @@ func (_u *SystemUpdateOne) SetNillableStatus(v *system.Status) *SystemUpdateOne 
 }
 
 // AddInodeIDs adds the "inodes" edge to the Inode entity by IDs.
-func (_u *SystemUpdateOne) AddInodeIDs(ids ...int64) *SystemUpdateOne {
+func (_u *SystemUpdateOne) AddInodeIDs(ids ...string) *SystemUpdateOne {
 	_u.mutation.AddInodeIDs(ids...)
 	return _u
 }
 
 // AddInodes adds the "inodes" edges to the Inode entity.
 func (_u *SystemUpdateOne) AddInodes(v ...*Inode) *SystemUpdateOne {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.AddInodeIDs(ids...)
+}
+
+// AddObjectIDs adds the "objects" edge to the Object entity by IDs.
+func (_u *SystemUpdateOne) AddObjectIDs(ids ...string) *SystemUpdateOne {
+	_u.mutation.AddObjectIDs(ids...)
+	return _u
+}
+
+// AddObjects adds the "objects" edges to the Object entity.
+func (_u *SystemUpdateOne) AddObjects(v ...*Object) *SystemUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddObjectIDs(ids...)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -450,18 +547,39 @@ func (_u *SystemUpdateOne) ClearInodes() *SystemUpdateOne {
 }
 
 // RemoveInodeIDs removes the "inodes" edge to Inode entities by IDs.
-func (_u *SystemUpdateOne) RemoveInodeIDs(ids ...int64) *SystemUpdateOne {
+func (_u *SystemUpdateOne) RemoveInodeIDs(ids ...string) *SystemUpdateOne {
 	_u.mutation.RemoveInodeIDs(ids...)
 	return _u
 }
 
 // RemoveInodes removes "inodes" edges to Inode entities.
 func (_u *SystemUpdateOne) RemoveInodes(v ...*Inode) *SystemUpdateOne {
-	ids := make([]int64, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveInodeIDs(ids...)
+}
+
+// ClearObjects clears all "objects" edges to the Object entity.
+func (_u *SystemUpdateOne) ClearObjects() *SystemUpdateOne {
+	_u.mutation.ClearObjects()
+	return _u
+}
+
+// RemoveObjectIDs removes the "objects" edge to Object entities by IDs.
+func (_u *SystemUpdateOne) RemoveObjectIDs(ids ...string) *SystemUpdateOne {
+	_u.mutation.RemoveObjectIDs(ids...)
+	return _u
+}
+
+// RemoveObjects removes "objects" edges to Object entities.
+func (_u *SystemUpdateOne) RemoveObjects(v ...*Object) *SystemUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveObjectIDs(ids...)
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -606,7 +724,7 @@ func (_u *SystemUpdateOne) sqlSave(ctx context.Context) (_node *System, err erro
 			Columns: []string{system.InodesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -619,7 +737,7 @@ func (_u *SystemUpdateOne) sqlSave(ctx context.Context) (_node *System, err erro
 			Columns: []string{system.InodesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -635,7 +753,52 @@ func (_u *SystemUpdateOne) sqlSave(ctx context.Context) (_node *System, err erro
 			Columns: []string{system.InodesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(inode.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ObjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   system.ObjectsTable,
+			Columns: []string{system.ObjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(object.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedObjectsIDs(); len(nodes) > 0 && !_u.mutation.ObjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   system.ObjectsTable,
+			Columns: []string{system.ObjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(object.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ObjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   system.ObjectsTable,
+			Columns: []string{system.ObjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(object.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,24 +14,22 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	appconfig "github.com/starfrag-lab/retrowin-go/internal/config"
 	apperrors "github.com/starfrag-lab/retrowin-go/internal/errors"
-	"github.com/starfrag-lab/retrowin-go/internal/storage"
+	"github.com/starfrag-lab/retrowin-go/internal/object"
 )
 
-// S3Storage implements the Storage interface using AWS S3.
+// S3Storage implements the object.Storage interface using AWS S3.
 type S3Storage struct {
-	client    *s3.Client
-	presigner *s3.PresignClient
-	bucket    string
+	client        *s3.Client
+	presigner     *s3.PresignClient
+	defaultBucket string
 }
 
 // New creates a new S3 storage instance.
-func New(cfg *appconfig.StorageConfig) (storage.Storage, error) {
+func New(cfg *appconfig.StorageConfig) (object.Storage, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("storage config is required")
 	}
 
-	// Load AWS configuration with optional static credentials
-	// If AccessKey/SecretKey are empty, SDK will use default credential chain (IRSA, EC2 IAM role, etc.)
 	opts := []func(*awsconfig.LoadOptions) error{
 		awsconfig.WithRegion(cfg.Region),
 	}
@@ -45,9 +44,6 @@ func New(cfg *appconfig.StorageConfig) (storage.Storage, error) {
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
-	// Create S3 client with custom endpoint if provided
-	// Empty endpoint = AWS S3 (SDK handles automatically)
-	// Set endpoint for MinIO, LocalStack, etc.
 	client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
 		if cfg.Endpoint != "" {
 			o.BaseEndpoint = aws.String(cfg.Endpoint)
@@ -55,32 +51,40 @@ func New(cfg *appconfig.StorageConfig) (storage.Storage, error) {
 		}
 	})
 
-	// Create presign client
 	presigner := s3.NewPresignClient(client)
 
 	return &S3Storage{
-		client:    client,
-		presigner: presigner,
-		bucket:    cfg.Bucket,
+		client:        client,
+		presigner:     presigner,
+		defaultBucket: cfg.Bucket,
 	}, nil
 }
 
-// GetPresignedUploadURL generates a presigned URL for direct client upload.
-func (s *S3Storage) GetPresignedUploadURL(ctx context.Context, key string, expiry time.Duration) (string, error) {
-	req, err := s.presigner.PresignPutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(s.bucket),
-		Key:    aws.String(key),
-	}, s3.WithPresignExpires(expiry))
-	if err != nil {
-		return "", fmt.Errorf("failed to generate presigned upload URL: %w", err)
+func (s *S3Storage) resolveBucket(bucket string) string {
+	if bucket != "" {
+		return bucket
 	}
-	return req.URL, nil
+	return s.defaultBucket
+}
+
+// PutObject streams data directly to S3.
+func (s *S3Storage) PutObject(ctx context.Context, bucket string, key string, reader io.Reader, size int64) error {
+	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:        aws.String(s.resolveBucket(bucket)),
+		Key:           aws.String(key),
+		Body:          reader,
+		ContentLength: aws.Int64(size),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to put object: %w", err)
+	}
+	return nil
 }
 
 // GetPresignedDownloadURL generates a presigned URL for direct client download.
-func (s *S3Storage) GetPresignedDownloadURL(ctx context.Context, key string, expiry time.Duration) (string, error) {
+func (s *S3Storage) GetPresignedDownloadURL(ctx context.Context, bucket string, key string, expiry time.Duration) (string, error) {
 	req, err := s.presigner.PresignGetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(s.bucket),
+		Bucket: aws.String(s.resolveBucket(bucket)),
 		Key:    aws.String(key),
 	}, s3.WithPresignExpires(expiry))
 	if err != nil {
@@ -90,9 +94,9 @@ func (s *S3Storage) GetPresignedDownloadURL(ctx context.Context, key string, exp
 }
 
 // DeleteObject removes an object from storage.
-func (s *S3Storage) DeleteObject(ctx context.Context, key string) error {
+func (s *S3Storage) DeleteObject(ctx context.Context, bucket string, key string) error {
 	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{
-		Bucket: aws.String(s.bucket),
+		Bucket: aws.String(s.resolveBucket(bucket)),
 		Key:    aws.String(key),
 	})
 	if err != nil {
@@ -102,9 +106,9 @@ func (s *S3Storage) DeleteObject(ctx context.Context, key string) error {
 }
 
 // ObjectExists checks if an object exists in storage.
-func (s *S3Storage) ObjectExists(ctx context.Context, key string) (bool, error) {
+func (s *S3Storage) ObjectExists(ctx context.Context, bucket string, key string) (bool, error) {
 	_, err := s.client.HeadObject(ctx, &s3.HeadObjectInput{
-		Bucket: aws.String(s.bucket),
+		Bucket: aws.String(s.resolveBucket(bucket)),
 		Key:    aws.String(key),
 	})
 	if err != nil {
@@ -118,9 +122,9 @@ func (s *S3Storage) ObjectExists(ctx context.Context, key string) (bool, error) 
 }
 
 // GetObjectSize returns the size of an object in bytes.
-func (s *S3Storage) GetObjectSize(ctx context.Context, key string) (int64, error) {
+func (s *S3Storage) GetObjectSize(ctx context.Context, bucket string, key string) (int64, error) {
 	resp, err := s.client.HeadObject(ctx, &s3.HeadObjectInput{
-		Bucket: aws.String(s.bucket),
+		Bucket: aws.String(s.resolveBucket(bucket)),
 		Key:    aws.String(key),
 	})
 	if err != nil {

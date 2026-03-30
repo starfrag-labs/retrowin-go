@@ -11,12 +11,12 @@ import (
 type FsService interface {
 	CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inode.Inode, error)
 	CreateDirectory(ctx context.Context, cmd *CreateDirectoryCommand) (*inode.Inode, error)
-	Get(ctx context.Context, id int64) (*inode.Inode, error)
+	Get(ctx context.Context, id string) (*inode.Inode, error)
 	UpdateContent(ctx context.Context, cmd *UpdateContentCommand) (*inode.Inode, error)
 	UpdateMode(ctx context.Context, cmd *UpdateModeCommand) error
-	Delete(ctx context.Context, id int64) error
+	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filter *ListFilter) ([]*inode.Inode, error)
-	Copy(ctx context.Context, id int64, systemID string) (*inode.Inode, error)
+	Copy(ctx context.Context, id string, systemID string) (*inode.Inode, error)
 }
 
 // CreateFileCommand for creating a regular file.
@@ -40,13 +40,13 @@ type CreateDirectoryCommand struct {
 
 // UpdateContentCommand for updating file content.
 type UpdateContentCommand struct {
-	ID      int64
+	ID      string
 	Content []byte
 }
 
 // UpdateModeCommand for updating file mode (permissions).
 type UpdateModeCommand struct {
-	ID   int64
+	ID   string
 	Mode int
 }
 
@@ -104,7 +104,7 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 	})
 }
 
-func (s *service) Get(ctx context.Context, id int64) (*inode.Inode, error) {
+func (s *service) Get(ctx context.Context, id string) (*inode.Inode, error) {
 	return s.inodeSvc.GetByID(ctx, id)
 }
 
@@ -133,7 +133,7 @@ func (s *service) UpdateMode(ctx context.Context, cmd *UpdateModeCommand) error 
 	})
 }
 
-func (s *service) Delete(ctx context.Context, id int64) error {
+func (s *service) Delete(ctx context.Context, id string) error {
 	return s.inodeSvc.Delete(ctx, id)
 }
 
@@ -148,7 +148,7 @@ func (s *service) List(ctx context.Context, filter *ListFilter) ([]*inode.Inode,
 	return s.inodeSvc.Find(ctx, f)
 }
 
-func (s *service) Copy(ctx context.Context, id int64, systemID string) (*inode.Inode, error) {
+func (s *service) Copy(ctx context.Context, id string, systemID string) (*inode.Inode, error) {
 	original, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {
 		return nil, err

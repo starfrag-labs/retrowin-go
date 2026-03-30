@@ -30,8 +30,9 @@ import (
 	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
 	"github.com/starfrag-lab/retrowin-go/internal/inode"
 	inoderepo "github.com/starfrag-lab/retrowin-go/internal/inode/repository"
-	"github.com/starfrag-lab/retrowin-go/internal/storage"
-	s3storage "github.com/starfrag-lab/retrowin-go/internal/storage/s3"
+	"github.com/starfrag-lab/retrowin-go/internal/object"
+	objectrepo "github.com/starfrag-lab/retrowin-go/internal/object/repository"
+	s3storage "github.com/starfrag-lab/retrowin-go/internal/object/s3"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 	userrepo "github.com/starfrag-lab/retrowin-go/internal/user/repository"
 )
@@ -148,7 +149,7 @@ func ProvideAuthUserService(userSvc user.UserService) auth.UserService {
 }
 
 // ProvideStorage provides the S3 storage.
-func ProvideStorage(cfg *config.Config) (storage.Storage, error) {
+func ProvideStorage(cfg *config.Config) (object.Storage, error) {
 	return s3storage.New(&cfg.Storage)
 }
 
@@ -284,6 +285,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			// Repositories
 			userrepo.NewRepository,
 			inoderepo.NewRepository,
+			objectrepo.NewRepository,
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
@@ -295,6 +297,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			// Domain services
 			user.NewService,
 			inode.NewService,
+			object.NewService,
 			// Application services
 			fs.NewService,
 			upload.NewService,

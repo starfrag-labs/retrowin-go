@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
@@ -28,6 +29,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Inode is the client for interacting with the Inode builders.
 	Inode *InodeClient
+	// Object is the client for interacting with the Object builders.
+	Object *ObjectClient
 	// System is the client for interacting with the System builders.
 	System *SystemClient
 	// User is the client for interacting with the User builders.
@@ -46,6 +49,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Inode = NewInodeClient(c.config)
+	c.Object = NewObjectClient(c.config)
 	c.System = NewSystemClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserSystem = NewUserSystemClient(c.config)
@@ -142,6 +146,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:        ctx,
 		config:     cfg,
 		Inode:      NewInodeClient(cfg),
+		Object:     NewObjectClient(cfg),
 		System:     NewSystemClient(cfg),
 		User:       NewUserClient(cfg),
 		UserSystem: NewUserSystemClient(cfg),
@@ -165,6 +170,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:        ctx,
 		config:     cfg,
 		Inode:      NewInodeClient(cfg),
+		Object:     NewObjectClient(cfg),
 		System:     NewSystemClient(cfg),
 		User:       NewUserClient(cfg),
 		UserSystem: NewUserSystemClient(cfg),
@@ -197,6 +203,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Inode.Use(hooks...)
+	c.Object.Use(hooks...)
 	c.System.Use(hooks...)
 	c.User.Use(hooks...)
 	c.UserSystem.Use(hooks...)
@@ -206,6 +213,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Inode.Intercept(interceptors...)
+	c.Object.Intercept(interceptors...)
 	c.System.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 	c.UserSystem.Intercept(interceptors...)
@@ -216,6 +224,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *InodeMutation:
 		return c.Inode.mutate(ctx, m)
+	case *ObjectMutation:
+		return c.Object.mutate(ctx, m)
 	case *SystemMutation:
 		return c.System.mutate(ctx, m)
 	case *UserMutation:
@@ -288,7 +298,7 @@ func (c *InodeClient) UpdateOne(_m *Inode) *InodeUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *InodeClient) UpdateOneID(id int64) *InodeUpdateOne {
+func (c *InodeClient) UpdateOneID(id string) *InodeUpdateOne {
 	mutation := newInodeMutation(c.config, OpUpdateOne, withInodeID(id))
 	return &InodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -305,7 +315,7 @@ func (c *InodeClient) DeleteOne(_m *Inode) *InodeDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *InodeClient) DeleteOneID(id int64) *InodeDeleteOne {
+func (c *InodeClient) DeleteOneID(id string) *InodeDeleteOne {
 	builder := c.Delete().Where(inode.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -322,12 +332,12 @@ func (c *InodeClient) Query() *InodeQuery {
 }
 
 // Get returns a Inode entity by its id.
-func (c *InodeClient) Get(ctx context.Context, id int64) (*Inode, error) {
+func (c *InodeClient) Get(ctx context.Context, id string) (*Inode, error) {
 	return c.Query().Where(inode.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *InodeClient) GetX(ctx context.Context, id int64) *Inode {
+func (c *InodeClient) GetX(ctx context.Context, id string) *Inode {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -373,6 +383,155 @@ func (c *InodeClient) mutate(ctx context.Context, m *InodeMutation) (Value, erro
 		return (&InodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Inode mutation op: %q", m.Op())
+	}
+}
+
+// ObjectClient is a client for the Object schema.
+type ObjectClient struct {
+	config
+}
+
+// NewObjectClient returns a client for the Object from the given config.
+func NewObjectClient(c config) *ObjectClient {
+	return &ObjectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `object.Hooks(f(g(h())))`.
+func (c *ObjectClient) Use(hooks ...Hook) {
+	c.hooks.Object = append(c.hooks.Object, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `object.Intercept(f(g(h())))`.
+func (c *ObjectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Object = append(c.inters.Object, interceptors...)
+}
+
+// Create returns a builder for creating a Object entity.
+func (c *ObjectClient) Create() *ObjectCreate {
+	mutation := newObjectMutation(c.config, OpCreate)
+	return &ObjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Object entities.
+func (c *ObjectClient) CreateBulk(builders ...*ObjectCreate) *ObjectCreateBulk {
+	return &ObjectCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ObjectClient) MapCreateBulk(slice any, setFunc func(*ObjectCreate, int)) *ObjectCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ObjectCreateBulk{err: fmt.Errorf("calling to ObjectClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ObjectCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ObjectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Object.
+func (c *ObjectClient) Update() *ObjectUpdate {
+	mutation := newObjectMutation(c.config, OpUpdate)
+	return &ObjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ObjectClient) UpdateOne(_m *Object) *ObjectUpdateOne {
+	mutation := newObjectMutation(c.config, OpUpdateOne, withObject(_m))
+	return &ObjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ObjectClient) UpdateOneID(id string) *ObjectUpdateOne {
+	mutation := newObjectMutation(c.config, OpUpdateOne, withObjectID(id))
+	return &ObjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Object.
+func (c *ObjectClient) Delete() *ObjectDelete {
+	mutation := newObjectMutation(c.config, OpDelete)
+	return &ObjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ObjectClient) DeleteOne(_m *Object) *ObjectDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ObjectClient) DeleteOneID(id string) *ObjectDeleteOne {
+	builder := c.Delete().Where(object.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ObjectDeleteOne{builder}
+}
+
+// Query returns a query builder for Object.
+func (c *ObjectClient) Query() *ObjectQuery {
+	return &ObjectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeObject},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Object entity by its id.
+func (c *ObjectClient) Get(ctx context.Context, id string) (*Object, error) {
+	return c.Query().Where(object.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ObjectClient) GetX(ctx context.Context, id string) *Object {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySystem queries the system edge of a Object.
+func (c *ObjectClient) QuerySystem(_m *Object) *SystemQuery {
+	query := (&SystemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(object.Table, object.FieldID, id),
+			sqlgraph.To(system.Table, system.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, object.SystemTable, object.SystemColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ObjectClient) Hooks() []Hook {
+	return c.hooks.Object
+}
+
+// Interceptors returns the client interceptors.
+func (c *ObjectClient) Interceptors() []Interceptor {
+	return c.inters.Object
+}
+
+func (c *ObjectClient) mutate(ctx context.Context, m *ObjectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ObjectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ObjectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ObjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ObjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Object mutation op: %q", m.Op())
 	}
 }
 
@@ -493,6 +652,22 @@ func (c *SystemClient) QueryInodes(_m *System) *InodeQuery {
 			sqlgraph.From(system.Table, system.FieldID, id),
 			sqlgraph.To(inode.Table, inode.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, system.InodesTable, system.InodesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryObjects queries the objects edge of a System.
+func (c *SystemClient) QueryObjects(_m *System) *ObjectQuery {
+	query := (&ObjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(system.Table, system.FieldID, id),
+			sqlgraph.To(object.Table, object.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, system.ObjectsTable, system.ObjectsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -874,9 +1049,9 @@ func (c *UserSystemClient) mutate(ctx context.Context, m *UserSystemMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Inode, System, User, UserSystem []ent.Hook
+		Inode, Object, System, User, UserSystem []ent.Hook
 	}
 	inters struct {
-		Inode, System, User, UserSystem []ent.Interceptor
+		Inode, Object, System, User, UserSystem []ent.Interceptor
 	}
 )

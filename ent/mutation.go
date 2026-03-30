@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
@@ -28,6 +29,7 @@ const (
 
 	// Node types.
 	TypeInode      = "Inode"
+	TypeObject     = "Object"
 	TypeSystem     = "System"
 	TypeUser       = "User"
 	TypeUserSystem = "UserSystem"
@@ -38,7 +40,7 @@ type InodeMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int64
+	id            *string
 	create_time   *time.Time
 	update_time   *time.Time
 	mode          *int
@@ -85,7 +87,7 @@ func newInodeMutation(c config, op Op, opts ...inodeOption) *InodeMutation {
 }
 
 // withInodeID sets the ID field of the mutation.
-func withInodeID(id int64) inodeOption {
+func withInodeID(id string) inodeOption {
 	return func(m *InodeMutation) {
 		var (
 			err   error
@@ -137,13 +139,13 @@ func (m InodeMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Inode entities.
-func (m *InodeMutation) SetID(id int64) {
+func (m *InodeMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *InodeMutation) ID() (id int64, exists bool) {
+func (m *InodeMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -154,12 +156,12 @@ func (m *InodeMutation) ID() (id int64, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *InodeMutation) IDs(ctx context.Context) ([]int64, error) {
+func (m *InodeMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int64{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1290,27 +1292,686 @@ func (m *InodeMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Inode edge %s", name)
 }
 
-// SystemMutation represents an operation that mutates the System nodes in the graph.
-type SystemMutation struct {
+// ObjectMutation represents an operation that mutates the Object nodes in the graph.
+type ObjectMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *string
 	create_time   *time.Time
 	update_time   *time.Time
-	name          *string
-	description   *string
-	status        *system.Status
+	provider      *object.Provider
+	bucket        *string
+	storage_key   *string
 	clearedFields map[string]struct{}
-	inodes        map[int64]struct{}
-	removedinodes map[int64]struct{}
-	clearedinodes bool
-	users         map[string]struct{}
-	removedusers  map[string]struct{}
-	clearedusers  bool
+	system        *string
+	clearedsystem bool
 	done          bool
-	oldValue      func(context.Context) (*System, error)
-	predicates    []predicate.System
+	oldValue      func(context.Context) (*Object, error)
+	predicates    []predicate.Object
+}
+
+var _ ent.Mutation = (*ObjectMutation)(nil)
+
+// objectOption allows management of the mutation configuration using functional options.
+type objectOption func(*ObjectMutation)
+
+// newObjectMutation creates new mutation for the Object entity.
+func newObjectMutation(c config, op Op, opts ...objectOption) *ObjectMutation {
+	m := &ObjectMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeObject,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withObjectID sets the ID field of the mutation.
+func withObjectID(id string) objectOption {
+	return func(m *ObjectMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Object
+		)
+		m.oldValue = func(ctx context.Context) (*Object, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Object.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withObject sets the old Object of the mutation.
+func withObject(node *Object) objectOption {
+	return func(m *ObjectMutation) {
+		m.oldValue = func(context.Context) (*Object, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ObjectMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ObjectMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Object entities.
+func (m *ObjectMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ObjectMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ObjectMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Object.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *ObjectMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *ObjectMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Object entity.
+// If the Object object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ObjectMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *ObjectMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *ObjectMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *ObjectMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Object entity.
+// If the Object object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ObjectMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *ObjectMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetProvider sets the "provider" field.
+func (m *ObjectMutation) SetProvider(o object.Provider) {
+	m.provider = &o
+}
+
+// Provider returns the value of the "provider" field in the mutation.
+func (m *ObjectMutation) Provider() (r object.Provider, exists bool) {
+	v := m.provider
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProvider returns the old "provider" field's value of the Object entity.
+// If the Object object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ObjectMutation) OldProvider(ctx context.Context) (v object.Provider, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProvider is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProvider requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProvider: %w", err)
+	}
+	return oldValue.Provider, nil
+}
+
+// ResetProvider resets all changes to the "provider" field.
+func (m *ObjectMutation) ResetProvider() {
+	m.provider = nil
+}
+
+// SetBucket sets the "bucket" field.
+func (m *ObjectMutation) SetBucket(s string) {
+	m.bucket = &s
+}
+
+// Bucket returns the value of the "bucket" field in the mutation.
+func (m *ObjectMutation) Bucket() (r string, exists bool) {
+	v := m.bucket
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBucket returns the old "bucket" field's value of the Object entity.
+// If the Object object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ObjectMutation) OldBucket(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBucket is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBucket requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBucket: %w", err)
+	}
+	return oldValue.Bucket, nil
+}
+
+// ResetBucket resets all changes to the "bucket" field.
+func (m *ObjectMutation) ResetBucket() {
+	m.bucket = nil
+}
+
+// SetSystemID sets the "system_id" field.
+func (m *ObjectMutation) SetSystemID(s string) {
+	m.system = &s
+}
+
+// SystemID returns the value of the "system_id" field in the mutation.
+func (m *ObjectMutation) SystemID() (r string, exists bool) {
+	v := m.system
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSystemID returns the old "system_id" field's value of the Object entity.
+// If the Object object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ObjectMutation) OldSystemID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSystemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSystemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSystemID: %w", err)
+	}
+	return oldValue.SystemID, nil
+}
+
+// ResetSystemID resets all changes to the "system_id" field.
+func (m *ObjectMutation) ResetSystemID() {
+	m.system = nil
+}
+
+// SetStorageKey sets the "storage_key" field.
+func (m *ObjectMutation) SetStorageKey(s string) {
+	m.storage_key = &s
+}
+
+// StorageKey returns the value of the "storage_key" field in the mutation.
+func (m *ObjectMutation) StorageKey() (r string, exists bool) {
+	v := m.storage_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStorageKey returns the old "storage_key" field's value of the Object entity.
+// If the Object object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ObjectMutation) OldStorageKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStorageKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStorageKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStorageKey: %w", err)
+	}
+	return oldValue.StorageKey, nil
+}
+
+// ResetStorageKey resets all changes to the "storage_key" field.
+func (m *ObjectMutation) ResetStorageKey() {
+	m.storage_key = nil
+}
+
+// ClearSystem clears the "system" edge to the System entity.
+func (m *ObjectMutation) ClearSystem() {
+	m.clearedsystem = true
+	m.clearedFields[object.FieldSystemID] = struct{}{}
+}
+
+// SystemCleared reports if the "system" edge to the System entity was cleared.
+func (m *ObjectMutation) SystemCleared() bool {
+	return m.clearedsystem
+}
+
+// SystemIDs returns the "system" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SystemID instead. It exists only for internal usage by the builders.
+func (m *ObjectMutation) SystemIDs() (ids []string) {
+	if id := m.system; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSystem resets all changes to the "system" edge.
+func (m *ObjectMutation) ResetSystem() {
+	m.system = nil
+	m.clearedsystem = false
+}
+
+// Where appends a list predicates to the ObjectMutation builder.
+func (m *ObjectMutation) Where(ps ...predicate.Object) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ObjectMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ObjectMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Object, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ObjectMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ObjectMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Object).
+func (m *ObjectMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ObjectMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, object.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, object.FieldUpdateTime)
+	}
+	if m.provider != nil {
+		fields = append(fields, object.FieldProvider)
+	}
+	if m.bucket != nil {
+		fields = append(fields, object.FieldBucket)
+	}
+	if m.system != nil {
+		fields = append(fields, object.FieldSystemID)
+	}
+	if m.storage_key != nil {
+		fields = append(fields, object.FieldStorageKey)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ObjectMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case object.FieldCreateTime:
+		return m.CreateTime()
+	case object.FieldUpdateTime:
+		return m.UpdateTime()
+	case object.FieldProvider:
+		return m.Provider()
+	case object.FieldBucket:
+		return m.Bucket()
+	case object.FieldSystemID:
+		return m.SystemID()
+	case object.FieldStorageKey:
+		return m.StorageKey()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ObjectMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case object.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case object.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case object.FieldProvider:
+		return m.OldProvider(ctx)
+	case object.FieldBucket:
+		return m.OldBucket(ctx)
+	case object.FieldSystemID:
+		return m.OldSystemID(ctx)
+	case object.FieldStorageKey:
+		return m.OldStorageKey(ctx)
+	}
+	return nil, fmt.Errorf("unknown Object field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ObjectMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case object.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case object.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case object.FieldProvider:
+		v, ok := value.(object.Provider)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProvider(v)
+		return nil
+	case object.FieldBucket:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBucket(v)
+		return nil
+	case object.FieldSystemID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSystemID(v)
+		return nil
+	case object.FieldStorageKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStorageKey(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Object field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ObjectMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ObjectMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ObjectMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Object numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ObjectMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ObjectMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ObjectMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Object nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ObjectMutation) ResetField(name string) error {
+	switch name {
+	case object.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case object.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case object.FieldProvider:
+		m.ResetProvider()
+		return nil
+	case object.FieldBucket:
+		m.ResetBucket()
+		return nil
+	case object.FieldSystemID:
+		m.ResetSystemID()
+		return nil
+	case object.FieldStorageKey:
+		m.ResetStorageKey()
+		return nil
+	}
+	return fmt.Errorf("unknown Object field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ObjectMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.system != nil {
+		edges = append(edges, object.EdgeSystem)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ObjectMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case object.EdgeSystem:
+		if id := m.system; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ObjectMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ObjectMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ObjectMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedsystem {
+		edges = append(edges, object.EdgeSystem)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ObjectMutation) EdgeCleared(name string) bool {
+	switch name {
+	case object.EdgeSystem:
+		return m.clearedsystem
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ObjectMutation) ClearEdge(name string) error {
+	switch name {
+	case object.EdgeSystem:
+		m.ClearSystem()
+		return nil
+	}
+	return fmt.Errorf("unknown Object unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ObjectMutation) ResetEdge(name string) error {
+	switch name {
+	case object.EdgeSystem:
+		m.ResetSystem()
+		return nil
+	}
+	return fmt.Errorf("unknown Object edge %s", name)
+}
+
+// SystemMutation represents an operation that mutates the System nodes in the graph.
+type SystemMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *string
+	create_time    *time.Time
+	update_time    *time.Time
+	name           *string
+	description    *string
+	status         *system.Status
+	clearedFields  map[string]struct{}
+	inodes         map[string]struct{}
+	removedinodes  map[string]struct{}
+	clearedinodes  bool
+	objects        map[string]struct{}
+	removedobjects map[string]struct{}
+	clearedobjects bool
+	users          map[string]struct{}
+	removedusers   map[string]struct{}
+	clearedusers   bool
+	done           bool
+	oldValue       func(context.Context) (*System, error)
+	predicates     []predicate.System
 }
 
 var _ ent.Mutation = (*SystemMutation)(nil)
@@ -1611,9 +2272,9 @@ func (m *SystemMutation) ResetStatus() {
 }
 
 // AddInodeIDs adds the "inodes" edge to the Inode entity by ids.
-func (m *SystemMutation) AddInodeIDs(ids ...int64) {
+func (m *SystemMutation) AddInodeIDs(ids ...string) {
 	if m.inodes == nil {
-		m.inodes = make(map[int64]struct{})
+		m.inodes = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.inodes[ids[i]] = struct{}{}
@@ -1631,9 +2292,9 @@ func (m *SystemMutation) InodesCleared() bool {
 }
 
 // RemoveInodeIDs removes the "inodes" edge to the Inode entity by IDs.
-func (m *SystemMutation) RemoveInodeIDs(ids ...int64) {
+func (m *SystemMutation) RemoveInodeIDs(ids ...string) {
 	if m.removedinodes == nil {
-		m.removedinodes = make(map[int64]struct{})
+		m.removedinodes = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.inodes, ids[i])
@@ -1642,7 +2303,7 @@ func (m *SystemMutation) RemoveInodeIDs(ids ...int64) {
 }
 
 // RemovedInodes returns the removed IDs of the "inodes" edge to the Inode entity.
-func (m *SystemMutation) RemovedInodesIDs() (ids []int64) {
+func (m *SystemMutation) RemovedInodesIDs() (ids []string) {
 	for id := range m.removedinodes {
 		ids = append(ids, id)
 	}
@@ -1650,7 +2311,7 @@ func (m *SystemMutation) RemovedInodesIDs() (ids []int64) {
 }
 
 // InodesIDs returns the "inodes" edge IDs in the mutation.
-func (m *SystemMutation) InodesIDs() (ids []int64) {
+func (m *SystemMutation) InodesIDs() (ids []string) {
 	for id := range m.inodes {
 		ids = append(ids, id)
 	}
@@ -1662,6 +2323,60 @@ func (m *SystemMutation) ResetInodes() {
 	m.inodes = nil
 	m.clearedinodes = false
 	m.removedinodes = nil
+}
+
+// AddObjectIDs adds the "objects" edge to the Object entity by ids.
+func (m *SystemMutation) AddObjectIDs(ids ...string) {
+	if m.objects == nil {
+		m.objects = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.objects[ids[i]] = struct{}{}
+	}
+}
+
+// ClearObjects clears the "objects" edge to the Object entity.
+func (m *SystemMutation) ClearObjects() {
+	m.clearedobjects = true
+}
+
+// ObjectsCleared reports if the "objects" edge to the Object entity was cleared.
+func (m *SystemMutation) ObjectsCleared() bool {
+	return m.clearedobjects
+}
+
+// RemoveObjectIDs removes the "objects" edge to the Object entity by IDs.
+func (m *SystemMutation) RemoveObjectIDs(ids ...string) {
+	if m.removedobjects == nil {
+		m.removedobjects = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.objects, ids[i])
+		m.removedobjects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedObjects returns the removed IDs of the "objects" edge to the Object entity.
+func (m *SystemMutation) RemovedObjectsIDs() (ids []string) {
+	for id := range m.removedobjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ObjectsIDs returns the "objects" edge IDs in the mutation.
+func (m *SystemMutation) ObjectsIDs() (ids []string) {
+	for id := range m.objects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetObjects resets all changes to the "objects" edge.
+func (m *SystemMutation) ResetObjects() {
+	m.objects = nil
+	m.clearedobjects = false
+	m.removedobjects = nil
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
@@ -1928,9 +2643,12 @@ func (m *SystemMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SystemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.inodes != nil {
 		edges = append(edges, system.EdgeInodes)
+	}
+	if m.objects != nil {
+		edges = append(edges, system.EdgeObjects)
 	}
 	if m.users != nil {
 		edges = append(edges, system.EdgeUsers)
@@ -1948,6 +2666,12 @@ func (m *SystemMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case system.EdgeObjects:
+		ids := make([]ent.Value, 0, len(m.objects))
+		for id := range m.objects {
+			ids = append(ids, id)
+		}
+		return ids
 	case system.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.users))
 		for id := range m.users {
@@ -1960,9 +2684,12 @@ func (m *SystemMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SystemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedinodes != nil {
 		edges = append(edges, system.EdgeInodes)
+	}
+	if m.removedobjects != nil {
+		edges = append(edges, system.EdgeObjects)
 	}
 	if m.removedusers != nil {
 		edges = append(edges, system.EdgeUsers)
@@ -1980,6 +2707,12 @@ func (m *SystemMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case system.EdgeObjects:
+		ids := make([]ent.Value, 0, len(m.removedobjects))
+		for id := range m.removedobjects {
+			ids = append(ids, id)
+		}
+		return ids
 	case system.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.removedusers))
 		for id := range m.removedusers {
@@ -1992,9 +2725,12 @@ func (m *SystemMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SystemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedinodes {
 		edges = append(edges, system.EdgeInodes)
+	}
+	if m.clearedobjects {
+		edges = append(edges, system.EdgeObjects)
 	}
 	if m.clearedusers {
 		edges = append(edges, system.EdgeUsers)
@@ -2008,6 +2744,8 @@ func (m *SystemMutation) EdgeCleared(name string) bool {
 	switch name {
 	case system.EdgeInodes:
 		return m.clearedinodes
+	case system.EdgeObjects:
+		return m.clearedobjects
 	case system.EdgeUsers:
 		return m.clearedusers
 	}
@@ -2028,6 +2766,9 @@ func (m *SystemMutation) ResetEdge(name string) error {
 	switch name {
 	case system.EdgeInodes:
 		m.ResetInodes()
+		return nil
+	case system.EdgeObjects:
+		m.ResetObjects()
 		return nil
 	case system.EdgeUsers:
 		m.ResetUsers()

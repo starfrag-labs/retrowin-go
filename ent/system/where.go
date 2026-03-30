@@ -348,6 +348,29 @@ func HasInodesWith(preds ...predicate.Inode) predicate.System {
 	})
 }
 
+// HasObjects applies the HasEdge predicate on the "objects" edge.
+func HasObjects() predicate.System {
+	return predicate.System(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ObjectsTable, ObjectsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasObjectsWith applies the HasEdge predicate on the "objects" edge with a given conditions (other predicates).
+func HasObjectsWith(preds ...predicate.Object) predicate.System {
+	return predicate.System(func(s *sql.Selector) {
+		step := newObjectsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasUsers applies the HasEdge predicate on the "users" edge.
 func HasUsers() predicate.System {
 	return predicate.System(func(s *sql.Selector) {

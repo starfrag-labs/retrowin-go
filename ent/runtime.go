@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/schema"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
@@ -47,6 +48,21 @@ func init() {
 	inodeDescLinkCount := inodeFields[6].Descriptor()
 	// inode.DefaultLinkCount holds the default value on creation for the link_count field.
 	inode.DefaultLinkCount = inodeDescLinkCount.Default.(int)
+	objectMixin := schema.Object{}.Mixin()
+	objectMixinFields0 := objectMixin[0].Fields()
+	_ = objectMixinFields0
+	objectFields := schema.Object{}.Fields()
+	_ = objectFields
+	// objectDescCreateTime is the schema descriptor for create_time field.
+	objectDescCreateTime := objectMixinFields0[0].Descriptor()
+	// object.DefaultCreateTime holds the default value on creation for the create_time field.
+	object.DefaultCreateTime = objectDescCreateTime.Default.(func() time.Time)
+	// objectDescUpdateTime is the schema descriptor for update_time field.
+	objectDescUpdateTime := objectMixinFields0[1].Descriptor()
+	// object.DefaultUpdateTime holds the default value on creation for the update_time field.
+	object.DefaultUpdateTime = objectDescUpdateTime.Default.(func() time.Time)
+	// object.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	object.UpdateDefaultUpdateTime = objectDescUpdateTime.UpdateDefault.(func() time.Time)
 	systemMixin := schema.System{}.Mixin()
 	systemMixinFields0 := systemMixin[0].Fields()
 	_ = systemMixinFields0

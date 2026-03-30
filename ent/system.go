@@ -37,11 +37,13 @@ type System struct {
 type SystemEdges struct {
 	// Inodes holds the value of the inodes edge.
 	Inodes []*Inode `json:"inodes,omitempty"`
+	// Objects holds the value of the objects edge.
+	Objects []*Object `json:"objects,omitempty"`
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // InodesOrErr returns the Inodes value or an error if the edge
@@ -53,10 +55,19 @@ func (e SystemEdges) InodesOrErr() ([]*Inode, error) {
 	return nil, &NotLoadedError{edge: "inodes"}
 }
 
+// ObjectsOrErr returns the Objects value or an error if the edge
+// was not loaded in eager-loading.
+func (e SystemEdges) ObjectsOrErr() ([]*Object, error) {
+	if e.loadedTypes[1] {
+		return e.Objects, nil
+	}
+	return nil, &NotLoadedError{edge: "objects"}
+}
+
 // UsersOrErr returns the Users value or an error if the edge
 // was not loaded in eager-loading.
 func (e SystemEdges) UsersOrErr() ([]*User, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
@@ -139,6 +150,11 @@ func (_m *System) Value(name string) (ent.Value, error) {
 // QueryInodes queries the "inodes" edge of the System entity.
 func (_m *System) QueryInodes() *InodeQuery {
 	return NewSystemClient(_m.config).QueryInodes(_m)
+}
+
+// QueryObjects queries the "objects" edge of the System entity.
+func (_m *System) QueryObjects() *ObjectQuery {
+	return NewSystemClient(_m.config).QueryObjects(_m)
 }
 
 // QueryUsers queries the "users" edge of the System entity.
