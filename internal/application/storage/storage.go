@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"encoding/json"
-	"io"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
@@ -14,22 +13,13 @@ import (
 
 // StorageService defines the interface for file storage operations.
 type StorageService interface {
-	Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult, error)
+	// InitiateUpload creates a pending object and returns presigned upload URL.
 	InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand) (*object.UploadSession, error)
-	CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand) (*UploadResult, error)
-	GetDownloadURL(ctx context.Context, id string) (string, error)
-}
 
-// UploadCommand for server-side streaming upload (small files).
-type UploadCommand struct {
-	SystemID string
-	Mode     int
-	Flags    int
-	Bucket   string
-	Filename string
-	MimeType string
-	Reader   io.Reader
-	Size     int64
+	// CompleteUpload verifies upload completion and creates the inode.
+	CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand) (*UploadResult, error)
+
+	GetDownloadURL(ctx context.Context, id string) (string, error)
 }
 
 // InitiateUploadCommand for starting a presigned upload.
@@ -64,27 +54,6 @@ func NewService(fsSvc fs.FsService, objectSvc object.ObjectService) StorageServi
 		fsSvc:     fsSvc,
 		objectSvc: objectSvc,
 	}
-}
-
-func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult, error) {
-	if cmd.SystemID == "" {
-		return nil, errors.BadRequest("system_id is required")
-	}
-
-	// Create object: streams to storage + creates DB record (atomic)
-	obj, err := s.objectSvc.Create(ctx, &object.CreateCommand{
-		Bucket:     cmd.Bucket,
-		SystemID:   cmd.SystemID,
-		StorageKey: cmd.Filename, // StorageKey now handled internally
-		Reader:     cmd.Reader,
-		Size:       cmd.Size,
-	})
-	if err != nil {
-		return nil, errors.WrapInternal(err, "failed to create object")
-	}
-
-	// Create inode with object reference
-	return s.createInodeWithObject(ctx, cmd.SystemID, cmd.Mode, cmd.Flags, obj.ID())
 }
 
 // InitiateUpload creates a pending object and returns presigned upload URL.
