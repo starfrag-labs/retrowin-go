@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Retrowin API
   description: Retrowin File Management System API
-  version: 0.1.0
+  version: 0.2.0
   contact:
     name: StarFrag Lab
 
@@ -52,35 +52,65 @@ components:
     UserResponse:
       $ref: "./schemas/user.yaml#/UserResponse"
 
-    # File schemas
-    FileType:
-      $ref: "./schemas/file.yaml#/FileType"
-    File:
-      $ref: "./schemas/file.yaml#/File"
-    FileInfo:
-      $ref: "./schemas/file.yaml#/FileInfo"
-    CreateFileRequest:
-      $ref: "./schemas/file.yaml#/CreateFileRequest"
-    UpdateFileRequest:
-      $ref: "./schemas/file.yaml#/UpdateFileRequest"
-    FileResponse:
-      $ref: "./schemas/file.yaml#/FileResponse"
-    FileListResponse:
-      $ref: "./schemas/file.yaml#/FileListResponse"
-    UploadToken:
-      $ref: "./schemas/file.yaml#/UploadToken"
-    UploadTokenResponse:
-      $ref: "./schemas/file.yaml#/UploadTokenResponse"
-    StreamToken:
-      $ref: "./schemas/file.yaml#/StreamToken"
-    StreamTokenResponse:
-      $ref: "./schemas/file.yaml#/StreamTokenResponse"
+    # System schemas
+    System:
+      $ref: "./schemas/system.yaml#/System"
+    CreateSystemRequest:
+      $ref: "./schemas/system.yaml#/CreateSystemRequest"
+    SystemResponse:
+      $ref: "./schemas/system.yaml#/SystemResponse"
+    SystemListResponse:
+      $ref: "./schemas/system.yaml#/SystemListResponse"
+
+    # SystemUser schemas
+    SystemUser:
+      $ref: "./schemas/system_user.yaml#/SystemUser"
+    CreateSystemUserRequest:
+      $ref: "./schemas/system_user.yaml#/CreateSystemUserRequest"
+    SystemUserResponse:
+      $ref: "./schemas/system_user.yaml#/SystemUserResponse"
+    SystemUserListResponse:
+      $ref: "./schemas/system_user.yaml#/SystemUserListResponse"
+
+    # SystemGroup schemas
+    SystemGroup:
+      $ref: "./schemas/system_group.yaml#/SystemGroup"
+    CreateSystemGroupRequest:
+      $ref: "./schemas/system_group.yaml#/CreateSystemGroupRequest"
+    SystemGroupResponse:
+      $ref: "./schemas/system_group.yaml#/SystemGroupResponse"
+    SystemGroupListResponse:
+      $ref: "./schemas/system_group.yaml#/SystemGroupListResponse"
+
+    # Inode schemas
+    Inode:
+      $ref: "./schemas/inode.yaml#/Inode"
+    InodeResponse:
+      $ref: "./schemas/inode.yaml#/InodeResponse"
+    DirEntry:
+      $ref: "./schemas/inode.yaml#/DirEntry"
+    DirContentResponse:
+      $ref: "./schemas/inode.yaml#/DirContentResponse"
+    MkdirRequest:
+      $ref: "./schemas/inode.yaml#/MkdirRequest"
+    SymlinkRequest:
+      $ref: "./schemas/inode.yaml#/SymlinkRequest"
+    ChmodRequest:
+      $ref: "./schemas/inode.yaml#/ChmodRequest"
+
+    # Upload schemas
+    InitiateUploadRequest:
+      $ref: "./schemas/upload.yaml#/InitiateUploadRequest"
+    UploadSession:
+      $ref: "./schemas/upload.yaml#/UploadSession"
+    UploadSessionResponse:
+      $ref: "./schemas/upload.yaml#/UploadSessionResponse"
     CompleteUploadRequest:
-      $ref: "./schemas/file.yaml#/CompleteUploadRequest"
-    MoveFileRequest:
-      $ref: "./schemas/file.yaml#/MoveFileRequest"
-    CopyFileRequest:
-      $ref: "./schemas/file.yaml#/CopyFileRequest"
+      $ref: "./schemas/upload.yaml#/CompleteUploadRequest"
+    DownloadURL:
+      $ref: "./schemas/upload.yaml#/DownloadURL"
+    DownloadURLResponse:
+      $ref: "./schemas/upload.yaml#/DownloadURLResponse"
 
 paths:
   # Auth endpoints
@@ -93,38 +123,52 @@ paths:
 
   # Health
   /health:
-    $ref: "./paths/file.yaml#/~1health"
+    $ref: "./paths/health.yaml#/~1health"
 
   # User endpoints
   /user:
     $ref: "./paths/user.yaml#/~1user"
 
-  # File endpoints
-  /file/root:
-    $ref: "./paths/file.yaml#/~1file~1root"
-  /file/home:
-    $ref: "./paths/file.yaml#/~1file~1home"
-  /file/trash:
-    $ref: "./paths/file.yaml#/~1file~1trash"
-  /file/info/{fileKey}:
-    $ref: "./paths/file.yaml#/~1file~1info~1{fileKey}"
-  /file/children/{fileKey}:
-    $ref: "./paths/file.yaml#/~1file~1children~1{fileKey}"
-  /file:
-    $ref: "./paths/file.yaml#/~1file"
-  /file/{fileKey}:
-    $ref: "./paths/file.yaml#/~1file~1{fileKey}"
-  /file/{fileKey}/move:
-    $ref: "./paths/file.yaml#/~1file~1{fileKey}~1move"
-  /file/{fileKey}/copy:
-    $ref: "./paths/file.yaml#/~1file~1{fileKey}~1copy"
+  # System endpoints
+  /systems:
+    $ref: "./paths/system.yaml#/~1systems"
+  /systems/{systemId}:
+    $ref: "./paths/system.yaml#/~1systems~1{systemId}"
+
+  # SystemUser endpoints
+  /systems/{systemId}/users:
+    $ref: "./paths/system_user.yaml#/~1systems~1{systemId}~1users"
+  /systems/{systemId}/users/{uid}:
+    $ref: "./paths/system_user.yaml#/~1systems~1{systemId}~1users~1{uid}"
+
+  # SystemGroup endpoints
+  /systems/{systemId}/groups:
+    $ref: "./paths/system_group.yaml#/~1systems~1{systemId}~1groups"
+  /systems/{systemId}/groups/{gid}:
+    $ref: "./paths/system_group.yaml#/~1systems~1{systemId}~1groups~1{gid}"
+  /systems/{systemId}/groups/{gid}/members/{uid}:
+    $ref: "./paths/system_group.yaml#/~1systems~1{systemId}~1groups~1{gid}~1members~1{uid}"
+
+  # Fs endpoints
+  /fs/{systemId}/root:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1root"
+  /fs/{systemId}/stat:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1stat"
+  /fs/{systemId}/readdir:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1readdir"
+  /fs/{systemId}/mkdir:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1mkdir"
+  /fs/{systemId}/symlink:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1symlink"
+  /fs/{systemId}/chmod:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1chmod"
+  /fs/{systemId}/unlink:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1unlink"
 
   # Upload endpoints
-  /file/upload/write-token/{fileKey}:
-    $ref: "./paths/upload.yaml#/~1file~1upload~1write-token~1{fileKey}"
-  /file/upload/complete/{fileKey}:
-    $ref: "./paths/upload.yaml#/~1file~1upload~1complete~1{fileKey}"
-
-  # Stream endpoints
-  /file/stream/read-token/{fileKey}:
-    $ref: "./paths/upload.yaml#/~1file~1stream~1read-token~1{fileKey}"
+  /fs/{systemId}/upload/initiate:
+    $ref: "./paths/upload.yaml#/~1fs~1{systemId}~1upload~1initiate"
+  /fs/{systemId}/upload/complete:
+    $ref: "./paths/upload.yaml#/~1fs~1{systemId}~1upload~1complete"
+  /fs/{systemId}/download:
+    $ref: "./paths/upload.yaml#/~1fs~1{systemId}~1download"

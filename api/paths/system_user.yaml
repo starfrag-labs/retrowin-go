@@ -1,12 +1,11 @@
-# Upload endpoints - Presigned URL based
-
-/fs/{systemId}/upload/initiate:
+# System User endpoints
+/systems/{systemId}/users:
   post:
-    operationId: initiateUpload
-    summary: Initiate file upload
-    description: Start an upload session and get presigned URL
+    operationId: createSystemUser
+    summary: Add user to system
+    description: Add a user to a system with auto-assigned UID
     tags:
-      - Upload
+      - SystemUser
     security:
       - sessionAuth: []
     parameters:
@@ -21,68 +20,14 @@
       content:
         application/json:
           schema:
-            $ref: "../schemas/upload.yaml#/InitiateUploadRequest"
+            $ref: "../schemas/system_user.yaml#/CreateSystemUserRequest"
     responses:
       '201':
-        description: Upload session created
+        description: User added to system
         content:
           application/json:
             schema:
-              $ref: "../schemas/upload.yaml#/UploadSessionResponse"
-      '400':
-        description: Invalid request
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"
-      '401':
-        description: Unauthorized
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"
-      '403':
-        description: Access denied
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"
-      default:
-        description: Error
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"
-
-/fs/{systemId}/upload/complete:
-  post:
-    operationId: completeUpload
-    summary: Complete file upload
-    description: Mark upload as complete and create inode
-    tags:
-      - Upload
-    security:
-      - sessionAuth: []
-    parameters:
-      - name: systemId
-        in: path
-        required: true
-        schema:
-          type: string
-        description: System ID
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: "../schemas/upload.yaml#/CompleteUploadRequest"
-    responses:
-      '201':
-        description: Upload completed
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/inode.yaml#/InodeResponse"
+              $ref: "../schemas/system_user.yaml#/SystemUserResponse"
       '400':
         description: Invalid request
         content:
@@ -96,7 +41,13 @@
             schema:
               $ref: "../schemas/common.yaml#/Error"
       '404':
-        description: Object not found
+        description: System not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '409':
+        description: User already exists in system
         content:
           application/json:
             schema:
@@ -107,14 +58,12 @@
           application/json:
             schema:
               $ref: "../schemas/common.yaml#/Error"
-
-/fs/{systemId}/download:
   get:
-    operationId: getDownloadUrl
-    summary: Get download URL
-    description: Get presigned download URL for a file
+    operationId: listSystemUsers
+    summary: List users in system
+    description: Get all users in a system
     tags:
-      - Upload
+      - SystemUser
     security:
       - sessionAuth: []
     parameters:
@@ -124,33 +73,113 @@
         schema:
           type: string
         description: System ID
-      - name: path
-        in: query
-        required: true
-        schema:
-          type: string
-        description: File path
     responses:
       '200':
-        description: Download URL
+        description: List of system users
         content:
           application/json:
             schema:
-              $ref: "../schemas/upload.yaml#/DownloadURLResponse"
+              $ref: "../schemas/system_user.yaml#/SystemUserListResponse"
       '401':
         description: Unauthorized
         content:
           application/json:
             schema:
               $ref: "../schemas/common.yaml#/Error"
-      '403':
-        description: Access denied
+      '404':
+        description: System not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+
+/systems/{systemId}/users/{uid}:
+  get:
+    operationId: getSystemUser
+    summary: Get system user by UID
+    description: Get detailed information about a system user
+    tags:
+      - SystemUser
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: systemId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: System ID
+      - name: uid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+        description: UNIX user ID
+    responses:
+      '200':
+        description: System user information
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/system_user.yaml#/SystemUserResponse"
+      '401':
+        description: Unauthorized
         content:
           application/json:
             schema:
               $ref: "../schemas/common.yaml#/Error"
       '404':
-        description: File not found
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+  delete:
+    operationId: deleteSystemUser
+    summary: Remove user from system
+    description: Remove a user from a system
+    tags:
+      - SystemUser
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: systemId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: System ID
+      - name: uid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+        description: UNIX user ID
+    responses:
+      '204':
+        description: User removed
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '404':
+        description: User not found
         content:
           application/json:
             schema:

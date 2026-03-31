@@ -10,98 +10,22 @@ import (
 	ht "github.com/ogen-go/ogen/http"
 )
 
+func encodeChmodRequest(
+	req *ChmodRequest,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	e := new(jx.Encoder)
+	{
+		req.Encode(e)
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
 func encodeCompleteUploadRequest(
-	req OptCompleteUploadRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	if !req.Set {
-		// Keep request with empty body if value is not set.
-		return nil
-	}
-	e := new(jx.Encoder)
-	{
-		if req.Set {
-			req.Encode(e)
-		}
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeCopyFileRequest(
-	req *CopyFileRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeCreateDirectoryEntryRequest(
-	req *CreateDirectoryEntryRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeCreateFileRequest(
-	req *CreateFileRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeCreateFileDataRequest(
-	req *CreateFileDataRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeCreateGroupRequest(
-	req *CreateGroupRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeCreateInodeRequest(
-	req *CreateInodeRequest,
+	req *CompleteUploadRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -115,7 +39,7 @@ func encodeCreateInodeRequest(
 }
 
 func encodeCreateSymlinkRequest(
-	req *CreateSymlinkRequest,
+	req *SymlinkRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -130,6 +54,34 @@ func encodeCreateSymlinkRequest(
 
 func encodeCreateSystemRequest(
 	req *CreateSystemRequest,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	e := new(jx.Encoder)
+	{
+		req.Encode(e)
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeCreateSystemGroupRequest(
+	req *CreateSystemGroupRequest,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	e := new(jx.Encoder)
+	{
+		req.Encode(e)
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeCreateSystemUserRequest(
+	req *CreateSystemUserRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -170,8 +122,8 @@ func encodeHandleCallbackRequest(
 	return nil
 }
 
-func encodeMoveFileRequest(
-	req *MoveFileRequest,
+func encodeInitiateUploadRequest(
+	req *InitiateUploadRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -184,64 +136,8 @@ func encodeMoveFileRequest(
 	return nil
 }
 
-func encodeUpdateFileDataRequest(
-	req *UpdateFileDataRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeUpdateGroupRequest(
-	req *UpdateGroupRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeUpdateInodeRequest(
-	req *UpdateInodeRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeUpdateSymlinkRequest(
-	req *UpdateSymlinkRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeUpdateSystemRequest(
-	req *UpdateSystemRequest,
+func encodeMkdirRequest(
+	req *MkdirRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"

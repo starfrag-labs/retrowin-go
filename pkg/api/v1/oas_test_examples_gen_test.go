@@ -11,6 +11,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestAddGroupMemberNotFound_EncodeDecode(t *testing.T) {
+	var typ AddGroupMemberNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 AddGroupMemberNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestAddGroupMemberUnauthorized_EncodeDecode(t *testing.T) {
+	var typ AddGroupMemberUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 AddGroupMemberUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestCallbackRequest_EncodeDecode(t *testing.T) {
 	var typ CallbackRequest
 	typ.SetFake()
@@ -35,6 +59,66 @@ func TestCallbackResponse_EncodeDecode(t *testing.T) {
 	var typ2 CallbackResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestChmodBadRequest_EncodeDecode(t *testing.T) {
+	var typ ChmodBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ChmodBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestChmodForbidden_EncodeDecode(t *testing.T) {
+	var typ ChmodForbidden
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ChmodForbidden
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestChmodNotFound_EncodeDecode(t *testing.T) {
+	var typ ChmodNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ChmodNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestChmodRequest_EncodeDecode(t *testing.T) {
+	var typ ChmodRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ChmodRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestChmodUnauthorized_EncodeDecode(t *testing.T) {
+	var typ ChmodUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ChmodUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestCompleteUploadBadRequest_EncodeDecode(t *testing.T) {
 	var typ CompleteUploadBadRequest
 	typ.SetFake()
@@ -45,18 +129,6 @@ func TestCompleteUploadBadRequest_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 CompleteUploadBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCompleteUploadForbidden_EncodeDecode(t *testing.T) {
-	var typ CompleteUploadForbidden
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CompleteUploadForbidden
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestCompleteUploadNotFound_EncodeDecode(t *testing.T) {
@@ -95,258 +167,6 @@ func TestCompleteUploadUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 CompleteUploadUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestCopyFileBadRequest_EncodeDecode(t *testing.T) {
-	var typ CopyFileBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CopyFileBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCopyFileForbidden_EncodeDecode(t *testing.T) {
-	var typ CopyFileForbidden
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CopyFileForbidden
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCopyFileNotFound_EncodeDecode(t *testing.T) {
-	var typ CopyFileNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CopyFileNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCopyFileRequest_EncodeDecode(t *testing.T) {
-	var typ CopyFileRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CopyFileRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCopyFileUnauthorized_EncodeDecode(t *testing.T) {
-	var typ CopyFileUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CopyFileUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateDirectoryEntryBadRequest_EncodeDecode(t *testing.T) {
-	var typ CreateDirectoryEntryBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateDirectoryEntryBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateDirectoryEntryRequest_EncodeDecode(t *testing.T) {
-	var typ CreateDirectoryEntryRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateDirectoryEntryRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateDirectoryEntryUnauthorized_EncodeDecode(t *testing.T) {
-	var typ CreateDirectoryEntryUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateDirectoryEntryUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateFileBadRequest_EncodeDecode(t *testing.T) {
-	var typ CreateFileBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateFileBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateFileDataBadRequest_EncodeDecode(t *testing.T) {
-	var typ CreateFileDataBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateFileDataBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateFileDataRequest_EncodeDecode(t *testing.T) {
-	var typ CreateFileDataRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateFileDataRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateFileDataUnauthorized_EncodeDecode(t *testing.T) {
-	var typ CreateFileDataUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateFileDataUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateFileNotFound_EncodeDecode(t *testing.T) {
-	var typ CreateFileNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateFileNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateFileRequest_EncodeDecode(t *testing.T) {
-	var typ CreateFileRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateFileRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateFileUnauthorized_EncodeDecode(t *testing.T) {
-	var typ CreateFileUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateFileUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateGroupBadRequest_EncodeDecode(t *testing.T) {
-	var typ CreateGroupBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateGroupBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateGroupRequest_EncodeDecode(t *testing.T) {
-	var typ CreateGroupRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateGroupRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateGroupUnauthorized_EncodeDecode(t *testing.T) {
-	var typ CreateGroupUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateGroupUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateInodeBadRequest_EncodeDecode(t *testing.T) {
-	var typ CreateInodeBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateInodeBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateInodeRequest_EncodeDecode(t *testing.T) {
-	var typ CreateInodeRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateInodeRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateInodeUnauthorized_EncodeDecode(t *testing.T) {
-	var typ CreateInodeUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateInodeUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
 func TestCreateSymlinkBadRequest_EncodeDecode(t *testing.T) {
 	var typ CreateSymlinkBadRequest
 	typ.SetFake()
@@ -359,8 +179,8 @@ func TestCreateSymlinkBadRequest_EncodeDecode(t *testing.T) {
 	var typ2 CreateSymlinkBadRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestCreateSymlinkRequest_EncodeDecode(t *testing.T) {
-	var typ CreateSymlinkRequest
+func TestCreateSymlinkForbidden_EncodeDecode(t *testing.T) {
+	var typ CreateSymlinkForbidden
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -368,7 +188,19 @@ func TestCreateSymlinkRequest_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 CreateSymlinkRequest
+	var typ2 CreateSymlinkForbidden
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSymlinkNotFound_EncodeDecode(t *testing.T) {
+	var typ CreateSymlinkNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSymlinkNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestCreateSymlinkUnauthorized_EncodeDecode(t *testing.T) {
@@ -395,6 +227,66 @@ func TestCreateSystemBadRequest_EncodeDecode(t *testing.T) {
 	var typ2 CreateSystemBadRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestCreateSystemGroupBadRequest_EncodeDecode(t *testing.T) {
+	var typ CreateSystemGroupBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemGroupBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemGroupConflict_EncodeDecode(t *testing.T) {
+	var typ CreateSystemGroupConflict
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemGroupConflict
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemGroupNotFound_EncodeDecode(t *testing.T) {
+	var typ CreateSystemGroupNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemGroupNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemGroupRequest_EncodeDecode(t *testing.T) {
+	var typ CreateSystemGroupRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemGroupRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemGroupUnauthorized_EncodeDecode(t *testing.T) {
+	var typ CreateSystemGroupUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemGroupUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestCreateSystemRequest_EncodeDecode(t *testing.T) {
 	var typ CreateSystemRequest
 	typ.SetFake()
@@ -417,6 +309,66 @@ func TestCreateSystemUnauthorized_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 CreateSystemUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemUserBadRequest_EncodeDecode(t *testing.T) {
+	var typ CreateSystemUserBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemUserBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemUserConflict_EncodeDecode(t *testing.T) {
+	var typ CreateSystemUserConflict
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemUserConflict
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemUserNotFound_EncodeDecode(t *testing.T) {
+	var typ CreateSystemUserNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemUserNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemUserRequest_EncodeDecode(t *testing.T) {
+	var typ CreateSystemUserRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemUserRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestCreateSystemUserUnauthorized_EncodeDecode(t *testing.T) {
+	var typ CreateSystemUserUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 CreateSystemUserUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestCreateUserBadRequest_EncodeDecode(t *testing.T) {
@@ -455,8 +407,8 @@ func TestCreateUserRequest_EncodeDecode(t *testing.T) {
 	var typ2 CreateUserRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestDeleteDirectoryEntryNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteDirectoryEntryNotFound
+func TestDeleteSystemGroupNotFound_EncodeDecode(t *testing.T) {
+	var typ DeleteSystemGroupNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -464,11 +416,11 @@ func TestDeleteDirectoryEntryNotFound_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 DeleteDirectoryEntryNotFound
+	var typ2 DeleteSystemGroupNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestDeleteDirectoryEntryUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteDirectoryEntryUnauthorized
+func TestDeleteSystemGroupUnauthorized_EncodeDecode(t *testing.T) {
+	var typ DeleteSystemGroupUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -476,11 +428,11 @@ func TestDeleteDirectoryEntryUnauthorized_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 DeleteDirectoryEntryUnauthorized
+	var typ2 DeleteSystemGroupUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestDeleteFileDataNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteFileDataNotFound
+func TestDeleteSystemUserNotFound_EncodeDecode(t *testing.T) {
+	var typ DeleteSystemUserNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -488,11 +440,11 @@ func TestDeleteFileDataNotFound_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 DeleteFileDataNotFound
+	var typ2 DeleteSystemUserNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestDeleteFileDataUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteFileDataUnauthorized
+func TestDeleteSystemUserUnauthorized_EncodeDecode(t *testing.T) {
+	var typ DeleteSystemUserUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -500,163 +452,7 @@ func TestDeleteFileDataUnauthorized_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 DeleteFileDataUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteFileForbidden_EncodeDecode(t *testing.T) {
-	var typ DeleteFileForbidden
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteFileForbidden
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteFileNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteFileNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteFileNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteFileUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteFileUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteFileUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteGroupNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteGroupNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteGroupNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteGroupUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteGroupUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteGroupUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteInodeNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteInodeNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteInodeNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteInodeUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteInodeUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteInodeUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteSessionNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteSessionNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteSessionNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteSessionUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteSessionUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteSessionUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteSymlinkNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteSymlinkNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteSymlinkNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteSymlinkUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteSymlinkUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteSymlinkUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteSystemNotFound_EncodeDecode(t *testing.T) {
-	var typ DeleteSystemNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteSystemNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestDeleteSystemUnauthorized_EncodeDecode(t *testing.T) {
-	var typ DeleteSystemUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 DeleteSystemUnauthorized
+	var typ2 DeleteSystemUserUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestDeleteUserNotFound_EncodeDecode(t *testing.T) {
@@ -683,8 +479,8 @@ func TestDeleteUserUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 DeleteUserUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestDirectoryEntry_EncodeDecode(t *testing.T) {
-	var typ DirectoryEntry
+func TestDirContentResponse_EncodeDecode(t *testing.T) {
+	var typ DirContentResponse
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -692,11 +488,11 @@ func TestDirectoryEntry_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 DirectoryEntry
+	var typ2 DirContentResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestDirectoryEntryListResponse_EncodeDecode(t *testing.T) {
-	var typ DirectoryEntryListResponse
+func TestDirEntry_EncodeDecode(t *testing.T) {
+	var typ DirEntry
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -704,11 +500,11 @@ func TestDirectoryEntryListResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 DirectoryEntryListResponse
+	var typ2 DirEntry
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestDirectoryEntryResponse_EncodeDecode(t *testing.T) {
-	var typ DirectoryEntryResponse
+func TestDownloadURL_EncodeDecode(t *testing.T) {
+	var typ DownloadURL
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -716,7 +512,19 @@ func TestDirectoryEntryResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 DirectoryEntryResponse
+	var typ2 DownloadURL
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestDownloadURLResponse_EncodeDecode(t *testing.T) {
+	var typ DownloadURLResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 DownloadURLResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestError_EncodeDecode(t *testing.T) {
@@ -743,8 +551,8 @@ func TestErrorError_EncodeDecode(t *testing.T) {
 	var typ2 ErrorError
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestFile_EncodeDecode(t *testing.T) {
-	var typ File
+func TestGetDownloadUrlForbidden_EncodeDecode(t *testing.T) {
+	var typ GetDownloadUrlForbidden
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -752,11 +560,11 @@ func TestFile_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 File
+	var typ2 GetDownloadUrlForbidden
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestFileData_EncodeDecode(t *testing.T) {
-	var typ FileData
+func TestGetDownloadUrlNotFound_EncodeDecode(t *testing.T) {
+	var typ GetDownloadUrlNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -764,11 +572,11 @@ func TestFileData_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 FileData
+	var typ2 GetDownloadUrlNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestFileDataResponse_EncodeDecode(t *testing.T) {
-	var typ FileDataResponse
+func TestGetDownloadUrlUnauthorized_EncodeDecode(t *testing.T) {
+	var typ GetDownloadUrlUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -776,11 +584,11 @@ func TestFileDataResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 FileDataResponse
+	var typ2 GetDownloadUrlUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestFileListResponse_EncodeDecode(t *testing.T) {
-	var typ FileListResponse
+func TestGetRootDirectoryNotFound_EncodeDecode(t *testing.T) {
+	var typ GetRootDirectoryNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -788,11 +596,11 @@ func TestFileListResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 FileListResponse
+	var typ2 GetRootDirectoryNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestFileResponse_EncodeDecode(t *testing.T) {
-	var typ FileResponse
+func TestGetRootDirectoryUnauthorized_EncodeDecode(t *testing.T) {
+	var typ GetRootDirectoryUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -800,11 +608,11 @@ func TestFileResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 FileResponse
+	var typ2 GetRootDirectoryUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestFileType_EncodeDecode(t *testing.T) {
-	var typ FileType
+func TestGetSystemGroupNotFound_EncodeDecode(t *testing.T) {
+	var typ GetSystemGroupNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -812,11 +620,11 @@ func TestFileType_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 FileType
+	var typ2 GetSystemGroupNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestGetDirectoryEntryNotFound_EncodeDecode(t *testing.T) {
-	var typ GetDirectoryEntryNotFound
+func TestGetSystemGroupUnauthorized_EncodeDecode(t *testing.T) {
+	var typ GetSystemGroupUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -824,283 +632,7 @@ func TestGetDirectoryEntryNotFound_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 GetDirectoryEntryNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetDirectoryEntryUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetDirectoryEntryUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetDirectoryEntryUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetFileChildrenForbidden_EncodeDecode(t *testing.T) {
-	var typ GetFileChildrenForbidden
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetFileChildrenForbidden
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetFileChildrenNotFound_EncodeDecode(t *testing.T) {
-	var typ GetFileChildrenNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetFileChildrenNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetFileChildrenUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetFileChildrenUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetFileChildrenUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetFileDataNotFound_EncodeDecode(t *testing.T) {
-	var typ GetFileDataNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetFileDataNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetFileDataUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetFileDataUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetFileDataUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetFileNotFound_EncodeDecode(t *testing.T) {
-	var typ GetFileNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetFileNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetFileUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetFileUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetFileUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetGroupNotFound_EncodeDecode(t *testing.T) {
-	var typ GetGroupNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetGroupNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetGroupUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetGroupUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetGroupUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetHomeContainerNotFound_EncodeDecode(t *testing.T) {
-	var typ GetHomeContainerNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetHomeContainerNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetHomeContainerUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetHomeContainerUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetHomeContainerUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetInodeNotFound_EncodeDecode(t *testing.T) {
-	var typ GetInodeNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetInodeNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetInodeUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetInodeUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetInodeUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetRootContainerNotFound_EncodeDecode(t *testing.T) {
-	var typ GetRootContainerNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetRootContainerNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetRootContainerUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetRootContainerUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetRootContainerUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetSessionNotFound_EncodeDecode(t *testing.T) {
-	var typ GetSessionNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetSessionNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetSessionUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetSessionUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetSessionUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetStreamTokenForbidden_EncodeDecode(t *testing.T) {
-	var typ GetStreamTokenForbidden
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetStreamTokenForbidden
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetStreamTokenNotFound_EncodeDecode(t *testing.T) {
-	var typ GetStreamTokenNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetStreamTokenNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetStreamTokenUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetStreamTokenUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetStreamTokenUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetSymlinkNotFound_EncodeDecode(t *testing.T) {
-	var typ GetSymlinkNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetSymlinkNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetSymlinkUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetSymlinkUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetSymlinkUnauthorized
+	var typ2 GetSystemGroupUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestGetSystemNotFound_EncodeDecode(t *testing.T) {
@@ -1127,8 +659,8 @@ func TestGetSystemUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 GetSystemUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestGetTrashContainerNotFound_EncodeDecode(t *testing.T) {
-	var typ GetTrashContainerNotFound
+func TestGetSystemUserNotFound_EncodeDecode(t *testing.T) {
+	var typ GetSystemUserNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1136,11 +668,11 @@ func TestGetTrashContainerNotFound_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 GetTrashContainerNotFound
+	var typ2 GetSystemUserNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestGetTrashContainerUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetTrashContainerUnauthorized
+func TestGetSystemUserUnauthorized_EncodeDecode(t *testing.T) {
+	var typ GetSystemUserUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1148,43 +680,7 @@ func TestGetTrashContainerUnauthorized_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 GetTrashContainerUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetUploadTokenForbidden_EncodeDecode(t *testing.T) {
-	var typ GetUploadTokenForbidden
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetUploadTokenForbidden
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetUploadTokenNotFound_EncodeDecode(t *testing.T) {
-	var typ GetUploadTokenNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetUploadTokenNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGetUploadTokenUnauthorized_EncodeDecode(t *testing.T) {
-	var typ GetUploadTokenUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GetUploadTokenUnauthorized
+	var typ2 GetSystemUserUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestGetUserNotFound_EncodeDecode(t *testing.T) {
@@ -1209,42 +705,6 @@ func TestGetUserUnauthorized_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 GetUserUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGroup_EncodeDecode(t *testing.T) {
-	var typ Group
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 Group
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGroupListResponse_EncodeDecode(t *testing.T) {
-	var typ GroupListResponse
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GroupListResponse
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestGroupResponse_EncodeDecode(t *testing.T) {
-	var typ GroupResponse
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 GroupResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestHandleCallbackBadRequest_EncodeDecode(t *testing.T) {
@@ -1295,6 +755,54 @@ func TestHealthStatusStatus_EncodeDecode(t *testing.T) {
 	var typ2 HealthStatusStatus
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestInitiateUploadBadRequest_EncodeDecode(t *testing.T) {
+	var typ InitiateUploadBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 InitiateUploadBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestInitiateUploadForbidden_EncodeDecode(t *testing.T) {
+	var typ InitiateUploadForbidden
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 InitiateUploadForbidden
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestInitiateUploadRequest_EncodeDecode(t *testing.T) {
+	var typ InitiateUploadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 InitiateUploadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestInitiateUploadUnauthorized_EncodeDecode(t *testing.T) {
+	var typ InitiateUploadUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 InitiateUploadUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestInode_EncodeDecode(t *testing.T) {
 	var typ Inode
 	typ.SetFake()
@@ -1305,18 +813,6 @@ func TestInode_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 Inode
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestInodeListResponse_EncodeDecode(t *testing.T) {
-	var typ InodeListResponse
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 InodeListResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestInodeResponse_EncodeDecode(t *testing.T) {
@@ -1331,6 +827,54 @@ func TestInodeResponse_EncodeDecode(t *testing.T) {
 	var typ2 InodeResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestListSystemGroupsNotFound_EncodeDecode(t *testing.T) {
+	var typ ListSystemGroupsNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ListSystemGroupsNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestListSystemGroupsUnauthorized_EncodeDecode(t *testing.T) {
+	var typ ListSystemGroupsUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ListSystemGroupsUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestListSystemUsersNotFound_EncodeDecode(t *testing.T) {
+	var typ ListSystemUsersNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ListSystemUsersNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestListSystemUsersUnauthorized_EncodeDecode(t *testing.T) {
+	var typ ListSystemUsersUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 ListSystemUsersUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestLoginResponse_EncodeDecode(t *testing.T) {
 	var typ LoginResponse
 	typ.SetFake()
@@ -1343,8 +887,8 @@ func TestLoginResponse_EncodeDecode(t *testing.T) {
 	var typ2 LoginResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMoveFileBadRequest_EncodeDecode(t *testing.T) {
-	var typ MoveFileBadRequest
+func TestMkdirBadRequest_EncodeDecode(t *testing.T) {
+	var typ MkdirBadRequest
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1352,11 +896,11 @@ func TestMoveFileBadRequest_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 MoveFileBadRequest
+	var typ2 MkdirBadRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMoveFileForbidden_EncodeDecode(t *testing.T) {
-	var typ MoveFileForbidden
+func TestMkdirConflict_EncodeDecode(t *testing.T) {
+	var typ MkdirConflict
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1364,11 +908,11 @@ func TestMoveFileForbidden_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 MoveFileForbidden
+	var typ2 MkdirConflict
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMoveFileNotFound_EncodeDecode(t *testing.T) {
-	var typ MoveFileNotFound
+func TestMkdirForbidden_EncodeDecode(t *testing.T) {
+	var typ MkdirForbidden
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1376,11 +920,11 @@ func TestMoveFileNotFound_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 MoveFileNotFound
+	var typ2 MkdirForbidden
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMoveFileRequest_EncodeDecode(t *testing.T) {
-	var typ MoveFileRequest
+func TestMkdirRequest_EncodeDecode(t *testing.T) {
+	var typ MkdirRequest
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1388,11 +932,11 @@ func TestMoveFileRequest_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 MoveFileRequest
+	var typ2 MkdirRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMoveFileUnauthorized_EncodeDecode(t *testing.T) {
-	var typ MoveFileUnauthorized
+func TestMkdirUnauthorized_EncodeDecode(t *testing.T) {
+	var typ MkdirUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1400,7 +944,7 @@ func TestMoveFileUnauthorized_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 MoveFileUnauthorized
+	var typ2 MkdirUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestProvider_EncodeDecode(t *testing.T) {
@@ -1415,8 +959,8 @@ func TestProvider_EncodeDecode(t *testing.T) {
 	var typ2 Provider
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestSession_EncodeDecode(t *testing.T) {
-	var typ Session
+func TestReadDirForbidden_EncodeDecode(t *testing.T) {
+	var typ ReadDirForbidden
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1424,11 +968,11 @@ func TestSession_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 Session
+	var typ2 ReadDirForbidden
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestSessionListResponse_EncodeDecode(t *testing.T) {
-	var typ SessionListResponse
+func TestReadDirNotFound_EncodeDecode(t *testing.T) {
+	var typ ReadDirNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1436,11 +980,11 @@ func TestSessionListResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 SessionListResponse
+	var typ2 ReadDirNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestSessionResponse_EncodeDecode(t *testing.T) {
-	var typ SessionResponse
+func TestReadDirUnauthorized_EncodeDecode(t *testing.T) {
+	var typ ReadDirUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1448,11 +992,11 @@ func TestSessionResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 SessionResponse
+	var typ2 ReadDirUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestStorageType_EncodeDecode(t *testing.T) {
-	var typ StorageType
+func TestRemoveGroupMemberNotFound_EncodeDecode(t *testing.T) {
+	var typ RemoveGroupMemberNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1460,11 +1004,11 @@ func TestStorageType_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 StorageType
+	var typ2 RemoveGroupMemberNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestStreamToken_EncodeDecode(t *testing.T) {
-	var typ StreamToken
+func TestRemoveGroupMemberUnauthorized_EncodeDecode(t *testing.T) {
+	var typ RemoveGroupMemberUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1472,11 +1016,11 @@ func TestStreamToken_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 StreamToken
+	var typ2 RemoveGroupMemberUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestStreamTokenResponse_EncodeDecode(t *testing.T) {
-	var typ StreamTokenResponse
+func TestStatPathForbidden_EncodeDecode(t *testing.T) {
+	var typ StatPathForbidden
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1484,11 +1028,11 @@ func TestStreamTokenResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 StreamTokenResponse
+	var typ2 StatPathForbidden
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestSymlink_EncodeDecode(t *testing.T) {
-	var typ Symlink
+func TestStatPathNotFound_EncodeDecode(t *testing.T) {
+	var typ StatPathNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1496,11 +1040,11 @@ func TestSymlink_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 Symlink
+	var typ2 StatPathNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestSymlinkResponse_EncodeDecode(t *testing.T) {
-	var typ SymlinkResponse
+func TestStatPathUnauthorized_EncodeDecode(t *testing.T) {
+	var typ StatPathUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1508,7 +1052,19 @@ func TestSymlinkResponse_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 SymlinkResponse
+	var typ2 StatPathUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestSymlinkRequest_EncodeDecode(t *testing.T) {
+	var typ SymlinkRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 SymlinkRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestSystem_EncodeDecode(t *testing.T) {
@@ -1521,6 +1077,42 @@ func TestSystem_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 System
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestSystemGroup_EncodeDecode(t *testing.T) {
+	var typ SystemGroup
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 SystemGroup
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestSystemGroupListResponse_EncodeDecode(t *testing.T) {
+	var typ SystemGroupListResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 SystemGroupListResponse
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestSystemGroupResponse_EncodeDecode(t *testing.T) {
+	var typ SystemGroupResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 SystemGroupResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestSystemListResponse_EncodeDecode(t *testing.T) {
@@ -1559,8 +1151,8 @@ func TestSystemStatus_EncodeDecode(t *testing.T) {
 	var typ2 SystemStatus
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestSystemType_EncodeDecode(t *testing.T) {
-	var typ SystemType
+func TestSystemUser_EncodeDecode(t *testing.T) {
+	var typ SystemUser
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1568,7 +1160,31 @@ func TestSystemType_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 SystemType
+	var typ2 SystemUser
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestSystemUserListResponse_EncodeDecode(t *testing.T) {
+	var typ SystemUserListResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 SystemUserListResponse
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestSystemUserResponse_EncodeDecode(t *testing.T) {
+	var typ SystemUserResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 SystemUserResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestTimestamp_EncodeDecode(t *testing.T) {
@@ -1583,8 +1199,8 @@ func TestTimestamp_EncodeDecode(t *testing.T) {
 	var typ2 Timestamp
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestUpdateFileDataBadRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateFileDataBadRequest
+func TestUnlinkForbidden_EncodeDecode(t *testing.T) {
+	var typ UnlinkForbidden
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1592,11 +1208,11 @@ func TestUpdateFileDataBadRequest_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 UpdateFileDataBadRequest
+	var typ2 UnlinkForbidden
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestUpdateFileDataNotFound_EncodeDecode(t *testing.T) {
-	var typ UpdateFileDataNotFound
+func TestUnlinkNotFound_EncodeDecode(t *testing.T) {
+	var typ UnlinkNotFound
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1604,11 +1220,11 @@ func TestUpdateFileDataNotFound_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 UpdateFileDataNotFound
+	var typ2 UnlinkNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestUpdateFileDataRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateFileDataRequest
+func TestUnlinkUnauthorized_EncodeDecode(t *testing.T) {
+	var typ UnlinkUnauthorized
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1616,11 +1232,11 @@ func TestUpdateFileDataRequest_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 UpdateFileDataRequest
+	var typ2 UnlinkUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestUpdateFileDataUnauthorized_EncodeDecode(t *testing.T) {
-	var typ UpdateFileDataUnauthorized
+func TestUploadSession_EncodeDecode(t *testing.T) {
+	var typ UploadSession
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1628,11 +1244,11 @@ func TestUpdateFileDataUnauthorized_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 UpdateFileDataUnauthorized
+	var typ2 UploadSession
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestUpdateGroupBadRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateGroupBadRequest
+func TestUploadSessionResponse_EncodeDecode(t *testing.T) {
+	var typ UploadSessionResponse
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1640,211 +1256,7 @@ func TestUpdateGroupBadRequest_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 UpdateGroupBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateGroupNotFound_EncodeDecode(t *testing.T) {
-	var typ UpdateGroupNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateGroupNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateGroupRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateGroupRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateGroupRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateGroupUnauthorized_EncodeDecode(t *testing.T) {
-	var typ UpdateGroupUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateGroupUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateInodeBadRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateInodeBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateInodeBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateInodeNotFound_EncodeDecode(t *testing.T) {
-	var typ UpdateInodeNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateInodeNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateInodeRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateInodeRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateInodeRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateInodeUnauthorized_EncodeDecode(t *testing.T) {
-	var typ UpdateInodeUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateInodeUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSymlinkBadRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateSymlinkBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSymlinkBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSymlinkNotFound_EncodeDecode(t *testing.T) {
-	var typ UpdateSymlinkNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSymlinkNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSymlinkRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateSymlinkRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSymlinkRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSymlinkUnauthorized_EncodeDecode(t *testing.T) {
-	var typ UpdateSymlinkUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSymlinkUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSystemBadRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateSystemBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSystemBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSystemNotFound_EncodeDecode(t *testing.T) {
-	var typ UpdateSystemNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSystemNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSystemRequest_EncodeDecode(t *testing.T) {
-	var typ UpdateSystemRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSystemRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUpdateSystemUnauthorized_EncodeDecode(t *testing.T) {
-	var typ UpdateSystemUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UpdateSystemUnauthorized
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUploadToken_EncodeDecode(t *testing.T) {
-	var typ UploadToken
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UploadToken
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestUploadTokenResponse_EncodeDecode(t *testing.T) {
-	var typ UploadTokenResponse
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 UploadTokenResponse
+	var typ2 UploadSessionResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestUser_EncodeDecode(t *testing.T) {

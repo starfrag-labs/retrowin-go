@@ -1,0 +1,126 @@
+Inode:
+  type: object
+  required:
+    - id
+    - systemId
+    - mode
+    - uid
+    - gid
+    - size
+    - linkCount
+    - flags
+  properties:
+    id:
+      type: string
+      description: Inode ID
+    systemId:
+      type: string
+      description: System ID
+    mode:
+      type: integer
+      format: int32
+      description: File mode (file type + permissions)
+    uid:
+      type: integer
+      format: int32
+      description: Owner user ID
+    gid:
+      type: integer
+      format: int32
+      description: Owner group ID
+    size:
+      type: integer
+      format: int64
+      description: File size in bytes
+    linkCount:
+      type: integer
+      format: int32
+      description: Number of hard links
+    flags:
+      type: integer
+      format: int32
+      description: Inode flags
+    atime:
+      $ref: './common.yaml#/Timestamp'
+    mtime:
+      $ref: './common.yaml#/Timestamp'
+    ctime:
+      $ref: './common.yaml#/Timestamp'
+    createdAt:
+      $ref: './common.yaml#/Timestamp'
+
+InodeResponse:
+  type: object
+  required:
+    - inode
+  properties:
+    inode:
+      $ref: '#/Inode'
+
+DirEntry:
+  type: object
+  required:
+    - name
+    - inodeId
+    - fileType
+  properties:
+    name:
+      type: string
+      description: Entry name
+    inodeId:
+      type: string
+      description: Inode ID
+    fileType:
+      type: integer
+      format: int32
+      description: File type (upper 4 bits of mode)
+
+DirContentResponse:
+  type: object
+  required:
+    - entries
+  properties:
+    entries:
+      type: array
+      items:
+        $ref: '#/DirEntry'
+
+MkdirRequest:
+  type: object
+  required:
+    - path
+  properties:
+    path:
+      type: string
+      description: Directory path to create
+    mode:
+      type: integer
+      format: int32
+      description: "Directory permissions (default: 0755)"
+
+SymlinkRequest:
+  type: object
+  required:
+    - target
+    - linkPath
+  properties:
+    target:
+      type: string
+      description: Target path
+    linkPath:
+      type: string
+      description: Link path
+
+ChmodRequest:
+  type: object
+  required:
+    - path
+    - mode
+  properties:
+    path:
+      type: string
+      description: File path
+    mode:
+      type: integer
+      format: int32
+      description: New permissions
