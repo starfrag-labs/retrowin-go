@@ -2,21 +2,18 @@ package handler
 
 import (
 	"context"
-	"errors"
-	"net/http"
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	domainerrors "github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // GetRootDirectory implements GET /fs/{systemId}/root.
 func (h *Handler) GetRootDirectory(ctx context.Context, params apiv1.GetRootDirectoryParams) (apiv1.GetRootDirectoryRes, error) {
 	rootInode, err := h.fsSvc.GetRootDirectory(ctx, params.SystemId)
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.InodeResponse{
@@ -28,7 +25,7 @@ func (h *Handler) GetRootDirectory(ctx context.Context, params apiv1.GetRootDire
 func (h *Handler) StatPath(ctx context.Context, params apiv1.StatPathParams) (apiv1.StatPathRes, error) {
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.InodeResponse{
@@ -41,13 +38,13 @@ func (h *Handler) ReadDir(ctx context.Context, params apiv1.ReadDirParams) (apiv
 	// First resolve the directory path
 	dirInode, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	// Read directory entries
 	entries, err := h.fsSvc.ReadDir(ctx, dirInode.ID())
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	resp := &apiv1.DirContentResponse{
@@ -76,7 +73,7 @@ func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params api
 		Mode:     mode,
 	})
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	// TODO: Link the directory to its parent based on req.Path
@@ -93,7 +90,7 @@ func (h *Handler) CreateSymlink(ctx context.Context, req *apiv1.SymlinkRequest, 
 		Target:   req.Target,
 	})
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.InodeResponse{
@@ -106,7 +103,7 @@ func (h *Handler) Chmod(ctx context.Context, req *apiv1.ChmodRequest, params api
 	// Resolve path to get inode
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, req.Path)
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	// Update mode (preserve file type bits, update permission bits)
@@ -115,13 +112,13 @@ func (h *Handler) Chmod(ctx context.Context, req *apiv1.ChmodRequest, params api
 		ID:   in.ID(),
 		Mode: newMode,
 	}); err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	// Get updated inode
 	updatedInode, err := h.fsSvc.Get(ctx, in.ID())
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.InodeResponse{
@@ -134,40 +131,14 @@ func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.
 	// Resolve path to get inode
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	if err := h.fsSvc.Delete(ctx, in.ID()); err != nil {
-		return nil, h.fsError(err)
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.UnlinkNoContent{}, nil
-}
-
-// fsError converts domain errors to HTTP errors.
-func (h *Handler) fsError(err error) error {
-	var domainErr *domainerrors.Error
-	if errors.As(err, &domainErr) {
-		return &apiv1.ErrorStatusCode{
-			StatusCode: domainErr.StatusCode,
-			Response: apiv1.Error{
-				Error: apiv1.ErrorError{
-					Type:    domainErr.Code,
-					Message: domainErr.Message,
-				},
-			},
-		}
-	}
-
-	return &apiv1.ErrorStatusCode{
-		StatusCode: http.StatusInternalServerError,
-		Response: apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "internal_error",
-				Message: err.Error(),
-			},
-		},
-	}
 }
 
 func (h *Handler) toInode(in *inode.Inode) *apiv1.Inode {

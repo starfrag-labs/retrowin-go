@@ -13,8 +13,7 @@ User:
     - providerId
   properties:
     id:
-      type: integer
-      format: int64
+      type: string
       description: User ID
     provider:
       $ref: '#/Provider'

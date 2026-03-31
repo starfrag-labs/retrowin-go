@@ -1,45 +1,62 @@
 package handler
 
 import (
-	"context"
 	"time"
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
-	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
-	"github.com/starfrag-lab/retrowin-go/internal/core/user"
+	corefs "github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 	initsvc "github.com/starfrag-lab/retrowin-go/internal/service/init"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
+	extuser "github.com/starfrag-lab/retrowin-go/internal/user"
 )
 
 // Handler implements the ogen API handler interface.
 type Handler struct {
-	authSvc   auth.AuthService
-	userSvc   user.UserService
+	// Auth service
+	authSvc auth.AuthService
+
+	// External user service (for /user endpoints)
+	extUserSvc extuser.UserService
+
+	// System user/group services (for /systems/{id}/users and /systems/{id}/groups endpoints)
+	sysUserSvc  coreuser.UserService
+	sysGroupSvc coreuser.GroupService
+
+	// System service
 	systemSvc system.SystemService
-	fsSvc     fs.FsService
+
+	// Filesystem and storage services
+	fsSvc      corefs.FsService
 	storageSvc storage.StorageService
-	initSvc   initsvc.InitService
+
+	// Init service
+	initSvc initsvc.InitService
 }
 
 // NewHandler creates a new Handler.
 func NewHandler(
 	authSvc auth.AuthService,
-	userSvc user.UserService,
+	extUserSvc extuser.UserService,
+	sysUserSvc coreuser.UserService,
+	sysGroupSvc coreuser.GroupService,
 	systemSvc system.SystemService,
-	fsSvc fs.FsService,
+	fsSvc corefs.FsService,
 	storageSvc storage.StorageService,
 	initSvc initsvc.InitService,
 ) *Handler {
 	return &Handler{
-		authSvc:   authSvc,
-		userSvc:   userSvc,
-		systemSvc: systemSvc,
-		fsSvc:     fsSvc,
-		storageSvc: storageSvc,
-		initSvc:   initSvc,
+		authSvc:     authSvc,
+		extUserSvc:  extUserSvc,
+		sysUserSvc:  sysUserSvc,
+		sysGroupSvc: sysGroupSvc,
+		systemSvc:   systemSvc,
+		fsSvc:       fsSvc,
+		storageSvc:  storageSvc,
+		initSvc:     initSvc,
 	}
 }
 
@@ -54,4 +71,9 @@ func toTimestamp(t time.Time) apiv1.Timestamp {
 
 func toOptTimestamp(t time.Time) apiv1.OptTimestamp {
 	return apiv1.NewOptTimestamp(toTimestamp(t))
+}
+
+// domainError converts domain errors to HTTP errors.
+func (h *Handler) domainError(err error) error {
+	return err // For now, just return the error directly
 }

@@ -25,17 +25,19 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
-	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
-	handler "github.com/starfrag-lab/retrowin-go/internal/handler/v1"
+	corefs "github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	inoderepo "github.com/starfrag-lab/retrowin-go/internal/core/inode/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	objectrepo "github.com/starfrag-lab/retrowin-go/internal/core/object/repository"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
+	"github.com/starfrag-lab/retrowin-go/internal/handler"
+	initsvc "github.com/starfrag-lab/retrowin-go/internal/service/init"
 	"github.com/starfrag-lab/retrowin-go/internal/session"
 	sessionRepo "github.com/starfrag-lab/retrowin-go/internal/session/repository"
-	surepo "github.com/starfrag-lab/retrowin-go/internal/system/repository"
+	"github.com/starfrag-lab/retrowin-go/internal/system"
+	systemrepo "github.com/starfrag-lab/retrowin-go/internal/system/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 	userrepo "github.com/starfrag-lab/retrowin-go/internal/user/repository"
 )
@@ -289,8 +291,9 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			userrepo.NewRepository,
 			inoderepo.NewRepository,
 			objectrepo.NewRepository,
-			surepo.NewSystemUserRepository,
-				surepo.NewSystemGroupRepository,
+			systemrepo.NewSystemUserRepository,
+			systemrepo.NewSystemGroupRepository,
+			systemrepo.NewRepository,
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services
@@ -303,9 +306,12 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			user.NewService,
 			inode.NewService,
 			object.NewService,
-			coreuser.NewService // core/user for UID resolution,
+			coreuser.NewService,      // core/user for UID resolution
+			coreuser.NewGroupService, // core/user for group management
+			system.NewService,        // system management
+			initsvc.NewService,       // system initialization
 			// Application services
-			fs.NewService,
+			corefs.NewService,
 			storage.NewService,
 			// Storage
 			ProvideStorage,

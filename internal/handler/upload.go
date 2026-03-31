@@ -23,12 +23,7 @@ func (h *Handler) InitiateUpload(ctx context.Context, req *apiv1.InitiateUploadR
 		Size:        req.Size,
 	})
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "initiate_upload_failed",
-				Message: err.Error(),
-			},
-		}, nil
+		return nil, h.domainError(err)
 	}
 
 	uploadURL, _ := url.Parse(session.UploadURL)
@@ -55,12 +50,7 @@ func (h *Handler) CompleteUpload(ctx context.Context, req *apiv1.CompleteUploadR
 		Mode:     mode,
 	})
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "complete_upload_failed",
-				Message: err.Error(),
-			},
-		}, nil
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.InodeResponse{
@@ -73,22 +63,12 @@ func (h *Handler) GetDownloadUrl(ctx context.Context, params apiv1.GetDownloadUr
 	// First resolve the path to get inode ID
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "path_not_found",
-				Message: err.Error(),
-			},
-		}, nil
+		return nil, h.domainError(err)
 	}
 
 	downloadURL, err := h.storageSvc.GetDownloadURL(ctx, in.ID())
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "get_download_url_failed",
-				Message: err.Error(),
-			},
-		}, nil
+		return nil, h.domainError(err)
 	}
 
 	parsedURL, _ := url.Parse(downloadURL)
@@ -96,7 +76,7 @@ func (h *Handler) GetDownloadUrl(ctx context.Context, params apiv1.GetDownloadUr
 	return &apiv1.DownloadURLResponse{
 		DownloadUrl: apiv1.DownloadURL{
 			DownloadUrl: *parsedURL,
-			ExpiresAt:   toOptTimestamp(in.Mtime()), // TODO: Use actual expiry
+			ExpiresAt:   toTimestamp(in.Mtime()), // TODO: Use actual expiry
 		},
 	}, nil
 }

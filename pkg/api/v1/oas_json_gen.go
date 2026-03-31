@@ -6876,7 +6876,7 @@ func (s *User) Encode(e *jx.Encoder) {
 func (s *User) encodeFields(e *jx.Encoder) {
 	{
 		e.FieldStart("id")
-		e.Int64(s.ID)
+		e.Str(s.ID)
 	}
 	{
 		e.FieldStart("provider")
@@ -6927,8 +6927,8 @@ func (s *User) Decode(d *jx.Decoder) error {
 		case "id":
 			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
-				v, err := d.Int64()
-				s.ID = int64(v)
+				v, err := d.Str()
+				s.ID = string(v)
 				if err != nil {
 					return err
 				}

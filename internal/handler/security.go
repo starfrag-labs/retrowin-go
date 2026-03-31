@@ -7,8 +7,8 @@ import (
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
-	"github.com/starfrag-lab/retrowin-go/internal/middleware"
 	"github.com/starfrag-lab/retrowin-go/internal/session"
+	"github.com/starfrag-lab/retrowin-go/internal/utils"
 )
 
 // SecurityHandler implements the ogen SecurityHandler interface.
@@ -31,7 +31,7 @@ func (h *SecurityHandler) HandleSessionAuth(ctx context.Context, operationName a
 	}
 
 	// Add user ID to context
-	ctx = context.WithValue(ctx, middleware.UserIDKey, sess.UserID())
+	ctx = utils.ContextWithUserID(ctx, sess.UserID())
 
 	return ctx, nil
 }

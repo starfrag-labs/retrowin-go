@@ -21,12 +21,7 @@ func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemReque
 		Description: description,
 	})
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "system_creation_failed",
-				Message: err.Error(),
-			},
-		}, nil
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.SystemResponse{
@@ -38,12 +33,7 @@ func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemReque
 func (h *Handler) ListSystems(ctx context.Context) (apiv1.ListSystemsRes, error) {
 	systems, err := h.systemSvc.Find(ctx, system.Filter{})
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "list_systems_failed",
-				Message: err.Error(),
-			},
-		}, nil
+		return nil, h.domainError(err)
 	}
 
 	resp := &apiv1.SystemListResponse{
@@ -60,12 +50,7 @@ func (h *Handler) ListSystems(ctx context.Context) (apiv1.ListSystemsRes, error)
 func (h *Handler) GetSystem(ctx context.Context, params apiv1.GetSystemParams) (apiv1.GetSystemRes, error) {
 	sys, err := h.systemSvc.GetByID(ctx, params.SystemId)
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "system_not_found",
-				Message: err.Error(),
-			},
-		}, nil
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.SystemResponse{
@@ -75,7 +60,7 @@ func (h *Handler) GetSystem(ctx context.Context, params apiv1.GetSystemParams) (
 
 func (h *Handler) toSystem(sys *system.System) *apiv1.System {
 	resp := &apiv1.System{
-		Id:        sys.ID(),
+		ID:        sys.ID(),
 		Name:      sys.Name(),
 		Status:    apiv1.SystemStatus(sys.Status()),
 		CreatedAt: toOptTimestamp(sys.CreatedAt()),

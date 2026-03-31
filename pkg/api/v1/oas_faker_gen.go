@@ -1253,7 +1253,7 @@ func (s *UploadSessionResponse) SetFake() {
 func (s *User) SetFake() {
 	{
 		{
-			s.ID = int64(0)
+			s.ID = "string"
 		}
 	}
 	{

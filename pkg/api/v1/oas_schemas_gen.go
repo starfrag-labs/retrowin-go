@@ -1833,7 +1833,7 @@ func (*UploadSessionResponse) initiateUploadRes() {}
 // Ref: #/components/schemas/User
 type User struct {
 	// User ID.
-	ID       int64    `json:"id"`
+	ID       string   `json:"id"`
 	Provider Provider `json:"provider"`
 	// User ID from the authentication provider.
 	ProviderId string       `json:"providerId"`
@@ -1843,7 +1843,7 @@ type User struct {
 }
 
 // GetID returns the value of ID.
-func (s *User) GetID() int64 {
+func (s *User) GetID() string {
 	return s.ID
 }
 
@@ -1873,7 +1873,7 @@ func (s *User) GetUpdatedAt() OptTimestamp {
 }
 
 // SetID sets the value of ID.
-func (s *User) SetID(val int64) {
+func (s *User) SetID(val string) {
 	s.ID = val
 }
 
