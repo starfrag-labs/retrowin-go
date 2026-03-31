@@ -23,6 +23,12 @@ type FsService interface {
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filter *ListFilter) ([]*inode.Inode, error)
 	Copy(ctx context.Context, id string, systemID string) (*inode.Inode, error)
+
+	// GetRootDirectory returns the root directory for a system.
+	GetRootDirectory(ctx context.Context, systemID string) (*inode.Inode, error)
+	// ResolvePath resolves a Unix-style path to an inode.
+	// Path must be absolute (start with /).
+	ResolvePath(ctx context.Context, systemID string, path string) (*inode.Inode, error)
 }
 
 // CreateFileCommand for creating a regular file.

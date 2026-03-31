@@ -36,8 +36,12 @@ const (
 	// Common permission combinations
 	PermOwnerRWX = PermOwnerRead | PermOwnerWrite | PermOwnerExec
 	PermGroupRX  = PermGroupRead | PermGroupExec
+	PermOtherRX  = PermOtherRead | PermOtherExec
 	PermOtherR   = PermOtherRead
 	PermOwnerRW  = PermOwnerRead | PermOwnerWrite
+
+	// Inode flags
+	FlagRoot = 1 << iota // Root directory of a filesystem
 )
 
 // Inode represents a file system inode (metadata only, no filename).
