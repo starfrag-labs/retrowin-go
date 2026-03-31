@@ -24,6 +24,8 @@ type SystemGroupRepository interface {
 	Delete(ctx context.Context, client *ent.Client, id int) error
 	Find(ctx context.Context, client *ent.Client, filter *GroupQueryFilter) ([]*SystemGroup, error)
 	FindOne(ctx context.Context, client *ent.Client, filter *GroupQueryFilter) (*SystemGroup, error)
+	// GetNextGID returns the next available GID for the system.
+	GetNextGID(ctx context.Context, client *ent.Client, systemID string) (int, error)
 	// Group membership operations
 	AddUserToGroup(ctx context.Context, client *ent.Client, userSystemID, groupID int) error
 	RemoveUserFromGroup(ctx context.Context, client *ent.Client, userSystemID, groupID int) error

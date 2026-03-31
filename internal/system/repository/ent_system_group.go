@@ -114,6 +114,36 @@ func (r *EntSystemGroupRepository) FindGIDsByUserSystemID(ctx context.Context, c
 	return gids, nil
 }
 
+// GetNextGID returns the next available GID for the system.
+// It finds the max GID in the system and returns max+1, or MinGID if no groups exist.
+func (r *EntSystemGroupRepository) GetNextGID(ctx context.Context, client *ent.Client, systemID string) (int, error) {
+	// Find max GID in the system
+	maxGID, err := client.SystemGroup.Query().
+		Where(entsystemgroup.SystemIDEQ(systemID)).
+		Aggregate(
+			ent.Max(entsystemgroup.FieldGid),
+		).
+		Int(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return user.MinUID, nil // No groups, start from MinUID (same as MinGID)
+		}
+		return 0, fmt.Errorf("failed to get max gid: %w", err)
+	}
+
+	nextGID := maxGID + 1
+	if nextGID > user.MaxUID {
+		return 0, fmt.Errorf("no available gid (max %d reached)", user.MaxUID)
+	}
+
+	// Ensure we start from MinUID
+	if nextGID < user.MinUID {
+		return user.MinUID, nil
+	}
+
+	return nextGID, nil
+}
+
 func applySystemGroupFilter(query *ent.SystemGroupQuery, filter *user.GroupQueryFilter) *ent.SystemGroupQuery {
 	if filter == nil {
 		return query

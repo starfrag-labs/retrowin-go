@@ -541,6 +541,78 @@ func (_c *SystemGroupRepositoryMock_GetByID_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// GetNextGID provides a mock function for the type SystemGroupRepositoryMock
+func (_mock *SystemGroupRepositoryMock) GetNextGID(ctx context.Context, client *ent.Client, systemID string) (int, error) {
+	ret := _mock.Called(ctx, client, systemID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNextGID")
+	}
+
+	var r0 int
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) (int, error)); ok {
+		return returnFunc(ctx, client, systemID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) int); ok {
+		r0 = returnFunc(ctx, client, systemID)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, string) error); ok {
+		r1 = returnFunc(ctx, client, systemID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// SystemGroupRepositoryMock_GetNextGID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNextGID'
+type SystemGroupRepositoryMock_GetNextGID_Call struct {
+	*mock.Call
+}
+
+// GetNextGID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - client *ent.Client
+//   - systemID string
+func (_e *SystemGroupRepositoryMock_Expecter) GetNextGID(ctx interface{}, client interface{}, systemID interface{}) *SystemGroupRepositoryMock_GetNextGID_Call {
+	return &SystemGroupRepositoryMock_GetNextGID_Call{Call: _e.mock.On("GetNextGID", ctx, client, systemID)}
+}
+
+func (_c *SystemGroupRepositoryMock_GetNextGID_Call) Run(run func(ctx context.Context, client *ent.Client, systemID string)) *SystemGroupRepositoryMock_GetNextGID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *ent.Client
+		if args[1] != nil {
+			arg1 = args[1].(*ent.Client)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *SystemGroupRepositoryMock_GetNextGID_Call) Return(n int, err error) *SystemGroupRepositoryMock_GetNextGID_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *SystemGroupRepositoryMock_GetNextGID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, systemID string) (int, error)) *SystemGroupRepositoryMock_GetNextGID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveUserFromGroup provides a mock function for the type SystemGroupRepositoryMock
 func (_mock *SystemGroupRepositoryMock) RemoveUserFromGroup(ctx context.Context, client *ent.Client, userSystemID int, groupID int) error {
 	ret := _mock.Called(ctx, client, userSystemID, groupID)

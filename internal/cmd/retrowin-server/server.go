@@ -292,7 +292,7 @@ func ProvideOgenServer(
 	sessionSvc session.SessionService,
 ) (*apiv1.Server, error) {
 	securityHandler := handler.NewSecurityHandler(sessionSvc)
-	return apiv1.NewServer(h, securityHandler)
+	return apiv1.NewServer(h, securityHandler, apiv1.WithErrorHandler(h.ErrorHandler))
 }
 
 // FxOptions returns the fx options for the application.

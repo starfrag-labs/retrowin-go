@@ -13,6 +13,7 @@ func (h *Handler) CreateSystemGroup(ctx context.Context, req *apiv1.CreateSystem
 	cmd := &coreuser.GroupCreateCommand{
 		SystemID: params.SystemId,
 		Name:     req.Name,
+		GID:      -1, // Default to -1 for auto-assignment
 	}
 	if req.Gid.Set {
 		cmd.GID = int(req.Gid.Value)

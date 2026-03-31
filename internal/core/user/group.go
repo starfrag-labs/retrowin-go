@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
@@ -112,10 +113,20 @@ func (s *groupService) Create(ctx context.Context, cmd *GroupCreateCommand) (*Sy
 		return nil, errors.BadRequest("name is required")
 	}
 
+	gid := cmd.GID
+	if gid < 0 {
+		// Auto-assign GID
+		var err error
+		gid, err = s.repo.GetNextGID(ctx, s.client, cmd.SystemID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to assign gid: %w", err)
+		}
+	}
+
 	params := &GroupCreateParams{
 		SystemID: cmd.SystemID,
 		Name:     cmd.Name,
-		GID:      cmd.GID,
+		GID:      gid,
 	}
 	return s.repo.Create(ctx, s.client, params)
 }

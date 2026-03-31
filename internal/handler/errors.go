@@ -2,8 +2,11 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
+
+	"github.com/ogen-go/ogen/ogenerrors"
 
 	domainerrors "github.com/starfrag-lab/retrowin-go/internal/errors"
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
@@ -24,6 +27,20 @@ func (h *Handler) NewError(ctx context.Context, err error) *apiv1.ErrorStatusCod
 		}
 	}
 
+	// Handle ogen security errors
+	var secErr *ogenerrors.SecurityError
+	if errors.As(err, &secErr) {
+		return &apiv1.ErrorStatusCode{
+			StatusCode: http.StatusUnauthorized,
+			Response: apiv1.Error{
+				Error: apiv1.ErrorError{
+					Type:    "UNAUTHORIZED",
+					Message: "authentication required",
+				},
+			},
+		}
+	}
+
 	return &apiv1.ErrorStatusCode{
 		StatusCode: http.StatusInternalServerError,
 		Response: apiv1.Error{
@@ -33,4 +50,47 @@ func (h *Handler) NewError(ctx context.Context, err error) *apiv1.ErrorStatusCod
 			},
 		},
 	}
+}
+
+// ErrorHandler implements ogenerrors.ErrorHandler for proper HTTP status code mapping.
+func (h *Handler) ErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+	var domainErr *domainerrors.Error
+	if errors.As(err, &domainErr) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(domainErr.StatusCode)
+		resp := apiv1.Error{
+			Error: apiv1.ErrorError{
+				Type:    domainErr.Code,
+				Message: domainErr.Message,
+			},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	// Handle ogen security errors
+	var secErr *ogenerrors.SecurityError
+	if errors.As(err, &secErr) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		resp := apiv1.Error{
+			Error: apiv1.ErrorError{
+				Type:    "UNAUTHORIZED",
+				Message: "authentication required",
+			},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	// Default to 500 Internal Server Error
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusInternalServerError)
+	resp := apiv1.Error{
+		Error: apiv1.ErrorError{
+			Type:    "internal_error",
+			Message: err.Error(),
+		},
+	}
+	_ = json.NewEncoder(w).Encode(resp)
 }

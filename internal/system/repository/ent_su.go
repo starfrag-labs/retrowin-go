@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
+	entsystemgroup "github.com/starfrag-lab/retrowin-go/ent/systemgroup"
 	entusersystem "github.com/starfrag-lab/retrowin-go/ent/usersystem"
 	"github.com/starfrag-lab/retrowin-go/internal/core/user"
 )
@@ -72,7 +73,8 @@ func (r *EntSystemUserRepository) FindOne(ctx context.Context, client *ent.Clien
 }
 
 // GetNextUID returns the next available UID for the system.
-// It finds the max UID in the system and returns max+1, or MinUID if no users exist.
+// It finds the max UID/GID in the system and returns max+1, or MinUID if no users exist.
+// This ensures the UID doesn't conflict with existing GIDs since user private groups use GID=UID.
 func (r *EntSystemUserRepository) GetNextUID(ctx context.Context, client *ent.Client, systemID string) (int, error) {
 	// Find max UID in the system
 	maxUID, err := client.UserSystem.Query().
@@ -81,14 +83,31 @@ func (r *EntSystemUserRepository) GetNextUID(ctx context.Context, client *ent.Cl
 			ent.Max(entusersystem.FieldUID),
 		).
 		Int(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return user.MinUID, nil // No users, start from MinUID
-		}
+	if err != nil && !ent.IsNotFound(err) {
 		return 0, fmt.Errorf("failed to get max uid: %w", err)
 	}
 
-	nextUID := maxUID + 1
+	// Also check max GID to avoid conflicts with private groups
+	maxGID, err := client.SystemGroup.Query().
+		Where(entsystemgroup.SystemIDEQ(systemID)).
+		Aggregate(
+			ent.Max(entsystemgroup.FieldGid),
+		).
+		Int(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return 0, fmt.Errorf("failed to get max gid: %w", err)
+	}
+
+	// Use the maximum of maxUID, maxGID, or MinUID-1
+	start := user.MinUID - 1
+	if maxUID > start {
+		start = maxUID
+	}
+	if maxGID > start {
+		start = maxGID
+	}
+
+	nextUID := start + 1
 	if nextUID > user.MaxUID {
 		return 0, fmt.Errorf("no available uid (max %d reached)", user.MaxUID)
 	}
