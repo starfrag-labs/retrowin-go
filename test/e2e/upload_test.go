@@ -34,9 +34,9 @@ func TestUpload_Initiate(t *testing.T) {
 
 	t.Run("initiates upload for new file", func(t *testing.T) {
 		req := map[string]interface{}{
-			"path":         "/home/uploaded.txt",
+			"path":        "/home/uploaded.txt",
 			"contentType": "text/plain",
-			"size":         int64(1024),
+			"size":        int64(1024),
 		}
 
 		resp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", req)
@@ -62,9 +62,9 @@ func TestUpload_Initiate(t *testing.T) {
 
 	t.Run("rejects upload for invalid path", func(t *testing.T) {
 		req := map[string]interface{}{
-			"path":         "invalid-no-leading-slash",
+			"path":        "invalid-no-leading-slash",
 			"contentType": "text/plain",
-			"size":         int64(1024),
+			"size":        int64(1024),
 		}
 
 		resp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", req)
@@ -79,9 +79,9 @@ func TestUpload_Initiate(t *testing.T) {
 		suite.ClearCookies()
 
 		req := map[string]interface{}{
-			"path":         "/home/unauthorized.txt",
+			"path":        "/home/unauthorized.txt",
 			"contentType": "text/plain",
-			"size":         int64(1024),
+			"size":        int64(1024),
 		}
 
 		resp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", req)
@@ -117,9 +117,9 @@ func TestUpload_Complete(t *testing.T) {
 	t.Run("completes upload and creates inode", func(t *testing.T) {
 		// First initiate upload
 		initReq := map[string]interface{}{
-			"path":         "/home/completed.txt",
+			"path":        "/home/completed.txt",
 			"contentType": "text/plain",
-			"size":         int64(12),
+			"size":        int64(12),
 		}
 		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
 		require.NoError(t, err)
@@ -166,9 +166,9 @@ func TestUpload_Complete(t *testing.T) {
 	t.Run("applies custom permissions", func(t *testing.T) {
 		// Initiate upload
 		initReq := map[string]interface{}{
-			"path":         "/home/custom-perms.txt",
+			"path":        "/home/custom-perms.txt",
 			"contentType": "text/plain",
-			"size":         int64(100),
+			"size":        int64(100),
 		}
 		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
 		require.NoError(t, err)
@@ -220,9 +220,9 @@ func TestUpload_Download(t *testing.T) {
 	t.Run("generates download URL for file", func(t *testing.T) {
 		// Create a file first via upload
 		initReq := map[string]interface{}{
-			"path":         "/home/download.txt",
+			"path":        "/home/download.txt",
 			"contentType": "text/plain",
-			"size":         int64(100),
+			"size":        int64(100),
 		}
 		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
 		require.NoError(t, err)
@@ -283,9 +283,9 @@ func TestUpload_FullFlow(t *testing.T) {
 	t.Run("upload and download cycle", func(t *testing.T) {
 		// Step 1: Initiate upload
 		initReq := map[string]interface{}{
-			"path":         "/home/cycle-test.txt",
+			"path":        "/home/cycle-test.txt",
 			"contentType": "text/plain",
-			"size":         int64(100),
+			"size":        int64(100),
 		}
 		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
 		require.NoError(t, err, "Failed to initiate upload")
@@ -336,9 +336,9 @@ func TestUpload_FullFlow(t *testing.T) {
 	t.Run("overwrite existing file", func(t *testing.T) {
 		// Create first version
 		initReq1 := map[string]interface{}{
-			"path":         "/home/overwrite.txt",
+			"path":        "/home/overwrite.txt",
 			"contentType": "text/plain",
-			"size":         int64(50),
+			"size":        int64(50),
 		}
 		initResp1, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq1)
 		require.NoError(t, err)
@@ -359,9 +359,9 @@ func TestUpload_FullFlow(t *testing.T) {
 
 		// Upload second version (same path)
 		initReq2 := map[string]interface{}{
-			"path":         "/home/overwrite.txt",
+			"path":        "/home/overwrite.txt",
 			"contentType": "text/plain",
-			"size":         int64(100), // Different size
+			"size":        int64(100), // Different size
 		}
 		initResp2, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq2)
 		require.NoError(t, err)

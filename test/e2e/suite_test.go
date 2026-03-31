@@ -29,12 +29,12 @@ func TestSuite_Start(t *testing.T) {
 	t.Cleanup(func() { _ = suite.Stop(ctx) })
 
 	// Verify database connection
-	require.NotNil(t, suite.EntClient, "EntClient should not be nil")
-	require.NotNil(t, suite.DB, "DB should not be nil")
+	require.NotNil(t, suite.GetEntClient(), "EntClient should not be nil")
+	require.NotNil(t, suite.GetDB(), "DB should not be nil")
 
 	// Verify database is accessible
 	var result int
-	err = suite.DB.QueryRow("SELECT 1").Scan(&result)
+	err = suite.GetDB().QueryRow("SELECT 1").Scan(&result)
 	require.NoError(t, err, "Failed to query database")
 	assert.Equal(t, 1, result)
 
@@ -58,7 +58,7 @@ func TestSuite_Migration(t *testing.T) {
 	tables := []string{"users", "inodes", "objects", "systems", "system_users", "system_groups"}
 	for _, table := range tables {
 		var exists bool
-		err := suite.DB.QueryRow(
+		err := suite.GetDB().QueryRow(
 			"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $1)",
 			table,
 		).Scan(&exists)
@@ -159,29 +159,32 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	cfgFile := tmpDir + "/config.yaml"
 
 	// Get postgres connection info and update config
-	pgHost, err := suite.PgContainer.Host(ctx)
+	cfg := suite.GetConfig()
+	pgContainer := suite.GetPgContainer()
+
+	pgHost, err := pgContainer.Host(ctx)
 	require.NoError(t, err, "Failed to get postgres host")
-	pgPort, err := suite.PgContainer.MappedPort(ctx, "5432")
+	pgPort, err := pgContainer.MappedPort(ctx, "5432")
 	require.NoError(t, err, "Failed to get postgres port")
-	suite.Config.Database.Host = pgHost
-	suite.Config.Database.Port = pgPort.Int()
+	cfg.Database.Host = pgHost
+	cfg.Database.Port = pgPort.Int()
 
 	// Disable services that require external dependencies for e2e testing
-	suite.Config.Storage.Provider = "memory"
-	suite.Config.Auth.Keycloak.BaseURL = "http://localhost:9999" // Invalid URL to prevent actual OIDC calls
+	cfg.Storage.Provider = "memory"
+	cfg.Auth.Keycloak.BaseURL = "http://localhost:9999" // Invalid URL to prevent actual OIDC calls
 
 	// Write config to temp file as YAML
-	cfgData, err := yaml.Marshal(suite.Config)
+	cfgData, err := yaml.Marshal(cfg)
 	require.NoError(t, err, "Failed to marshal config")
 	err = os.WriteFile(cfgFile, cfgData, 0644)
 	require.NoError(t, err, "Failed to write config file")
 
 	t.Logf("Using config file: %s", cfgFile)
-	t.Logf("Database: %s:%d", suite.Config.Database.Host, suite.Config.Database.Port)
+	t.Logf("Database: %s:%d", cfg.Database.Host, cfg.Database.Port)
 
 	// Start the actual fx app with test config
 	// This test verifies that the real server starts and responds to health checks
-	app := retrowinserver.NewFXApp(cfgFile, suite.Config.HTTP.Port)
+	app := retrowinserver.NewFXApp(cfgFile, cfg.HTTP.Port)
 
 	// Start app in background
 	appDone := make(chan struct{})

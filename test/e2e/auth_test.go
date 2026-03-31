@@ -76,7 +76,7 @@ func TestAuth_Logout(t *testing.T) {
 
 	t.Run("deletes session and clears cookie", func(t *testing.T) {
 		// Setup: Create user and session
-		user, err := suite.CreateTestUser(ctx, "test", "test-user-1", "testuser1")
+		user, err := suite.CreateTestUser(ctx, "keycloak", "test-user-1", "testuser1")
 		require.NoError(t, err, "Failed to create test user")
 
 		err = suite.LoginAs(ctx, user.ID)
@@ -108,7 +108,7 @@ func TestAuth_Logout(t *testing.T) {
 
 	t.Run("deletes session and clears cookie with retrowin_session", func(t *testing.T) {
 		// Setup: Create user and session
-		user, err := suite.CreateTestUser(ctx, "test", "test-user-2", "testuser2")
+		user, err := suite.CreateTestUser(ctx, "keycloak", "test-user-2", "testuser2")
 		require.NoError(t, err, "Failed to create test user")
 
 		err = suite.LoginAs(ctx, user.ID)
@@ -169,7 +169,7 @@ func TestAuth_SessionValidation(t *testing.T) {
 
 	t.Run("accepts valid session", func(t *testing.T) {
 		// Create user and session
-		user, err := suite.CreateTestUser(ctx, "test", "test-user-2", "testuser2")
+		user, err := suite.CreateTestUser(ctx, "keycloak", "test-user-3", "testuser3")
 		require.NoError(t, err, "Failed to create test user")
 
 		err = suite.LoginAs(ctx, user.ID)
@@ -181,8 +181,8 @@ func TestAuth_SessionValidation(t *testing.T) {
 		defer func() { _ = resp.Body.Close() }()
 
 		body := suite.ReadBody(resp)
-			t.Logf("Response body: %s", body)
-			assert.Equal(t, http.StatusOK, resp.StatusCode,
+		t.Logf("Response body: %s", body)
+		assert.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK with valid session, got %d", resp.StatusCode)
 	})
 
