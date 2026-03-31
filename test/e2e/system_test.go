@@ -42,17 +42,21 @@ func TestSystem_Init(t *testing.T) {
 		require.NoError(t, err, "Failed to create system")
 		defer func() { _ = resp.Body.Close() }()
 
-		require.Equal(t, http.StatusCreated, resp.StatusCode,
-			"Expected 201 Created, got %d: %s", resp.StatusCode, suite.ReadBody(resp))
-
-		// Verify response
+		// Read and verify response
 		var result map[string]interface{}
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		assert.NotEmpty(t, result["id"], "System ID should be set")
-		assert.Equal(t, "test-system-1", result["name"], "System name should match")
-		assert.Equal(t, "active", result["status"], "System status should be active")
+		require.Equal(t, http.StatusCreated, resp.StatusCode,
+			"Expected 201 Created, got %d", resp.StatusCode)
+
+		// Response is wrapped in "system" object
+		system, ok := result["system"].(map[string]interface{})
+		require.True(t, ok, "Response should contain system object")
+
+		assert.NotEmpty(t, system["id"], "System ID should be set")
+		assert.Equal(t, "test-system-1", system["name"], "System name should match")
+		assert.Equal(t, "active", system["status"], "System status should be active")
 	})
 
 	t.Run("creates multiple systems independently", func(t *testing.T) {
@@ -68,6 +72,7 @@ func TestSystem_Init(t *testing.T) {
 
 		var result1 map[string]interface{}
 		_ = suite.ReadJSON(resp1, &result1)
+		system1, _ := result1["system"].(map[string]interface{})
 
 		// Create second system
 		req2 := map[string]interface{}{
@@ -81,9 +86,10 @@ func TestSystem_Init(t *testing.T) {
 
 		var result2 map[string]interface{}
 		_ = suite.ReadJSON(resp2, &result2)
+		system2, _ := result2["system"].(map[string]interface{})
 
 		// Verify systems have different IDs
-		assert.NotEqual(t, result1["id"], result2["id"],
+		assert.NotEqual(t, system1["id"], system2["id"],
 			"Different systems should have different IDs")
 	})
 }
@@ -120,7 +126,8 @@ func TestSystem_Get(t *testing.T) {
 
 	var createResult map[string]interface{}
 	_ = suite.ReadJSON(createResp, &createResult)
-	systemID := createResult["id"].(string)
+	systemData, _ := createResult["system"].(map[string]interface{})
+	systemID := systemData["id"].(string)
 
 	t.Run("returns system by ID", func(t *testing.T) {
 		resp, err := suite.Get("/systems/" + systemID)
@@ -134,8 +141,10 @@ func TestSystem_Get(t *testing.T) {
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		assert.Equal(t, systemID, result["id"], "System ID should match")
-		assert.Equal(t, "get-test-system", result["name"], "System name should match")
+		system, ok := result["system"].(map[string]interface{})
+		require.True(t, ok, "Response should contain system object")
+		assert.Equal(t, systemID, system["id"], "System ID should match")
+		assert.Equal(t, "get-test-system", system["name"], "System name should match")
 	})
 
 	t.Run("returns 404 for non-existent system", func(t *testing.T) {

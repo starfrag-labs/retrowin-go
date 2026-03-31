@@ -28,9 +28,10 @@ func TestUpload_Initiate(t *testing.T) {
 	err = suite.StartServer(ctx)
 	require.NoError(t, err, "Failed to start server")
 
-	// Setup user and system
-	_, system, _, err := suite.SetupFullEnvironment(ctx, "testuser")
+	// Setup user and system via API (for proper filesystem initialization)
+	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
+	systemID := systemData["system"].(map[string]interface{})["id"].(string)
 
 	t.Run("initiates upload for new file", func(t *testing.T) {
 		req := map[string]interface{}{
@@ -39,7 +40,7 @@ func TestUpload_Initiate(t *testing.T) {
 			"size":        int64(1024),
 		}
 
-		resp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", req)
+		resp, err := suite.Post("/fs/"+systemID+"/upload/initiate", req)
 		require.NoError(t, err, "Failed to initiate upload")
 		defer func() { _ = resp.Body.Close() }()
 
@@ -67,7 +68,7 @@ func TestUpload_Initiate(t *testing.T) {
 			"size":        int64(1024),
 		}
 
-		resp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", req)
+		resp, err := suite.Post("/fs/"+systemID+"/upload/initiate", req)
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = resp.Body.Close() }()
 
@@ -84,7 +85,7 @@ func TestUpload_Initiate(t *testing.T) {
 			"size":        int64(1024),
 		}
 
-		resp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", req)
+		resp, err := suite.Post("/fs/"+systemID+"/upload/initiate", req)
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = resp.Body.Close() }()
 
@@ -110,9 +111,10 @@ func TestUpload_Complete(t *testing.T) {
 	err = suite.StartServer(ctx)
 	require.NoError(t, err, "Failed to start server")
 
-	// Setup user and system
-	_, system, _, err := suite.SetupFullEnvironment(ctx, "testuser")
+	// Setup user and system via API
+	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
+	systemID := systemData["system"].(map[string]interface{})["id"].(string)
 
 	t.Run("completes upload and creates inode", func(t *testing.T) {
 		// First initiate upload
@@ -121,7 +123,7 @@ func TestUpload_Complete(t *testing.T) {
 			"contentType": "text/plain",
 			"size":        int64(12),
 		}
-		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
+		initResp, err := suite.Post("/fs/"+systemID+"/upload/initiate", initReq)
 		require.NoError(t, err)
 		var initResult map[string]interface{}
 		_ = suite.ReadJSON(initResp, &initResult)
@@ -138,7 +140,7 @@ func TestUpload_Complete(t *testing.T) {
 			"mode":     0644,
 		}
 
-		completeResp, err := suite.Post("/fs/"+system.ID+"/upload/complete", completeReq)
+		completeResp, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq)
 		require.NoError(t, err, "Failed to complete upload")
 		defer func() { _ = completeResp.Body.Close() }()
 
@@ -155,7 +157,7 @@ func TestUpload_Complete(t *testing.T) {
 			"mode":     0644,
 		}
 
-		resp, err := suite.Post("/fs/"+system.ID+"/upload/complete", req)
+		resp, err := suite.Post("/fs/"+systemID+"/upload/complete", req)
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = resp.Body.Close() }()
 
@@ -170,7 +172,7 @@ func TestUpload_Complete(t *testing.T) {
 			"contentType": "text/plain",
 			"size":        int64(100),
 		}
-		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
+		initResp, err := suite.Post("/fs/"+systemID+"/upload/initiate", initReq)
 		require.NoError(t, err)
 		var initResult map[string]interface{}
 		_ = suite.ReadJSON(initResp, &initResult)
@@ -185,12 +187,12 @@ func TestUpload_Complete(t *testing.T) {
 			"mode":     0600,
 		}
 
-		completeResp, err := suite.Post("/fs/"+system.ID+"/upload/complete", completeReq)
+		completeResp, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq)
 		require.NoError(t, err)
 		_ = completeResp.Body.Close()
 
 		// Verify permissions (if complete succeeded)
-		// statResp, err := suite.Get("/fs/" + system.ID + "/stat?path=" + url.QueryEscape("/home/custom-perms.txt"))
+		// statResp, err := suite.Get("/fs/" + systemID + "/stat?path=" + url.QueryEscape("/home/custom-perms.txt"))
 		// ... verification logic
 		_ = objectID
 	})
@@ -213,9 +215,10 @@ func TestUpload_Download(t *testing.T) {
 	err = suite.StartServer(ctx)
 	require.NoError(t, err, "Failed to start server")
 
-	// Setup user and system
-	_, system, _, err := suite.SetupFullEnvironment(ctx, "testuser")
+	// Setup user and system via API
+	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
+	systemID := systemData["system"].(map[string]interface{})["id"].(string)
 
 	t.Run("generates download URL for file", func(t *testing.T) {
 		// Create a file first via upload
@@ -224,14 +227,14 @@ func TestUpload_Download(t *testing.T) {
 			"contentType": "text/plain",
 			"size":        int64(100),
 		}
-		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
+		initResp, err := suite.Post("/fs/"+systemID+"/upload/initiate", initReq)
 		require.NoError(t, err)
 		var initResult map[string]interface{}
 		_ = suite.ReadJSON(initResp, &initResult)
 		_ = initResp.Body.Close()
 
 		// Get download URL
-		downloadResp, err := suite.Get("/fs/" + system.ID + "/download?path=" + url.QueryEscape("/home/download.txt"))
+		downloadResp, err := suite.Get("/fs/" + systemID + "/download?path=" + url.QueryEscape("/home/download.txt"))
 		require.NoError(t, err, "Failed to get download URL")
 		defer func() { _ = downloadResp.Body.Close() }()
 
@@ -241,7 +244,7 @@ func TestUpload_Download(t *testing.T) {
 	})
 
 	t.Run("returns 404 for non-existent file", func(t *testing.T) {
-		resp, err := suite.Get("/fs/" + system.ID + "/download?path=" + url.QueryEscape("/home/nonexistent.txt"))
+		resp, err := suite.Get("/fs/" + systemID + "/download?path=" + url.QueryEscape("/home/nonexistent.txt"))
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = resp.Body.Close() }()
 
@@ -250,7 +253,7 @@ func TestUpload_Download(t *testing.T) {
 	})
 
 	t.Run("rejects download for directory", func(t *testing.T) {
-		resp, err := suite.Get("/fs/" + system.ID + "/download?path=" + url.QueryEscape("/home"))
+		resp, err := suite.Get("/fs/" + systemID + "/download?path=" + url.QueryEscape("/home"))
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = resp.Body.Close() }()
 
@@ -276,9 +279,10 @@ func TestUpload_FullFlow(t *testing.T) {
 	err = suite.StartServer(ctx)
 	require.NoError(t, err, "Failed to start server")
 
-	// Setup user and system
-	_, system, _, err := suite.SetupFullEnvironment(ctx, "testuser")
+	// Setup user and system via API
+	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
+	systemID := systemData["system"].(map[string]interface{})["id"].(string)
 
 	t.Run("upload and download cycle", func(t *testing.T) {
 		// Step 1: Initiate upload
@@ -287,7 +291,7 @@ func TestUpload_FullFlow(t *testing.T) {
 			"contentType": "text/plain",
 			"size":        int64(100),
 		}
-		initResp, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq)
+		initResp, err := suite.Post("/fs/"+systemID+"/upload/initiate", initReq)
 		require.NoError(t, err, "Failed to initiate upload")
 		var initResult map[string]interface{}
 		_ = suite.ReadJSON(initResp, &initResult)
@@ -312,12 +316,12 @@ func TestUpload_FullFlow(t *testing.T) {
 			"path":     "/home/cycle-test.txt",
 			"mode":     0644,
 		}
-		completeResp, err := suite.Post("/fs/"+system.ID+"/upload/complete", completeReq)
+		completeResp, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq)
 		require.NoError(t, err, "Failed to complete upload")
 		_ = completeResp.Body.Close()
 
 		// Step 4: Verify inode exists via stat
-		statResp, err := suite.Get("/fs/" + system.ID + "/stat?path=" + url.QueryEscape("/home/cycle-test.txt"))
+		statResp, err := suite.Get("/fs/" + systemID + "/stat?path=" + url.QueryEscape("/home/cycle-test.txt"))
 		require.NoError(t, err, "Failed to stat uploaded file")
 		defer func() { _ = statResp.Body.Close() }()
 
@@ -325,7 +329,7 @@ func TestUpload_FullFlow(t *testing.T) {
 		// require.Equal(t, http.StatusOK, statResp.StatusCode)
 
 		// Step 5: Get download URL
-		downloadResp, err := suite.Get("/fs/" + system.ID + "/download?path=" + url.QueryEscape("/home/cycle-test.txt"))
+		downloadResp, err := suite.Get("/fs/" + systemID + "/download?path=" + url.QueryEscape("/home/cycle-test.txt"))
 		require.NoError(t, err, "Failed to get download URL")
 		_ = downloadResp.Body.Close()
 
@@ -340,7 +344,7 @@ func TestUpload_FullFlow(t *testing.T) {
 			"contentType": "text/plain",
 			"size":        int64(50),
 		}
-		initResp1, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq1)
+		initResp1, err := suite.Post("/fs/"+systemID+"/upload/initiate", initReq1)
 		require.NoError(t, err)
 		var initResult1 map[string]interface{}
 		_ = suite.ReadJSON(initResp1, &initResult1)
@@ -353,7 +357,7 @@ func TestUpload_FullFlow(t *testing.T) {
 			"path":     "/home/overwrite.txt",
 			"mode":     0644,
 		}
-		completeResp1, err := suite.Post("/fs/"+system.ID+"/upload/complete", completeReq1)
+		completeResp1, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq1)
 		require.NoError(t, err)
 		_ = completeResp1.Body.Close()
 
@@ -363,7 +367,7 @@ func TestUpload_FullFlow(t *testing.T) {
 			"contentType": "text/plain",
 			"size":        int64(100), // Different size
 		}
-		initResp2, err := suite.Post("/fs/"+system.ID+"/upload/initiate", initReq2)
+		initResp2, err := suite.Post("/fs/"+systemID+"/upload/initiate", initReq2)
 		require.NoError(t, err)
 		var initResult2 map[string]interface{}
 		_ = suite.ReadJSON(initResp2, &initResult2)
@@ -381,12 +385,12 @@ func TestUpload_FullFlow(t *testing.T) {
 			"path":     "/home/overwrite.txt",
 			"mode":     0644,
 		}
-		completeResp2, err := suite.Post("/fs/"+system.ID+"/upload/complete", completeReq2)
+		completeResp2, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq2)
 		require.NoError(t, err)
 		_ = completeResp2.Body.Close()
 
 		// File should now have new content (larger size)
-		// statResp, _ := suite.Get("/fs/" + system.ID + "/stat?path=" + url.QueryEscape("/home/overwrite.txt"))
+		// statResp, _ := suite.Get("/fs/" + systemID + "/stat?path=" + url.QueryEscape("/home/overwrite.txt"))
 		// ... verify size changed
 	})
 }
