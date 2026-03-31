@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
@@ -16,10 +15,12 @@ import (
 // StorageService defines the interface for file storage operations.
 type StorageService interface {
 	Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult, error)
+	InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand) (*object.UploadSession, error)
+	CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand) (*UploadResult, error)
 	GetDownloadURL(ctx context.Context, id string) (string, error)
 }
 
-// UploadCommand for uploading a file.
+// UploadCommand for server-side streaming upload (small files).
 type UploadCommand struct {
 	SystemID string
 	Mode     int
@@ -29,6 +30,21 @@ type UploadCommand struct {
 	MimeType string
 	Reader   io.Reader
 	Size     int64
+}
+
+// InitiateUploadCommand for starting a presigned upload.
+type InitiateUploadCommand struct {
+	SystemID    string
+	ContentType string
+	Size        int64
+}
+
+// CompleteUploadCommand for finalizing upload after client confirms.
+type CompleteUploadCommand struct {
+	ObjectID string
+	SystemID string
+	Mode     int
+	Flags    int
 }
 
 // UploadResult contains the created inode and object.
@@ -55,13 +71,11 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		return nil, errors.BadRequest("system_id is required")
 	}
 
-	storageKey := fmt.Sprintf("%s/%s", cmd.SystemID, cmd.Filename)
-
 	// Create object: streams to storage + creates DB record (atomic)
 	obj, err := s.objectSvc.Create(ctx, &object.CreateCommand{
 		Bucket:     cmd.Bucket,
 		SystemID:   cmd.SystemID,
-		StorageKey: storageKey,
+		StorageKey: cmd.Filename, // StorageKey now handled internally
 		Reader:     cmd.Reader,
 		Size:       cmd.Size,
 	})
@@ -69,27 +83,75 @@ func (s *service) Upload(ctx context.Context, cmd *UploadCommand) (*UploadResult
 		return nil, errors.WrapInternal(err, "failed to create object")
 	}
 
+	// Create inode with object reference
+	return s.createInodeWithObject(ctx, cmd.SystemID, cmd.Mode, cmd.Flags, obj.ID())
+}
+
+// InitiateUpload creates a pending object and returns presigned upload URL.
+func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand) (*object.UploadSession, error) {
+	if cmd.SystemID == "" {
+		return nil, errors.BadRequest("system_id is required")
+	}
+
+	session, err := s.objectSvc.InitiateUpload(ctx, &object.InitiateUploadCommand{
+		SystemID:    cmd.SystemID,
+		ContentType: cmd.ContentType,
+		Size:        cmd.Size,
+	})
+	if err != nil {
+		return nil, errors.WrapInternal(err, "failed to initiate upload")
+	}
+
+	return session, nil
+}
+
+// CompleteUpload verifies upload and creates inode.
+func (s *service) CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand) (*UploadResult, error) {
+	if cmd.ObjectID == "" {
+		return nil, errors.BadRequest("object_id is required")
+	}
+	if cmd.SystemID == "" {
+		return nil, errors.BadRequest("system_id is required")
+	}
+
+	// Mark object as active (verifies storage existence internally)
+	obj, err := s.objectSvc.CompleteUpload(ctx, cmd.ObjectID)
+	if err != nil {
+		return nil, errors.WrapInternal(err, "failed to complete upload")
+	}
+
+	// Create inode with object reference
+	return s.createInodeWithObject(ctx, cmd.SystemID, cmd.Mode, cmd.Flags, obj.ID())
+}
+
+// createInodeWithObject creates an inode referencing the given object.
+func (s *service) createInodeWithObject(ctx context.Context, systemID string, mode int, flags int, objectID string) (*UploadResult, error) {
 	// Store ObjectContent in inode content
-	c := &content.ObjectContent{ObjectID: obj.ID()}
+	c := &content.ObjectContent{ObjectID: objectID}
 	cBytes, err := json.Marshal(c)
 	if err != nil {
 		return nil, errors.WrapInternal(err, "failed to marshal object content")
 	}
 
-	// Create inode via fs (UID resolved from context internally)
-	mode := cmd.Mode
+	// Set default mode if not provided
 	if mode == 0 {
 		mode = inode.ModeObject | inode.PermOwnerRW | inode.PermGroupRX | inode.PermOtherR
 	}
 
 	createdInode, err := s.fsSvc.CreateFile(ctx, &fs.CreateFileCommand{
-		SystemID: cmd.SystemID,
+		SystemID: systemID,
 		Mode:     mode,
-		Flags:    cmd.Flags,
+		Flags:    flags,
 		Content:  cBytes,
 	})
 	if err != nil {
 		return nil, errors.WrapInternal(err, "failed to create inode")
+	}
+
+	// Get the object for the result
+	obj, err := s.objectSvc.GetByID(ctx, objectID)
+	if err != nil {
+		obj = nil // Object not critical for result
 	}
 
 	return &UploadResult{

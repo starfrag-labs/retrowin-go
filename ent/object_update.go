@@ -91,6 +91,20 @@ func (_u *ObjectUpdate) SetNillableStorageKey(v *string) *ObjectUpdate {
 	return _u
 }
 
+// SetStatus sets the "status" field.
+func (_u *ObjectUpdate) SetStatus(v object.Status) *ObjectUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *ObjectUpdate) SetNillableStatus(v *object.Status) *ObjectUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
 // SetSystem sets the "system" edge to the System entity.
 func (_u *ObjectUpdate) SetSystem(v *System) *ObjectUpdate {
 	return _u.SetSystemID(v.ID)
@@ -150,6 +164,11 @@ func (_u *ObjectUpdate) check() error {
 			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "Object.provider": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := object.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Object.status": %w`, err)}
+		}
+	}
 	if _u.mutation.SystemCleared() && len(_u.mutation.SystemIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Object.system"`)
 	}
@@ -179,6 +198,9 @@ func (_u *ObjectUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.StorageKey(); ok {
 		_spec.SetField(object.FieldStorageKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(object.FieldStatus, field.TypeEnum, value)
 	}
 	if _u.mutation.SystemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -291,6 +313,20 @@ func (_u *ObjectUpdateOne) SetNillableStorageKey(v *string) *ObjectUpdateOne {
 	return _u
 }
 
+// SetStatus sets the "status" field.
+func (_u *ObjectUpdateOne) SetStatus(v object.Status) *ObjectUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *ObjectUpdateOne) SetNillableStatus(v *object.Status) *ObjectUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
 // SetSystem sets the "system" edge to the System entity.
 func (_u *ObjectUpdateOne) SetSystem(v *System) *ObjectUpdateOne {
 	return _u.SetSystemID(v.ID)
@@ -363,6 +399,11 @@ func (_u *ObjectUpdateOne) check() error {
 			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "Object.provider": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := object.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Object.status": %w`, err)}
+		}
+	}
 	if _u.mutation.SystemCleared() && len(_u.mutation.SystemIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Object.system"`)
 	}
@@ -409,6 +450,9 @@ func (_u *ObjectUpdateOne) sqlSave(ctx context.Context) (_node *Object, err erro
 	}
 	if value, ok := _u.mutation.StorageKey(); ok {
 		_spec.SetField(object.FieldStorageKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(object.FieldStatus, field.TypeEnum, value)
 	}
 	if _u.mutation.SystemCleared() {
 		edge := &sqlgraph.EdgeSpec{

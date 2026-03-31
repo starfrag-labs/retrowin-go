@@ -93,6 +93,24 @@ func (s *S3Storage) GetPresignedDownloadURL(ctx context.Context, bucket string, 
 	return req.URL, nil
 }
 
+// GetPresignedUploadURL generates a presigned URL for direct client upload.
+func (s *S3Storage) GetPresignedUploadURL(ctx context.Context, bucket string, key string, contentType string, size int64, expiry time.Duration) (string, error) {
+	input := &s3.PutObjectInput{
+		Bucket:        aws.String(s.resolveBucket(bucket)),
+		Key:           aws.String(key),
+		ContentLength: aws.Int64(size),
+	}
+	if contentType != "" {
+		input.ContentType = aws.String(contentType)
+	}
+
+	req, err := s.presigner.PresignPutObject(ctx, input, s3.WithPresignExpires(expiry))
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned upload URL: %w", err)
+	}
+	return req.URL, nil
+}
+
 // DeleteObject removes an object from storage.
 func (s *S3Storage) DeleteObject(ctx context.Context, bucket string, key string) error {
 	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{

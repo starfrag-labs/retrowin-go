@@ -55,6 +55,7 @@ var (
 		{Name: "provider", Type: field.TypeEnum, Enums: []string{"s3"}, Default: "s3"},
 		{Name: "bucket", Type: field.TypeString},
 		{Name: "storage_key", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "active"}, Default: "active"},
 		{Name: "system_id", Type: field.TypeString},
 	}
 	// ObjectsTable holds the schema information for the "objects" table.
@@ -65,7 +66,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "objects_systems_objects",
-				Columns:    []*schema.Column{ObjectsColumns[6]},
+				Columns:    []*schema.Column{ObjectsColumns[7]},
 				RefColumns: []*schema.Column{SystemsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -74,17 +75,22 @@ var (
 			{
 				Name:    "object_system_id_provider_bucket_storage_key",
 				Unique:  true,
-				Columns: []*schema.Column{ObjectsColumns[6], ObjectsColumns[3], ObjectsColumns[4], ObjectsColumns[5]},
+				Columns: []*schema.Column{ObjectsColumns[7], ObjectsColumns[3], ObjectsColumns[4], ObjectsColumns[5]},
 			},
 			{
 				Name:    "object_system_id",
 				Unique:  false,
-				Columns: []*schema.Column{ObjectsColumns[6]},
+				Columns: []*schema.Column{ObjectsColumns[7]},
 			},
 			{
 				Name:    "object_provider_bucket",
 				Unique:  false,
 				Columns: []*schema.Column{ObjectsColumns[3], ObjectsColumns[4]},
+			},
+			{
+				Name:    "object_status_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{ObjectsColumns[6], ObjectsColumns[2]},
 			},
 		},
 	}

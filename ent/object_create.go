@@ -81,6 +81,20 @@ func (_c *ObjectCreate) SetStorageKey(v string) *ObjectCreate {
 	return _c
 }
 
+// SetStatus sets the "status" field.
+func (_c *ObjectCreate) SetStatus(v object.Status) *ObjectCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *ObjectCreate) SetNillableStatus(v *object.Status) *ObjectCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *ObjectCreate) SetID(v string) *ObjectCreate {
 	_c.mutation.SetID(v)
@@ -139,6 +153,10 @@ func (_c *ObjectCreate) defaults() {
 		v := object.DefaultProvider
 		_c.mutation.SetProvider(v)
 	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := object.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -165,6 +183,14 @@ func (_c *ObjectCreate) check() error {
 	}
 	if _, ok := _c.mutation.StorageKey(); !ok {
 		return &ValidationError{Name: "storage_key", err: errors.New(`ent: missing required field "Object.storage_key"`)}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Object.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := object.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Object.status": %w`, err)}
+		}
 	}
 	if len(_c.mutation.SystemIDs()) == 0 {
 		return &ValidationError{Name: "system", err: errors.New(`ent: missing required edge "Object.system"`)}
@@ -223,6 +249,10 @@ func (_c *ObjectCreate) createSpec() (*Object, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.StorageKey(); ok {
 		_spec.SetField(object.FieldStorageKey, field.TypeString, value)
 		_node.StorageKey = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(object.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if nodes := _c.mutation.SystemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

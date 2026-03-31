@@ -41,6 +41,10 @@ func (Object) Fields() []ent.Field {
 		field.String("system_id"),
 		// Storage key would be inode ID
 		field.String("storage_key"),
+		// Status: pending (upload initiated), active (upload complete)
+		field.Enum("status").
+			Values("pending", "active").
+			Default("active"),
 	}
 }
 
@@ -50,6 +54,8 @@ func (Object) Indexes() []ent.Index {
 		index.Fields("system_id", "provider", "bucket", "storage_key").Unique(),
 		index.Fields("system_id"),
 		index.Fields("provider", "bucket"),
+		// For GC: find pending objects older than threshold
+		index.Fields("status", "update_time"),
 	}
 }
 

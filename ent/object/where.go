@@ -385,6 +385,26 @@ func StorageKeyContainsFold(v string) predicate.Object {
 	return predicate.Object(sql.FieldContainsFold(FieldStorageKey, v))
 }
 
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.Object {
+	return predicate.Object(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.Object {
+	return predicate.Object(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.Object {
+	return predicate.Object(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.Object {
+	return predicate.Object(sql.FieldNotIn(FieldStatus, vs...))
+}
+
 // HasSystem applies the HasEdge predicate on the "system" edge.
 func HasSystem() predicate.Object {
 	return predicate.Object(func(s *sql.Selector) {

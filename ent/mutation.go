@@ -1307,6 +1307,7 @@ type ObjectMutation struct {
 	provider      *object.Provider
 	bucket        *string
 	storage_key   *string
+	status        *object.Status
 	clearedFields map[string]struct{}
 	system        *string
 	clearedsystem bool
@@ -1635,6 +1636,42 @@ func (m *ObjectMutation) ResetStorageKey() {
 	m.storage_key = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *ObjectMutation) SetStatus(o object.Status) {
+	m.status = &o
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ObjectMutation) Status() (r object.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Object entity.
+// If the Object object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ObjectMutation) OldStatus(ctx context.Context) (v object.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ObjectMutation) ResetStatus() {
+	m.status = nil
+}
+
 // ClearSystem clears the "system" edge to the System entity.
 func (m *ObjectMutation) ClearSystem() {
 	m.clearedsystem = true
@@ -1696,7 +1733,7 @@ func (m *ObjectMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ObjectMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.create_time != nil {
 		fields = append(fields, object.FieldCreateTime)
 	}
@@ -1714,6 +1751,9 @@ func (m *ObjectMutation) Fields() []string {
 	}
 	if m.storage_key != nil {
 		fields = append(fields, object.FieldStorageKey)
+	}
+	if m.status != nil {
+		fields = append(fields, object.FieldStatus)
 	}
 	return fields
 }
@@ -1735,6 +1775,8 @@ func (m *ObjectMutation) Field(name string) (ent.Value, bool) {
 		return m.SystemID()
 	case object.FieldStorageKey:
 		return m.StorageKey()
+	case object.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -1756,6 +1798,8 @@ func (m *ObjectMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldSystemID(ctx)
 	case object.FieldStorageKey:
 		return m.OldStorageKey(ctx)
+	case object.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown Object field %s", name)
 }
@@ -1806,6 +1850,13 @@ func (m *ObjectMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStorageKey(v)
+		return nil
+	case object.FieldStatus:
+		v, ok := value.(object.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Object field %s", name)
@@ -1873,6 +1924,9 @@ func (m *ObjectMutation) ResetField(name string) error {
 		return nil
 	case object.FieldStorageKey:
 		m.ResetStorageKey()
+		return nil
+	case object.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown Object field %s", name)
