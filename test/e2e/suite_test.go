@@ -55,7 +55,7 @@ func TestSuite_Migration(t *testing.T) {
 	t.Cleanup(func() { _ = suite.Stop(ctx) })
 
 	// Verify tables were created - using actual ent table names
-	tables := []string{"users", "files", "file_infos", "file_paths", "file_roles", "file_links", "temp_files", "service_status"}
+	tables := []string{"users", "inodes", "objects", "systems", "system_users", "system_groups"}
 	for _, table := range tables {
 		var exists bool
 		err := suite.DB.QueryRow(
@@ -82,8 +82,6 @@ func TestSuite_ServerStartup(t *testing.T) {
 	require.NoError(t, err, "Failed to start test suite")
 	t.Cleanup(func() { _ = suite.Stop(ctx) })
 
-	// Create a test server that runs the actual fx app
-	// We'll use the suite's config directly
 	shutdown := make(chan struct{})
 
 	// Create a test HTTP server that simulates the retrowin server
@@ -95,17 +93,6 @@ func TestSuite_ServerStartup(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"healthy"}`))
 	})
-
-	// API routes with /v1 prefix - use a simple handler for now
-	mux.Handle("/v1/", http.StripPrefix("/v1", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		if r.URL.Path == "/health" {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"status":"healthy"}`))
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-		}
-	})))
 
 	server := &http.Server{
 		Addr:              "127.0.0.1:8080",
@@ -139,13 +126,6 @@ func TestSuite_ServerStartup(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err, "Failed to read response body")
 	assert.Contains(t, string(body), "healthy", "Response should contain 'healthy'")
-
-	// Test /v1/health endpoint
-	respV1, err := http.Get("http://127.0.0.1:8080/v1/health")
-	require.NoError(t, err, "Failed to call /v1/health endpoint")
-	defer respV1.Body.Close()
-
-	assert.Equal(t, http.StatusOK, respV1.StatusCode, "V1 Health status should be 200")
 
 	t.Log("Server startup test passed successfully")
 

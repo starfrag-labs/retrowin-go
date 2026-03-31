@@ -9,7 +9,7 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	corefs "github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
-	initsvc "github.com/starfrag-lab/retrowin-go/internal/service/init"
+	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
 	extuser "github.com/starfrag-lab/retrowin-go/internal/user"
 )
@@ -34,7 +34,7 @@ type Handler struct {
 	storageSvc storage.StorageService
 
 	// Init service
-	initSvc initsvc.InitService
+	initSvc sysinit.InitService
 }
 
 // NewHandler creates a new Handler.
@@ -46,7 +46,7 @@ func NewHandler(
 	systemSvc system.SystemService,
 	fsSvc corefs.FsService,
 	storageSvc storage.StorageService,
-	initSvc initsvc.InitService,
+	initSvc sysinit.InitService,
 ) *Handler {
 	return &Handler{
 		authSvc:     authSvc,

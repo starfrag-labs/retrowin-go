@@ -5,7 +5,7 @@ import (
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
-	initsvc "github.com/starfrag-lab/retrowin-go/internal/service/init"
+	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
 )
 
@@ -16,7 +16,7 @@ func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemReque
 		description = &req.Description.Value
 	}
 
-	result, err := h.initSvc.InitSystem(ctx, &initsvc.InitSystemCommand{
+	result, err := h.initSvc.InitSystem(ctx, &sysinit.InitSystemCommand{
 		Name:        req.Name,
 		Description: description,
 	})

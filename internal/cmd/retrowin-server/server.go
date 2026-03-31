@@ -33,7 +33,7 @@ import (
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 	"github.com/starfrag-lab/retrowin-go/internal/handler"
-	initsvc "github.com/starfrag-lab/retrowin-go/internal/service/init"
+	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
 	"github.com/starfrag-lab/retrowin-go/internal/session"
 	sessionRepo "github.com/starfrag-lab/retrowin-go/internal/session/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
@@ -309,7 +309,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			coreuser.NewService,      // core/user for UID resolution
 			coreuser.NewGroupService, // core/user for group management
 			system.NewService,        // system management
-			initsvc.NewService,       // system initialization
+			sysinit.NewService,       // system initialization
 			// Application services
 			corefs.NewService,
 			storage.NewService,
