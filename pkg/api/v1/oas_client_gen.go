@@ -66,7 +66,13 @@ type Invoker interface {
 	CreateSystemGroup(ctx context.Context, request *CreateSystemGroupRequest, params CreateSystemGroupParams) (CreateSystemGroupRes, error)
 	// CreateSystemUser invokes createSystemUser operation.
 	//
-	// Add a user to a system with auto-assigned UID.
+	// Add a user to a system.
+	// UID assignment:
+	// - If uid is -1 or not provided: Auto-assigned starting from 1000
+	// - If uid is 0: Creates root user (superuser) - typically only for system initialization
+	// - If uid is 1-999: Reserved for system users (e.g., daemon accounts)
+	// - If uid is 1000+: Regular user with explicit UID
+	// A private group with the same GID as UID is automatically created.
 	//
 	// POST /systems/{systemId}/users
 	CreateSystemUser(ctx context.Context, request *CreateSystemUserRequest, params CreateSystemUserParams) (CreateSystemUserRes, error)
@@ -1060,7 +1066,13 @@ func (c *Client) sendCreateSystemGroup(ctx context.Context, request *CreateSyste
 
 // CreateSystemUser invokes createSystemUser operation.
 //
-// Add a user to a system with auto-assigned UID.
+// Add a user to a system.
+// UID assignment:
+// - If uid is -1 or not provided: Auto-assigned starting from 1000
+// - If uid is 0: Creates root user (superuser) - typically only for system initialization
+// - If uid is 1-999: Reserved for system users (e.g., daemon accounts)
+// - If uid is 1000+: Regular user with explicit UID
+// A private group with the same GID as UID is automatically created.
 //
 // POST /systems/{systemId}/users
 func (c *Client) CreateSystemUser(ctx context.Context, request *CreateSystemUserRequest, params CreateSystemUserParams) (CreateSystemUserRes, error) {

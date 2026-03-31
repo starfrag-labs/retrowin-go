@@ -107,7 +107,13 @@ func (*ChmodNotFound) chmodRes() {}
 type ChmodRequest struct {
 	// File path.
 	Path string `json:"path"`
-	// New permissions.
+	// New permission bits (only lower 12 bits used).
+	// File type bits are preserved; only permissions are changed.
+	// Common values:
+	// - 0755: rwxr-xr-x (executable/script)
+	// - 0644: rw-r--r-- (regular file)
+	// - 0600: rw------- (private file)
+	// - 0700: rwx------ (private directory).
 	Mode int32 `json:"mode"`
 }
 
@@ -301,7 +307,11 @@ type CreateSystemUserRequest struct {
 	UserId string `json:"userId"`
 	// Username within the system.
 	Username string `json:"username"`
-	// Optional UID (auto-assigned if 0 or not provided).
+	// Optional UNIX user ID.
+	// - -1 or omitted: Auto-assigned (starts from 1000)
+	// - 0: Root user (superuser) - requires special privileges
+	// - 1-999: Reserved for system users
+	// - 1000-65533: Regular users.
 	UID OptInt32 `json:"uid"`
 }
 
@@ -804,11 +814,35 @@ type Inode struct {
 	ID string `json:"id"`
 	// System ID.
 	SystemId string `json:"systemId"`
-	// File mode (file type + permissions).
+	// File mode (file type + permissions), same as Linux mode_t.
+	// File types (upper 4 bits, use bitwise AND with 0170000):
+	// - 0140000 (S_IFDIR): Directory
+	// - 0100000 (S_IFREG): Regular file
+	// - 0120000 (S_IFLNK): Symbolic link
+	// - 0010000 (S_IFIFO): Named pipe (FIFO)
+	// - 0020000 (S_IFCHR): Character device
+	// - 0060000 (S_IFBLK): Block device
+	// - 0110000 (S_IFSOCK): Socket
+	// Special bits (bits 9-11):
+	// - 04000 (S_ISUID): Set-user-ID (run with owner's UID)
+	// - 02000 (S_ISGID): Set-group-ID (run with group's GID)
+	// - 01000 (S_ISVTX): Sticky bit (only owner can delete in dir)
+	// Permissions (lower 9 bits):
+	// - 0700: Owner (rwx) - read, write, execute
+	// - 0070: Group (rwx) - read, write, execute
+	// - 0007: Others (rwx) - read, write, execute
+	// Examples:
+	// - 040755: Directory, rwxr-xr-x (755)
+	// - 0100644: Regular file, rw-r--r-- (644)
+	// - 0100755: Executable file, rwxr-xr-x (755).
 	Mode int32 `json:"mode"`
-	// Owner user ID.
+	// Owner user ID (UNIX UID).
+	// - 0: root (superuser)
+	// - 1-999: system users
+	// - 1000+: regular users.
 	UID int32 `json:"uid"`
-	// Owner group ID.
+	// Owner group ID (UNIX GID).
+	// Typically matches UID for user's private group.
 	Gid int32 `json:"gid"`
 	// File size in bytes.
 	Size int64 `json:"size"`
@@ -1030,6 +1064,11 @@ type MkdirRequest struct {
 	// Directory path to create.
 	Path string `json:"path"`
 	// Directory permissions (default: 0755).
+	// Only permission bits (0777) are used; file type is automatically set to directory.
+	// Common values:
+	// - 0755: rwxr-xr-x (default, world-readable)
+	// - 0700: rwx------ (private, owner only)
+	// - 0775: rwxrwxr-x (group writable).
 	Mode OptInt32 `json:"mode"`
 }
 
@@ -1671,7 +1710,7 @@ type SystemUser struct {
 	Username string `json:"username"`
 	// UNIX user ID.
 	UID int32 `json:"uid"`
-	// Primary group ID.
+	// Primary group ID (typically equals UID for private group).
 	Gid       int32        `json:"gid"`
 	CreatedAt OptTimestamp `json:"createdAt"`
 }

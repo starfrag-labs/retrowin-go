@@ -28,7 +28,7 @@ SystemUser:
     gid:
       type: integer
       format: int32
-      description: Primary group ID
+      description: Primary group ID (typically equals UID for private group)
     createdAt:
       $ref: './common.yaml#/Timestamp'
 
@@ -49,8 +49,13 @@ CreateSystemUserRequest:
     uid:
       type: integer
       format: int32
-      minimum: 0
-      description: Optional UID (auto-assigned if 0 or not provided)
+      minimum: -1
+      description: |
+        Optional UNIX user ID.
+        - -1 or omitted: Auto-assigned (starts from 1000)
+        - 0: Root user (superuser) - requires special privileges
+        - 1-999: Reserved for system users
+        - 1000-65533: Regular users
 
 SystemUserResponse:
   type: object

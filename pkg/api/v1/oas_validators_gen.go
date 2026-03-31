@@ -171,7 +171,7 @@ func (s *CreateSystemUserRequest) Validate() error {
 			if err := func() error {
 				if err := (validate.Int{
 					MinSet:        true,
-					Min:           0,
+					Min:           -1,
 					MaxSet:        false,
 					Max:           0,
 					MinExclusive:  false,
