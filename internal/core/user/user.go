@@ -81,7 +81,7 @@ type CreateCommand struct {
 	UserID   string
 	SystemID string
 	Username string
-	UID      int // Optional: if 0, auto-assigned
+	UID      int // Optional: if -1, auto-assigned; 0 is valid for root
 }
 
 // Filter for querying system-users (service layer).
@@ -225,9 +225,9 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*SystemUser, 
 		return nil, errors.Conflict("username already taken in system")
 	}
 
-	// Assign UID if not provided
+	// Assign UID if not provided (-1 means auto-assign)
 	uid := cmd.UID
-	if uid == 0 {
+	if uid < 0 {
 		uid, err = s.repo.GetNextUID(ctx, s.client, cmd.SystemID)
 		if err != nil {
 			return nil, errors.WrapInternal(err, "failed to assign uid")

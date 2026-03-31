@@ -571,6 +571,44 @@ func (s *Suite) SetupFullEnvironment(ctx context.Context, username string) (*ent
 	return u, sys, su, nil
 }
 
+// SetupFullEnvironmentAPI creates a system via the API (which initializes filesystem)
+// and returns the created system. This is the preferred method for e2e tests that need
+// a properly initialized filesystem.
+func (s *Suite) SetupFullEnvironmentAPI(ctx context.Context, username string) (*ent.User, map[string]interface{}, error) {
+	// Setup authenticated user
+	u, err := s.SetupAuthenticatedUser(ctx, username)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to setup authenticated user: %w", err)
+	}
+
+	// Create system via API (this initializes filesystem with root directory, /home, etc.)
+	req := map[string]interface{}{
+		"name":        fmt.Sprintf("%s-system", username),
+		"description": "Test system for e2e tests",
+	}
+
+	resp, err := s.Post("/systems", req)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create system: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusCreated {
+		body := s.ReadBody(resp)
+		return nil, nil, fmt.Errorf("failed to create system: status=%d body=%s", resp.StatusCode, body)
+	}
+
+	var result map[string]interface{}
+	if err := s.ReadJSON(resp, &result); err != nil {
+		// Re-read since ReadJSON closes body
+		return nil, nil, fmt.Errorf("failed to parse system response: %w", err)
+	}
+
+	// Note: resp.Body is already closed by ReadJSON, so we don't defer close
+
+	return u, result, nil
+}
+
 func (s *Suite) BuildURL(path string, params ...interface{}) string {
 	return s.BaseURL() + fmt.Sprintf(path, params...)
 }

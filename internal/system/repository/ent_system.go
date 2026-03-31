@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entsystem "github.com/starfrag-lab/retrowin-go/ent/system"
 	domain "github.com/starfrag-lab/retrowin-go/internal/system"
@@ -19,6 +21,7 @@ func NewRepository() domain.SystemRepository {
 
 func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.System, error) {
 	builder := client.System.Create().
+		SetID(uuid.New().String()).
 		SetName(params.Name).
 		SetStatus(entsystem.Status(params.Status))
 

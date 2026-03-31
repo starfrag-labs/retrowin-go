@@ -43,7 +43,7 @@ func TestUserService_Create(t *testing.T) {
 			UserID:   "user-123",
 			SystemID: "system-456",
 			Username: "testuser",
-			UID:      0, // Auto-assign
+			UID:      -1, // Auto-assign
 		}
 
 		// Mock no existing user

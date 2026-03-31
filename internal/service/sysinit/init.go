@@ -85,6 +85,7 @@ func (s *service) InitSystem(ctx context.Context, cmd *InitSystemCommand) (*Init
 			UserID:   u.UserID,
 			SystemID: sys.ID(),
 			Username: u.Username,
+			UID:      -1, // Auto-assign UID
 		})
 		if err != nil {
 			return nil, err

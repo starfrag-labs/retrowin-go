@@ -5,12 +5,19 @@ import (
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
+	"github.com/starfrag-lab/retrowin-go/internal/utils"
 )
 
 // CreateSystem implements POST /systems.
 func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemRequest) (apiv1.CreateSystemRes, error) {
+	userID, ok := utils.GetUserID(ctx)
+	if !ok {
+		return nil, h.domainError(errors.Unauthorized("user not authenticated"))
+	}
+
 	var description *string
 	if req.Description.Set {
 		description = &req.Description.Value
@@ -19,6 +26,7 @@ func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemReque
 	result, err := h.initSvc.InitSystem(ctx, &sysinit.InitSystemCommand{
 		Name:        req.Name,
 		Description: description,
+		RootUserID:  userID,
 	})
 	if err != nil {
 		return nil, h.domainError(err)

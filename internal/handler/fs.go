@@ -2,11 +2,14 @@ package handler
 
 import (
 	"context"
+	"path"
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // GetRootDirectory implements GET /fs/{systemId}/root.
@@ -68,6 +71,22 @@ func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params api
 		mode = inode.ModeDirectory | int(req.Mode.Value)
 	}
 
+	// Parse path to get parent directory and new directory name
+	dirPath := path.Dir(req.Path)
+	dirName := path.Base(req.Path)
+
+	// Handle root path case
+	if dirPath == "/" && dirName == "/" {
+		return nil, h.domainError(errors.BadRequest("cannot create root directory"))
+	}
+
+	// Resolve parent directory
+	parentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, dirPath)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Create the directory inode
 	dirInode, err := h.fsSvc.CreateDirectory(ctx, &fs.CreateDirectoryCommand{
 		SystemID: params.SystemId,
 		Mode:     mode,
@@ -76,7 +95,15 @@ func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params api
 		return nil, h.domainError(err)
 	}
 
-	// TODO: Link the directory to its parent based on req.Path
+	// Link the directory to its parent
+	entry := content.DirEntry{
+		Name:     dirName,
+		InodeID:  dirInode.ID(),
+		FileType: uint8(inode.ModeDirectory >> 12), // File type for directory entry
+	}
+	if err := h.fsSvc.Link(ctx, parentDir.ID(), entry); err != nil {
+		return nil, h.domainError(err)
+	}
 
 	return &apiv1.InodeResponse{
 		Inode: *h.toInode(dirInode),
@@ -85,11 +112,33 @@ func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params api
 
 // CreateSymlink implements POST /fs/{systemId}/symlink.
 func (h *Handler) CreateSymlink(ctx context.Context, req *apiv1.SymlinkRequest, params apiv1.CreateSymlinkParams) (apiv1.CreateSymlinkRes, error) {
+	// Parse link path to get parent directory and link name
+	linkDir := path.Dir(req.LinkPath)
+	linkName := path.Base(req.LinkPath)
+
+	// Resolve parent directory
+	parentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, linkDir)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Create the symlink inode
 	symlinkInode, err := h.fsSvc.CreateSymlink(ctx, &fs.CreateSymlinkCommand{
 		SystemID: params.SystemId,
 		Target:   req.Target,
+		Mode:     inode.ModeSymlink | 0777, // Symlinks typically have 0777 permissions
 	})
 	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Link the symlink to its parent directory
+	entry := content.DirEntry{
+		Name:     linkName,
+		InodeID:  symlinkInode.ID(),
+		FileType: uint8(inode.ModeSymlink >> 12), // File type for symlink entry
+	}
+	if err := h.fsSvc.Link(ctx, parentDir.ID(), entry); err != nil {
 		return nil, h.domainError(err)
 	}
 
@@ -128,12 +177,28 @@ func (h *Handler) Chmod(ctx context.Context, req *apiv1.ChmodRequest, params api
 
 // Unlink implements DELETE /fs/{systemId}/unlink.
 func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.UnlinkRes, error) {
-	// Resolve path to get inode
+	// Resolve path to get inode and parent
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
 		return nil, h.domainError(err)
 	}
 
+	// Parse path to get parent directory and entry name
+	dirPath := path.Dir(params.Path)
+	entryName := path.Base(params.Path)
+
+	// Resolve parent directory
+	parentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, dirPath)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Unlink from parent directory first
+	if err := h.fsSvc.Unlink(ctx, parentDir.ID(), entryName); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Delete the inode
 	if err := h.fsSvc.Delete(ctx, in.ID()); err != nil {
 		return nil, h.domainError(err)
 	}

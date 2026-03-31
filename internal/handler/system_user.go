@@ -14,6 +14,7 @@ func (h *Handler) CreateSystemUser(ctx context.Context, req *apiv1.CreateSystemU
 		UserID:   req.UserId,
 		SystemID: params.SystemId,
 		Username: req.Username,
+		UID:      -1, // Default to auto-assign
 	}
 	if req.UID.Set {
 		cmd.UID = int(req.UID.Value)
