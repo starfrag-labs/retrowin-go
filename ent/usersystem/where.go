@@ -68,6 +68,11 @@ func UID(v int) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldUID, v))
 }
 
+// Gid applies equality check predicate on the "gid" field. It's identical to GidEQ.
+func Gid(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEQ(FieldGid, v))
+}
+
 // Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
 func Username(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldUsername, v))
@@ -243,6 +248,46 @@ func UIDLTE(v int) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldLTE(FieldUID, v))
 }
 
+// GidEQ applies the EQ predicate on the "gid" field.
+func GidEQ(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldEQ(FieldGid, v))
+}
+
+// GidNEQ applies the NEQ predicate on the "gid" field.
+func GidNEQ(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldNEQ(FieldGid, v))
+}
+
+// GidIn applies the In predicate on the "gid" field.
+func GidIn(vs ...int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldIn(FieldGid, vs...))
+}
+
+// GidNotIn applies the NotIn predicate on the "gid" field.
+func GidNotIn(vs ...int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldNotIn(FieldGid, vs...))
+}
+
+// GidGT applies the GT predicate on the "gid" field.
+func GidGT(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGT(FieldGid, v))
+}
+
+// GidGTE applies the GTE predicate on the "gid" field.
+func GidGTE(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldGTE(FieldGid, v))
+}
+
+// GidLT applies the LT predicate on the "gid" field.
+func GidLT(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLT(FieldGid, v))
+}
+
+// GidLTE applies the LTE predicate on the "gid" field.
+func GidLTE(v int) predicate.UserSystem {
+	return predicate.UserSystem(sql.FieldLTE(FieldGid, v))
+}
+
 // UsernameEQ applies the EQ predicate on the "username" field.
 func UsernameEQ(v string) predicate.UserSystem {
 	return predicate.UserSystem(sql.FieldEQ(FieldUsername, v))
@@ -346,6 +391,52 @@ func HasSystem() predicate.UserSystem {
 func HasSystemWith(preds ...predicate.System) predicate.UserSystem {
 	return predicate.UserSystem(func(s *sql.Selector) {
 		step := newSystemStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGroups applies the HasEdge predicate on the "groups" edge.
+func HasGroups() predicate.UserSystem {
+	return predicate.UserSystem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, GroupsTable, GroupsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupsWith applies the HasEdge predicate on the "groups" edge with a given conditions (other predicates).
+func HasGroupsWith(preds ...predicate.SystemGroup) predicate.UserSystem {
+	return predicate.UserSystem(func(s *sql.Selector) {
+		step := newGroupsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserGroups applies the HasEdge predicate on the "user_groups" edge.
+func HasUserGroups() predicate.UserSystem {
+	return predicate.UserSystem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, UserGroupsTable, UserGroupsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserGroupsWith applies the HasEdge predicate on the "user_groups" edge with a given conditions (other predicates).
+func HasUserGroupsWith(preds ...predicate.UserGroup) predicate.UserSystem {
+	return predicate.UserSystem(func(s *sql.Selector) {
+		step := newUserGroupsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

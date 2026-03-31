@@ -15,6 +15,7 @@ type SystemUser struct {
 	systemID string
 	username string
 	uid      int
+	gid      int // primary group
 }
 
 // NewSystemUser creates a new SystemUser.
@@ -24,6 +25,7 @@ func NewSystemUser(
 	systemID string,
 	username string,
 	uid int,
+	gid int,
 ) *SystemUser {
 	return &SystemUser{
 		id:       id,
@@ -31,6 +33,7 @@ func NewSystemUser(
 		systemID: systemID,
 		username: username,
 		uid:      uid,
+		gid:      gid,
 	}
 }
 
@@ -40,6 +43,7 @@ func (su *SystemUser) UserID() string   { return su.userID }
 func (su *SystemUser) SystemID() string { return su.systemID }
 func (su *SystemUser) Username() string { return su.username }
 func (su *SystemUser) UID() int         { return su.uid }
+func (su *SystemUser) GID() int         { return su.gid }
 
 // UserService defines the interface for user identity resolution.
 type UserService interface {
@@ -48,13 +52,15 @@ type UserService interface {
 	ResolveUID(ctx context.Context, systemID string) (int, error)
 
 	// ResolveUIDAndGIDs resolves both UID and all GIDs for permission checking.
-	// GIDs are resolved from /etc/group in the filesystem.
+	// Returns primary GID + additional group GIDs.
 	ResolveUIDAndGIDs(ctx context.Context, systemID string) (uid int, gids []int, err error)
 
 	// GetByUserAndSystem retrieves the SystemUser for detailed info.
 	GetByUserAndSystem(ctx context.Context, userID, systemID string) (*SystemUser, error)
 
-	// Create creates a new system user.
+	// Create creates a new system user with auto-assigned UID/GID and private group.
+	// If cmd.UID is 0, it will be auto-assigned.
+	// GID is always set to UID (private group).
 	Create(ctx context.Context, cmd *CreateCommand) (*SystemUser, error)
 
 	// GetByID retrieves a system user by ID.
@@ -75,7 +81,7 @@ type CreateCommand struct {
 	UserID   string
 	SystemID string
 	Username string
-	UID      int
+	UID      int // Optional: if 0, auto-assigned
 }
 
 // Filter for querying system-users (service layer).
@@ -98,14 +104,22 @@ func ByUserAndSystem(userID, systemID string) Filter {
 	return Filter{UserID: &userID, SystemID: &systemID}
 }
 
+const (
+	// MinUID is the minimum UID for regular users.
+	MinUID = 1000
+	// MaxUID is the maximum UID for regular users.
+	MaxUID = 65534
+)
+
 type service struct {
-	repo   SystemUserRepository
-	client *ent.Client
+	repo      SystemUserRepository
+	groupRepo SystemGroupRepository
+	client    *ent.Client
 }
 
 // NewService creates a new UserService.
-func NewService(repo SystemUserRepository, client *ent.Client) UserService {
-	return &service{repo: repo, client: client}
+func NewService(repo SystemUserRepository, groupRepo SystemGroupRepository, client *ent.Client) UserService {
+	return &service{repo: repo, groupRepo: groupRepo, client: client}
 }
 
 // ResolveUID extracts userID from context and looks up UID for the system.
@@ -129,14 +143,43 @@ func (s *service) ResolveUID(ctx context.Context, systemID string) (int, error) 
 }
 
 // ResolveUIDAndGIDs resolves both UID and GIDs for permission checking.
-// GIDs will be resolved by fs service using /etc/group.
+// Returns primary GID + additional group GIDs from group memberships.
 func (s *service) ResolveUIDAndGIDs(ctx context.Context, systemID string) (int, []int, error) {
-	uid, err := s.ResolveUID(ctx, systemID)
-	if err != nil {
-		return 0, nil, err
+	userID, ok := utils.GetUserID(ctx)
+	if !ok || userID == "" {
+		return 0, nil, nil // No user in context
 	}
-	// GIDs are resolved separately by fs service from /etc/group
-	return uid, nil, nil
+
+	su, err := s.repo.FindOne(ctx, s.client, &QueryFilter{
+		UserID:   &userID,
+		SystemID: &systemID,
+	})
+	if err != nil {
+		return 0, nil, errors.WrapInternal(err, "failed to resolve uid")
+	}
+	if su == nil {
+		return 0, nil, errors.NotFound("user not found in system")
+	}
+
+	// Get additional group GIDs
+	groupGIDs, err := s.groupRepo.FindGIDsByUserSystemID(ctx, s.client, su.ID())
+	if err != nil {
+		return su.UID(), []int{su.GID()}, nil // Fallback to primary group only
+	}
+
+	// Combine primary GID with additional GIDs (deduplicate)
+	gidSet := make(map[int]bool)
+	gidSet[su.GID()] = true
+	for _, gid := range groupGIDs {
+		gidSet[gid] = true
+	}
+
+	gids := make([]int, 0, len(gidSet))
+	for gid := range gidSet {
+		gids = append(gids, gid)
+	}
+
+	return su.UID(), gids, nil
 }
 
 func (s *service) GetByUserAndSystem(ctx context.Context, userID, systemID string) (*SystemUser, error) {
@@ -146,6 +189,7 @@ func (s *service) GetByUserAndSystem(ctx context.Context, userID, systemID strin
 	})
 }
 
+// Create creates a new system user with auto-assigned UID/GID and private group.
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*SystemUser, error) {
 	if cmd.UserID == "" {
 		return nil, errors.BadRequest("user_id is required")
@@ -157,11 +201,67 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*SystemUser, 
 		return nil, errors.BadRequest("username is required")
 	}
 
+	// Check if user already exists in this system
+	existing, err := s.repo.FindOne(ctx, s.client, &QueryFilter{
+		UserID:   &cmd.UserID,
+		SystemID: &cmd.SystemID,
+	})
+	if err != nil {
+		return nil, errors.WrapInternal(err, "failed to check existing user")
+	}
+	if existing != nil {
+		return nil, errors.Conflict("user already exists in system")
+	}
+
+	// Check if username is already taken in this system
+	existingUsername, err := s.repo.FindOne(ctx, s.client, &QueryFilter{
+		SystemID: &cmd.SystemID,
+		Username: &cmd.Username,
+	})
+	if err != nil {
+		return nil, errors.WrapInternal(err, "failed to check existing username")
+	}
+	if existingUsername != nil {
+		return nil, errors.Conflict("username already taken in system")
+	}
+
+	// Assign UID if not provided
+	uid := cmd.UID
+	if uid == 0 {
+		uid, err = s.repo.GetNextUID(ctx, s.client, cmd.SystemID)
+		if err != nil {
+			return nil, errors.WrapInternal(err, "failed to assign uid")
+		}
+	}
+
+	// Create private group with same GID as UID
+	group, err := s.groupRepo.FindOne(ctx, s.client, &GroupQueryFilter{
+		SystemID: &cmd.SystemID,
+		Name:     &cmd.Username,
+	})
+	if err != nil {
+		return nil, errors.WrapInternal(err, "failed to check existing group")
+	}
+
+	if group == nil {
+		// Create private group
+		group, err = s.groupRepo.Create(ctx, s.client, &GroupCreateParams{
+			SystemID: cmd.SystemID,
+			Name:     cmd.Username,
+			GID:      uid, // GID = UID
+		})
+		if err != nil {
+			return nil, errors.WrapInternal(err, "failed to create private group")
+		}
+	}
+
+	// Create system user with GID = UID
 	params := &CreateParams{
 		UserID:   cmd.UserID,
 		SystemID: cmd.SystemID,
 		Username: cmd.Username,
-		UID:      cmd.UID,
+		UID:      uid,
+		GID:      group.GID(), // Use group's GID (same as UID)
 	}
 	return s.repo.Create(ctx, s.client, params)
 }

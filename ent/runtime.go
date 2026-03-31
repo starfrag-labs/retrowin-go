@@ -9,6 +9,7 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/schema"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
+	"github.com/starfrag-lab/retrowin-go/ent/systemgroup"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
@@ -86,6 +87,16 @@ func init() {
 	systemDescDescription := systemFields[2].Descriptor()
 	// system.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	system.DescriptionValidator = systemDescDescription.Validators[0].(func(string) error)
+	systemgroupFields := schema.SystemGroup{}.Fields()
+	_ = systemgroupFields
+	// systemgroupDescName is the schema descriptor for name field.
+	systemgroupDescName := systemgroupFields[1].Descriptor()
+	// systemgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	systemgroup.NameValidator = systemgroupDescName.Validators[0].(func(string) error)
+	// systemgroupDescGid is the schema descriptor for gid field.
+	systemgroupDescGid := systemgroupFields[2].Descriptor()
+	// systemgroup.DefaultGid holds the default value on creation for the gid field.
+	systemgroup.DefaultGid = systemgroupDescGid.Default.(int)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -123,8 +134,12 @@ func init() {
 	usersystemDescUID := usersystemFields[2].Descriptor()
 	// usersystem.DefaultUID holds the default value on creation for the uid field.
 	usersystem.DefaultUID = usersystemDescUID.Default.(int)
+	// usersystemDescGid is the schema descriptor for gid field.
+	usersystemDescGid := usersystemFields[3].Descriptor()
+	// usersystem.DefaultGid holds the default value on creation for the gid field.
+	usersystem.DefaultGid = usersystemDescGid.Default.(int)
 	// usersystemDescUsername is the schema descriptor for username field.
-	usersystemDescUsername := usersystemFields[3].Descriptor()
+	usersystemDescUsername := usersystemFields[4].Descriptor()
 	// usersystem.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	usersystem.UsernameValidator = usersystemDescUsername.Validators[0].(func(string) error)
 }

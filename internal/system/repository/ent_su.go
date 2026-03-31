@@ -23,6 +23,7 @@ func (r *EntSystemUserRepository) Create(ctx context.Context, client *ent.Client
 		SetSystemID(params.SystemID).
 		SetUsername(params.Username).
 		SetUID(params.UID).
+		SetGid(params.GID).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system user: %w", err)
@@ -70,6 +71,36 @@ func (r *EntSystemUserRepository) FindOne(ctx context.Context, client *ent.Clien
 	return systemUserFromEnt(entUserSystem), nil
 }
 
+// GetNextUID returns the next available UID for the system.
+// It finds the max UID in the system and returns max+1, or MinUID if no users exist.
+func (r *EntSystemUserRepository) GetNextUID(ctx context.Context, client *ent.Client, systemID string) (int, error) {
+	// Find max UID in the system
+	maxUID, err := client.UserSystem.Query().
+		Where(entusersystem.SystemIDEQ(systemID)).
+		Aggregate(
+			ent.Max(entusersystem.FieldUID),
+		).
+		Int(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return user.MinUID, nil // No users, start from MinUID
+		}
+		return 0, fmt.Errorf("failed to get max uid: %w", err)
+	}
+
+	nextUID := maxUID + 1
+	if nextUID > user.MaxUID {
+		return 0, fmt.Errorf("no available uid (max %d reached)", user.MaxUID)
+	}
+
+	// Ensure we start from MinUID
+	if nextUID < user.MinUID {
+		nextUID = user.MinUID
+	}
+
+	return nextUID, nil
+}
+
 func applySystemUserFilter(query *ent.UserSystemQuery, filter *user.QueryFilter) *ent.UserSystemQuery {
 	if filter == nil {
 		return query
@@ -93,6 +124,7 @@ func systemUserFromEnt(e *ent.UserSystem) *user.SystemUser {
 		e.SystemID,
 		e.Username,
 		e.UID,
+		e.Gid,
 	)
 }
 

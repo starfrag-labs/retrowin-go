@@ -15,7 +15,9 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent/inode"
 	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
+	"github.com/starfrag-lab/retrowin-go/ent/systemgroup"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
@@ -77,11 +79,13 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			inode.Table:      inode.ValidColumn,
-			object.Table:     object.ValidColumn,
-			system.Table:     system.ValidColumn,
-			user.Table:       user.ValidColumn,
-			usersystem.Table: usersystem.ValidColumn,
+			inode.Table:       inode.ValidColumn,
+			object.Table:      object.ValidColumn,
+			system.Table:      system.ValidColumn,
+			systemgroup.Table: systemgroup.ValidColumn,
+			user.Table:        user.ValidColumn,
+			usergroup.Table:   usergroup.ValidColumn,
+			usersystem.Table:  usersystem.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

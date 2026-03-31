@@ -18,12 +18,18 @@ const (
 	FieldSystemID = "system_id"
 	// FieldUID holds the string denoting the uid field in the database.
 	FieldUID = "uid"
+	// FieldGid holds the string denoting the gid field in the database.
+	FieldGid = "gid"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeSystem holds the string denoting the system edge name in mutations.
 	EdgeSystem = "system"
+	// EdgeGroups holds the string denoting the groups edge name in mutations.
+	EdgeGroups = "groups"
+	// EdgeUserGroups holds the string denoting the user_groups edge name in mutations.
+	EdgeUserGroups = "user_groups"
 	// Table holds the table name of the usersystem in the database.
 	Table = "user_systems"
 	// UserTable is the table that holds the user relation/edge.
@@ -40,6 +46,18 @@ const (
 	SystemInverseTable = "systems"
 	// SystemColumn is the table column denoting the system relation/edge.
 	SystemColumn = "system_id"
+	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
+	GroupsTable = "user_groups"
+	// GroupsInverseTable is the table name for the SystemGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "systemgroup" package.
+	GroupsInverseTable = "system_groups"
+	// UserGroupsTable is the table that holds the user_groups relation/edge.
+	UserGroupsTable = "user_groups"
+	// UserGroupsInverseTable is the table name for the UserGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "usergroup" package.
+	UserGroupsInverseTable = "user_groups"
+	// UserGroupsColumn is the table column denoting the user_groups relation/edge.
+	UserGroupsColumn = "user_system_id"
 )
 
 // Columns holds all SQL columns for usersystem fields.
@@ -48,8 +66,15 @@ var Columns = []string{
 	FieldUserID,
 	FieldSystemID,
 	FieldUID,
+	FieldGid,
 	FieldUsername,
 }
+
+var (
+	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
+	// primary key for the groups relation (M2M).
+	GroupsPrimaryKey = []string{"user_system_id", "system_group_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -64,6 +89,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultUID holds the default value on creation for the "uid" field.
 	DefaultUID int
+	// DefaultGid holds the default value on creation for the "gid" field.
+	DefaultGid int
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
 )
@@ -91,6 +118,11 @@ func ByUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUID, opts...).ToFunc()
 }
 
+// ByGid orders the results by the gid field.
+func ByGid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGid, opts...).ToFunc()
+}
+
 // ByUsername orders the results by the username field.
 func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
@@ -109,6 +141,34 @@ func BySystemField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSystemStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByGroupsCount orders the results by groups count.
+func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGroupsStep(), opts...)
+	}
+}
+
+// ByGroups orders the results by groups terms.
+func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUserGroupsCount orders the results by user_groups count.
+func ByUserGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserGroupsStep(), opts...)
+	}
+}
+
+// ByUserGroups orders the results by user_groups terms.
+func ByUserGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -121,5 +181,19 @@ func newSystemStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SystemInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, SystemTable, SystemColumn),
+	)
+}
+func newGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, GroupsTable, GroupsPrimaryKey...),
+	)
+}
+func newUserGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserGroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, UserGroupsTable, UserGroupsColumn),
 	)
 }

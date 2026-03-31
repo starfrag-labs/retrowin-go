@@ -45,6 +45,18 @@ func (f SystemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemMutation", m)
 }
 
+// The SystemGroupFunc type is an adapter to allow the use of ordinary
+// function as SystemGroup mutator.
+type SystemGroupFunc func(context.Context, *ent.SystemGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemGroupMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
@@ -55,6 +67,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserGroupFunc type is an adapter to allow the use of ordinary
+// function as UserGroup mutator.
+type UserGroupFunc func(context.Context, *ent.UserGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserGroupMutation", m)
 }
 
 // The UserSystemFunc type is an adapter to allow the use of ordinary

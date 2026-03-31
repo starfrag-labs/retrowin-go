@@ -18,8 +18,12 @@ type Tx struct {
 	Object *ObjectClient
 	// System is the client for interacting with the System builders.
 	System *SystemClient
+	// SystemGroup is the client for interacting with the SystemGroup builders.
+	SystemGroup *SystemGroupClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserGroup is the client for interacting with the UserGroup builders.
+	UserGroup *UserGroupClient
 	// UserSystem is the client for interacting with the UserSystem builders.
 	UserSystem *UserSystemClient
 
@@ -156,7 +160,9 @@ func (tx *Tx) init() {
 	tx.Inode = NewInodeClient(tx.config)
 	tx.Object = NewObjectClient(tx.config)
 	tx.System = NewSystemClient(tx.config)
+	tx.SystemGroup = NewSystemGroupClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserGroup = NewUserGroupClient(tx.config)
 	tx.UserSystem = NewUserSystemClient(tx.config)
 }
 

@@ -24,6 +24,8 @@ type UserSystem struct {
 	SystemID string `json:"system_id,omitempty"`
 	// UID holds the value of the "uid" field.
 	UID int `json:"uid,omitempty"`
+	// Gid holds the value of the "gid" field.
+	Gid int `json:"gid,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -38,9 +40,13 @@ type UserSystemEdges struct {
 	User *User `json:"user,omitempty"`
 	// System holds the value of the system edge.
 	System *System `json:"system,omitempty"`
+	// Groups holds the value of the groups edge.
+	Groups []*SystemGroup `json:"groups,omitempty"`
+	// UserGroups holds the value of the user_groups edge.
+	UserGroups []*UserGroup `json:"user_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -65,12 +71,30 @@ func (e UserSystemEdges) SystemOrErr() (*System, error) {
 	return nil, &NotLoadedError{edge: "system"}
 }
 
+// GroupsOrErr returns the Groups value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserSystemEdges) GroupsOrErr() ([]*SystemGroup, error) {
+	if e.loadedTypes[2] {
+		return e.Groups, nil
+	}
+	return nil, &NotLoadedError{edge: "groups"}
+}
+
+// UserGroupsOrErr returns the UserGroups value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserSystemEdges) UserGroupsOrErr() ([]*UserGroup, error) {
+	if e.loadedTypes[3] {
+		return e.UserGroups, nil
+	}
+	return nil, &NotLoadedError{edge: "user_groups"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*UserSystem) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case usersystem.FieldID, usersystem.FieldUID:
+		case usersystem.FieldID, usersystem.FieldUID, usersystem.FieldGid:
 			values[i] = new(sql.NullInt64)
 		case usersystem.FieldUserID, usersystem.FieldSystemID, usersystem.FieldUsername:
 			values[i] = new(sql.NullString)
@@ -113,6 +137,12 @@ func (_m *UserSystem) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UID = int(value.Int64)
 			}
+		case usersystem.FieldGid:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gid", values[i])
+			} else if value.Valid {
+				_m.Gid = int(value.Int64)
+			}
 		case usersystem.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
@@ -140,6 +170,16 @@ func (_m *UserSystem) QueryUser() *UserQuery {
 // QuerySystem queries the "system" edge of the UserSystem entity.
 func (_m *UserSystem) QuerySystem() *SystemQuery {
 	return NewUserSystemClient(_m.config).QuerySystem(_m)
+}
+
+// QueryGroups queries the "groups" edge of the UserSystem entity.
+func (_m *UserSystem) QueryGroups() *SystemGroupQuery {
+	return NewUserSystemClient(_m.config).QueryGroups(_m)
+}
+
+// QueryUserGroups queries the "user_groups" edge of the UserSystem entity.
+func (_m *UserSystem) QueryUserGroups() *UserGroupQuery {
+	return NewUserSystemClient(_m.config).QueryUserGroups(_m)
 }
 
 // Update returns a builder for updating this UserSystem.
@@ -173,6 +213,9 @@ func (_m *UserSystem) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("uid=")
 	builder.WriteString(fmt.Sprintf("%v", _m.UID))
+	builder.WriteString(", ")
+	builder.WriteString("gid=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Gid))
 	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(_m.Username)

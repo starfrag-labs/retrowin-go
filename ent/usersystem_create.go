@@ -10,7 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
+	"github.com/starfrag-lab/retrowin-go/ent/systemgroup"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
@@ -47,6 +49,20 @@ func (_c *UserSystemCreate) SetNillableUID(v *int) *UserSystemCreate {
 	return _c
 }
 
+// SetGid sets the "gid" field.
+func (_c *UserSystemCreate) SetGid(v int) *UserSystemCreate {
+	_c.mutation.SetGid(v)
+	return _c
+}
+
+// SetNillableGid sets the "gid" field if the given value is not nil.
+func (_c *UserSystemCreate) SetNillableGid(v *int) *UserSystemCreate {
+	if v != nil {
+		_c.SetGid(*v)
+	}
+	return _c
+}
+
 // SetUsername sets the "username" field.
 func (_c *UserSystemCreate) SetUsername(v string) *UserSystemCreate {
 	_c.mutation.SetUsername(v)
@@ -61,6 +77,36 @@ func (_c *UserSystemCreate) SetUser(v *User) *UserSystemCreate {
 // SetSystem sets the "system" edge to the System entity.
 func (_c *UserSystemCreate) SetSystem(v *System) *UserSystemCreate {
 	return _c.SetSystemID(v.ID)
+}
+
+// AddGroupIDs adds the "groups" edge to the SystemGroup entity by IDs.
+func (_c *UserSystemCreate) AddGroupIDs(ids ...int) *UserSystemCreate {
+	_c.mutation.AddGroupIDs(ids...)
+	return _c
+}
+
+// AddGroups adds the "groups" edges to the SystemGroup entity.
+func (_c *UserSystemCreate) AddGroups(v ...*SystemGroup) *UserSystemCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddGroupIDs(ids...)
+}
+
+// AddUserGroupIDs adds the "user_groups" edge to the UserGroup entity by IDs.
+func (_c *UserSystemCreate) AddUserGroupIDs(ids ...int) *UserSystemCreate {
+	_c.mutation.AddUserGroupIDs(ids...)
+	return _c
+}
+
+// AddUserGroups adds the "user_groups" edges to the UserGroup entity.
+func (_c *UserSystemCreate) AddUserGroups(v ...*UserGroup) *UserSystemCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUserGroupIDs(ids...)
 }
 
 // Mutation returns the UserSystemMutation object of the builder.
@@ -102,6 +148,10 @@ func (_c *UserSystemCreate) defaults() {
 		v := usersystem.DefaultUID
 		_c.mutation.SetUID(v)
 	}
+	if _, ok := _c.mutation.Gid(); !ok {
+		v := usersystem.DefaultGid
+		_c.mutation.SetGid(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -114,6 +164,9 @@ func (_c *UserSystemCreate) check() error {
 	}
 	if _, ok := _c.mutation.UID(); !ok {
 		return &ValidationError{Name: "uid", err: errors.New(`ent: missing required field "UserSystem.uid"`)}
+	}
+	if _, ok := _c.mutation.Gid(); !ok {
+		return &ValidationError{Name: "gid", err: errors.New(`ent: missing required field "UserSystem.gid"`)}
 	}
 	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "UserSystem.username"`)}
@@ -159,6 +212,10 @@ func (_c *UserSystemCreate) createSpec() (*UserSystem, *sqlgraph.CreateSpec) {
 		_spec.SetField(usersystem.FieldUID, field.TypeInt, value)
 		_node.UID = value
 	}
+	if value, ok := _c.mutation.Gid(); ok {
+		_spec.SetField(usersystem.FieldGid, field.TypeInt, value)
+		_node.Gid = value
+	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(usersystem.FieldUsername, field.TypeString, value)
 		_node.Username = value
@@ -195,6 +252,38 @@ func (_c *UserSystemCreate) createSpec() (*UserSystem, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.SystemID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   usersystem.GroupsTable,
+			Columns: usersystem.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(systemgroup.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UserGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   usersystem.UserGroupsTable,
+			Columns: []string{usersystem.UserGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

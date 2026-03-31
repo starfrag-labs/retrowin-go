@@ -290,6 +290,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			inoderepo.NewRepository,
 			objectrepo.NewRepository,
 			surepo.NewSystemUserRepository,
+				surepo.NewSystemGroupRepository,
 			NewValkeySessionRepository,
 			ProvideSessionTTL,
 			// Auth services

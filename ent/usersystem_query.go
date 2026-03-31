@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -13,19 +14,23 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
+	"github.com/starfrag-lab/retrowin-go/ent/systemgroup"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
 	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
 // UserSystemQuery is the builder for querying UserSystem entities.
 type UserSystemQuery struct {
 	config
-	ctx        *QueryContext
-	order      []usersystem.OrderOption
-	inters     []Interceptor
-	predicates []predicate.UserSystem
-	withUser   *UserQuery
-	withSystem *SystemQuery
+	ctx            *QueryContext
+	order          []usersystem.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.UserSystem
+	withUser       *UserQuery
+	withSystem     *SystemQuery
+	withGroups     *SystemGroupQuery
+	withUserGroups *UserGroupQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -99,6 +104,50 @@ func (_q *UserSystemQuery) QuerySystem() *SystemQuery {
 			sqlgraph.From(usersystem.Table, usersystem.FieldID, selector),
 			sqlgraph.To(system.Table, system.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, usersystem.SystemTable, usersystem.SystemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroups chains the current query on the "groups" edge.
+func (_q *UserSystemQuery) QueryGroups() *SystemGroupQuery {
+	query := (&SystemGroupClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersystem.Table, usersystem.FieldID, selector),
+			sqlgraph.To(systemgroup.Table, systemgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, usersystem.GroupsTable, usersystem.GroupsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserGroups chains the current query on the "user_groups" edge.
+func (_q *UserSystemQuery) QueryUserGroups() *UserGroupQuery {
+	query := (&UserGroupClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersystem.Table, usersystem.FieldID, selector),
+			sqlgraph.To(usergroup.Table, usergroup.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, usersystem.UserGroupsTable, usersystem.UserGroupsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -293,13 +342,15 @@ func (_q *UserSystemQuery) Clone() *UserSystemQuery {
 		return nil
 	}
 	return &UserSystemQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]usersystem.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.UserSystem{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
-		withSystem: _q.withSystem.Clone(),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]usersystem.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.UserSystem{}, _q.predicates...),
+		withUser:       _q.withUser.Clone(),
+		withSystem:     _q.withSystem.Clone(),
+		withGroups:     _q.withGroups.Clone(),
+		withUserGroups: _q.withUserGroups.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -325,6 +376,28 @@ func (_q *UserSystemQuery) WithSystem(opts ...func(*SystemQuery)) *UserSystemQue
 		opt(query)
 	}
 	_q.withSystem = query
+	return _q
+}
+
+// WithGroups tells the query-builder to eager-load the nodes that are connected to
+// the "groups" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserSystemQuery) WithGroups(opts ...func(*SystemGroupQuery)) *UserSystemQuery {
+	query := (&SystemGroupClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withGroups = query
+	return _q
+}
+
+// WithUserGroups tells the query-builder to eager-load the nodes that are connected to
+// the "user_groups" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserSystemQuery) WithUserGroups(opts ...func(*UserGroupQuery)) *UserSystemQuery {
+	query := (&UserGroupClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUserGroups = query
 	return _q
 }
 
@@ -406,9 +479,11 @@ func (_q *UserSystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*U
 	var (
 		nodes       = []*UserSystem{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			_q.withUser != nil,
 			_q.withSystem != nil,
+			_q.withGroups != nil,
+			_q.withUserGroups != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -438,6 +513,20 @@ func (_q *UserSystemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*U
 	if query := _q.withSystem; query != nil {
 		if err := _q.loadSystem(ctx, query, nodes, nil,
 			func(n *UserSystem, e *System) { n.Edges.System = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withGroups; query != nil {
+		if err := _q.loadGroups(ctx, query, nodes,
+			func(n *UserSystem) { n.Edges.Groups = []*SystemGroup{} },
+			func(n *UserSystem, e *SystemGroup) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUserGroups; query != nil {
+		if err := _q.loadUserGroups(ctx, query, nodes,
+			func(n *UserSystem) { n.Edges.UserGroups = []*UserGroup{} },
+			func(n *UserSystem, e *UserGroup) { n.Edges.UserGroups = append(n.Edges.UserGroups, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -499,6 +588,97 @@ func (_q *UserSystemQuery) loadSystem(ctx context.Context, query *SystemQuery, n
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *UserSystemQuery) loadGroups(ctx context.Context, query *SystemGroupQuery, nodes []*UserSystem, init func(*UserSystem), assign func(*UserSystem, *SystemGroup)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*UserSystem)
+	nids := make(map[int]map[*UserSystem]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(usersystem.GroupsTable)
+		s.Join(joinT).On(s.C(systemgroup.FieldID), joinT.C(usersystem.GroupsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(usersystem.GroupsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(usersystem.GroupsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*UserSystem]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*SystemGroup](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *UserSystemQuery) loadUserGroups(ctx context.Context, query *UserGroupQuery, nodes []*UserSystem, init func(*UserSystem), assign func(*UserSystem, *UserGroup)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*UserSystem)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(usergroup.FieldUserSystemID)
+	}
+	query.Where(predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(usersystem.UserGroupsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserSystemID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_system_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

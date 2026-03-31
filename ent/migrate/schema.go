@@ -115,6 +115,44 @@ var (
 			},
 		},
 	}
+	// SystemGroupsColumns holds the columns for the "system_groups" table.
+	SystemGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 32},
+		{Name: "gid", Type: field.TypeInt, Default: 0},
+		{Name: "system_id", Type: field.TypeString},
+	}
+	// SystemGroupsTable holds the schema information for the "system_groups" table.
+	SystemGroupsTable = &schema.Table{
+		Name:       "system_groups",
+		Columns:    SystemGroupsColumns,
+		PrimaryKey: []*schema.Column{SystemGroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "system_groups_systems_system",
+				Columns:    []*schema.Column{SystemGroupsColumns[3]},
+				RefColumns: []*schema.Column{SystemsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "systemgroup_system_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{SystemGroupsColumns[3], SystemGroupsColumns[1]},
+			},
+			{
+				Name:    "systemgroup_system_id_gid",
+				Unique:  true,
+				Columns: []*schema.Column{SystemGroupsColumns[3], SystemGroupsColumns[2]},
+			},
+			{
+				Name:    "systemgroup_system_id",
+				Unique:  false,
+				Columns: []*schema.Column{SystemGroupsColumns[3]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -143,10 +181,44 @@ var (
 			},
 		},
 	}
+	// UserGroupsColumns holds the columns for the "user_groups" table.
+	UserGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_system_id", Type: field.TypeInt},
+		{Name: "system_group_id", Type: field.TypeInt},
+	}
+	// UserGroupsTable holds the schema information for the "user_groups" table.
+	UserGroupsTable = &schema.Table{
+		Name:       "user_groups",
+		Columns:    UserGroupsColumns,
+		PrimaryKey: []*schema.Column{UserGroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_groups_user_systems_user_system",
+				Columns:    []*schema.Column{UserGroupsColumns[1]},
+				RefColumns: []*schema.Column{UserSystemsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "user_groups_system_groups_system_group",
+				Columns:    []*schema.Column{UserGroupsColumns[2]},
+				RefColumns: []*schema.Column{SystemGroupsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "usergroup_user_system_id_system_group_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserGroupsColumns[1], UserGroupsColumns[2]},
+			},
+		},
+	}
 	// UserSystemsColumns holds the columns for the "user_systems" table.
 	UserSystemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "uid", Type: field.TypeInt, Default: 0},
+		{Name: "gid", Type: field.TypeInt, Default: 0},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 32},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "system_id", Type: field.TypeString},
@@ -159,13 +231,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_systems_users_user",
-				Columns:    []*schema.Column{UserSystemsColumns[3]},
+				Columns:    []*schema.Column{UserSystemsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "user_systems_systems_system",
-				Columns:    []*schema.Column{UserSystemsColumns[4]},
+				Columns:    []*schema.Column{UserSystemsColumns[5]},
 				RefColumns: []*schema.Column{SystemsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -174,22 +246,22 @@ var (
 			{
 				Name:    "usersystem_user_id_system_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserSystemsColumns[3], UserSystemsColumns[4]},
+				Columns: []*schema.Column{UserSystemsColumns[4], UserSystemsColumns[5]},
 			},
 			{
 				Name:    "usersystem_system_id_uid",
 				Unique:  true,
-				Columns: []*schema.Column{UserSystemsColumns[4], UserSystemsColumns[1]},
+				Columns: []*schema.Column{UserSystemsColumns[5], UserSystemsColumns[1]},
 			},
 			{
 				Name:    "usersystem_system_id_username",
 				Unique:  true,
-				Columns: []*schema.Column{UserSystemsColumns[4], UserSystemsColumns[2]},
+				Columns: []*schema.Column{UserSystemsColumns[5], UserSystemsColumns[3]},
 			},
 			{
 				Name:    "usersystem_system_id",
 				Unique:  false,
-				Columns: []*schema.Column{UserSystemsColumns[4]},
+				Columns: []*schema.Column{UserSystemsColumns[5]},
 			},
 		},
 	}
@@ -198,7 +270,9 @@ var (
 		InodesTable,
 		ObjectsTable,
 		SystemsTable,
+		SystemGroupsTable,
 		UsersTable,
+		UserGroupsTable,
 		UserSystemsTable,
 	}
 )
@@ -215,8 +289,17 @@ func init() {
 	SystemsTable.Annotation = &entsql.Annotation{
 		Table: "systems",
 	}
+	SystemGroupsTable.ForeignKeys[0].RefTable = SystemsTable
+	SystemGroupsTable.Annotation = &entsql.Annotation{
+		Table: "system_groups",
+	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
+	}
+	UserGroupsTable.ForeignKeys[0].RefTable = UserSystemsTable
+	UserGroupsTable.ForeignKeys[1].RefTable = SystemGroupsTable
+	UserGroupsTable.Annotation = &entsql.Annotation{
+		Table: "user_groups",
 	}
 	UserSystemsTable.ForeignKeys[0].RefTable = UsersTable
 	UserSystemsTable.ForeignKeys[1].RefTable = SystemsTable

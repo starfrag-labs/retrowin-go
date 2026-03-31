@@ -31,6 +31,10 @@ func (UserSystem) Fields() []ent.Field {
 		field.Int("uid").
 			Default(0),
 
+		// Primary group ID
+		field.Int("gid").
+			Default(0),
+
 		// Username for display
 		field.String("username").
 			Unique().
@@ -59,5 +63,8 @@ func (UserSystem) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Field("system_id"),
+		// Many-to-many relationship with SystemGroup through UserGroup
+		edge.To("groups", SystemGroup.Type).
+			Through("user_groups", UserGroup.Type),
 	}
 }
