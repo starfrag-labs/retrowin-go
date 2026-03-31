@@ -85,7 +85,7 @@ type Handler interface {
 	// Check if the service is healthy.
 	//
 	// GET /health
-	GetHealth(ctx context.Context) (*HealthStatus, error)
+	GetHealth(ctx context.Context) (GetHealthRes, error)
 	// GetRootDirectory implements getRootDirectory operation.
 	//
 	// Get the root directory inode for a system.
@@ -127,7 +127,7 @@ type Handler interface {
 	// Start OIDC login flow and return authorization URL.
 	//
 	// GET /auth/login
-	InitiateLogin(ctx context.Context) (*LoginResponse, error)
+	InitiateLogin(ctx context.Context) (InitiateLoginRes, error)
 	// InitiateUpload implements initiateUpload operation.
 	//
 	// Start an upload session and get presigned URL.
@@ -154,10 +154,10 @@ type Handler interface {
 	ListSystems(ctx context.Context) (ListSystemsRes, error)
 	// Logout implements logout operation.
 	//
-	// Logout and delete session.
+	// Logout and delete session (idempotent - always returns 204).
 	//
 	// POST /auth/logout
-	Logout(ctx context.Context) (LogoutRes, error)
+	Logout(ctx context.Context) error
 	// Mkdir implements mkdir operation.
 	//
 	// Create a new directory at the specified path.
@@ -188,10 +188,6 @@ type Handler interface {
 	//
 	// DELETE /fs/{systemId}/unlink
 	Unlink(ctx context.Context, params UnlinkParams) (UnlinkRes, error)
-	// NewError creates *ErrorStatusCode from error returned by handler.
-	//
-	// Used for common default response.
-	NewError(ctx context.Context, err error) *ErrorStatusCode
 }
 
 // Server implements http server based on OpenAPI v3 specification and

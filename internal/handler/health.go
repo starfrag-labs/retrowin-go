@@ -7,7 +7,7 @@ import (
 )
 
 // GetHealth implements GET /health.
-func (h *Handler) GetHealth(ctx context.Context) (*apiv1.HealthStatus, error) {
+func (h *Handler) GetHealth(ctx context.Context) (apiv1.GetHealthRes, error) {
 	return &apiv1.HealthStatus{
 		Status: apiv1.HealthStatusStatusHealthy,
 	}, nil

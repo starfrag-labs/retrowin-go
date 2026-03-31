@@ -11,7 +11,7 @@ import (
 )
 
 // InitiateLogin implements GET /auth/login.
-func (h *Handler) InitiateLogin(ctx context.Context) (*apiv1.LoginResponse, error) {
+func (h *Handler) InitiateLogin(ctx context.Context) (apiv1.InitiateLoginRes, error) {
 	resp, err := h.authSvc.InitiateLogin(ctx)
 	if err != nil {
 		return nil, err
@@ -48,26 +48,19 @@ func (h *Handler) HandleCallback(ctx context.Context, req *apiv1.CallbackRequest
 }
 
 // Logout implements POST /auth/logout.
-func (h *Handler) Logout(ctx context.Context) (apiv1.LogoutRes, error) {
+func (h *Handler) Logout(ctx context.Context) error {
 	sessionID := middleware.GetSessionID(ctx)
 	if sessionID == "" {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "unauthorized",
-				Message: "no session found",
-			},
-		}, nil
+		// No session - return success (idempotent logout)
+		return nil
 	}
 
 	err := h.authSvc.Logout(ctx, sessionID)
 	if err != nil {
-		return &apiv1.Error{
-			Error: apiv1.ErrorError{
-				Type:    "unauthorized",
-				Message: "logout failed",
-			},
-		}, nil
+		// Log error but still return success (idempotent logout)
+		// The session might have already been deleted or expired
+		return nil
 	}
 
-	return &apiv1.LogoutNoContent{}, nil
+	return nil
 }

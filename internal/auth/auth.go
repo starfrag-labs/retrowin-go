@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/valkey-io/valkey-go"
@@ -64,6 +65,8 @@ type AuthService interface {
 type authService struct {
 	keycloak     *Keycloak
 	client       *Client
+	clientOnce   sync.Once
+	clientErr    error
 	sessionSvc   session.SessionService
 	userSvc      UserService
 	valkey       valkey.Client
@@ -72,6 +75,8 @@ type authService struct {
 }
 
 // NewService creates a new authentication service.
+// The OIDC client is initialized lazily on first use to allow
+// the server to start without immediately connecting to the OIDC provider.
 func NewService(
 	keycloak *Keycloak,
 	sessionSvc session.SessionService,
@@ -80,20 +85,22 @@ func NewService(
 	valkeyPrefix string,
 	stateTTL time.Duration,
 ) (AuthService, error) {
-	client, err := NewClient(context.Background(), keycloak)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create OIDC client: %w", err)
-	}
-
 	return &authService{
 		keycloak:     keycloak,
-		client:       client,
 		sessionSvc:   sessionSvc,
 		userSvc:      userSvc,
 		valkey:       valkey,
 		valkeyPrefix: valkeyPrefix,
 		stateTTL:     stateTTL,
 	}, nil
+}
+
+// getClient returns the OIDC client, initializing it lazily on first use.
+func (s *authService) getClient(ctx context.Context) (*Client, error) {
+	s.clientOnce.Do(func() {
+		s.client, s.clientErr = NewClient(ctx, s.keycloak)
+	})
+	return s.client, s.clientErr
 }
 
 // GetKeycloak returns the Keycloak provider.
@@ -108,6 +115,11 @@ func (s *authService) GetClient() *Client {
 
 // InitiateLogin starts the OIDC login flow.
 func (s *authService) InitiateLogin(ctx context.Context) (*LoginResponse, error) {
+	client, err := s.getClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get OIDC client: %w", err)
+	}
+
 	codeVerifier, err := GenerateCodeVerifier()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate code verifier: %w", err)
@@ -130,7 +142,7 @@ func (s *authService) InitiateLogin(ctx context.Context) (*LoginResponse, error)
 		return nil, fmt.Errorf("failed to store login request: %w", err)
 	}
 
-	authURL := s.client.AuthURL(state, codeChallenge)
+	authURL := client.AuthURL(state, codeChallenge)
 
 	return &LoginResponse{
 		AuthorizationURL: authURL,
@@ -147,12 +159,17 @@ func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) 
 		return nil, err
 	}
 
-	token, err := s.client.Exchange(ctx, req.Code, loginReq.CodeVerifier)
+	client, err := s.getClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get OIDC client: %w", err)
+	}
+
+	token, err := client.Exchange(ctx, req.Code, loginReq.CodeVerifier)
 	if err != nil {
 		return nil, errors.Unauthorized(fmt.Sprintf("failed to exchange code: %v", err))
 	}
 
-	userInfo, err := s.client.GetUserInfo(ctx, token)
+	userInfo, err := client.GetUserInfo(ctx, token)
 	if err != nil {
 		return nil, errors.Internal(fmt.Sprintf("failed to get user info: %v", err))
 	}

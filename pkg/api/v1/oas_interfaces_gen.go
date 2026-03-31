@@ -49,6 +49,10 @@ type GetDownloadUrlRes interface {
 	getDownloadUrlRes()
 }
 
+type GetHealthRes interface {
+	getHealthRes()
+}
+
 type GetRootDirectoryRes interface {
 	getRootDirectoryRes()
 }
@@ -73,6 +77,10 @@ type HandleCallbackRes interface {
 	handleCallbackRes()
 }
 
+type InitiateLoginRes interface {
+	initiateLoginRes()
+}
+
 type InitiateUploadRes interface {
 	initiateUploadRes()
 }
@@ -87,10 +95,6 @@ type ListSystemUsersRes interface {
 
 type ListSystemsRes interface {
 	listSystemsRes()
-}
-
-type LogoutRes interface {
-	logoutRes()
 }
 
 type MkdirRes interface {

@@ -126,7 +126,7 @@ func (UnimplementedHandler) GetDownloadUrl(ctx context.Context, params GetDownlo
 // Check if the service is healthy.
 //
 // GET /health
-func (UnimplementedHandler) GetHealth(ctx context.Context) (r *HealthStatus, _ error) {
+func (UnimplementedHandler) GetHealth(ctx context.Context) (r GetHealthRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -189,7 +189,7 @@ func (UnimplementedHandler) HandleCallback(ctx context.Context, req *CallbackReq
 // Start OIDC login flow and return authorization URL.
 //
 // GET /auth/login
-func (UnimplementedHandler) InitiateLogin(ctx context.Context) (r *LoginResponse, _ error) {
+func (UnimplementedHandler) InitiateLogin(ctx context.Context) (r InitiateLoginRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -231,11 +231,11 @@ func (UnimplementedHandler) ListSystems(ctx context.Context) (r ListSystemsRes, 
 
 // Logout implements logout operation.
 //
-// Logout and delete session.
+// Logout and delete session (idempotent - always returns 204).
 //
 // POST /auth/logout
-func (UnimplementedHandler) Logout(ctx context.Context) (r LogoutRes, _ error) {
-	return r, ht.ErrNotImplemented
+func (UnimplementedHandler) Logout(ctx context.Context) error {
+	return ht.ErrNotImplemented
 }
 
 // Mkdir implements mkdir operation.
@@ -281,12 +281,4 @@ func (UnimplementedHandler) StatPath(ctx context.Context, params StatPathParams)
 // DELETE /fs/{systemId}/unlink
 func (UnimplementedHandler) Unlink(ctx context.Context, params UnlinkParams) (r UnlinkRes, _ error) {
 	return r, ht.ErrNotImplemented
-}
-
-// NewError creates *ErrorStatusCode from error returned by handler.
-//
-// Used for common default response.
-func (UnimplementedHandler) NewError(ctx context.Context, err error) (r *ErrorStatusCode) {
-	r = new(ErrorStatusCode)
-	return r
 }

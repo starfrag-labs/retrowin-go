@@ -56,7 +56,6 @@ var operationRolesSessionAuth = map[string][]string{
 	ListSystemGroupsOperation:  []string{},
 	ListSystemUsersOperation:   []string{},
 	ListSystemsOperation:       []string{},
-	LogoutOperation:            []string{},
 	MkdirOperation:             []string{},
 	ReadDirOperation:           []string{},
 	RemoveGroupMemberOperation: []string{},

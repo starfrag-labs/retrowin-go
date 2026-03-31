@@ -105,7 +105,7 @@ type Invoker interface {
 	// Check if the service is healthy.
 	//
 	// GET /health
-	GetHealth(ctx context.Context) (*HealthStatus, error)
+	GetHealth(ctx context.Context) (GetHealthRes, error)
 	// GetRootDirectory invokes getRootDirectory operation.
 	//
 	// Get the root directory inode for a system.
@@ -147,7 +147,7 @@ type Invoker interface {
 	// Start OIDC login flow and return authorization URL.
 	//
 	// GET /auth/login
-	InitiateLogin(ctx context.Context) (*LoginResponse, error)
+	InitiateLogin(ctx context.Context) (InitiateLoginRes, error)
 	// InitiateUpload invokes initiateUpload operation.
 	//
 	// Start an upload session and get presigned URL.
@@ -174,10 +174,10 @@ type Invoker interface {
 	ListSystems(ctx context.Context) (ListSystemsRes, error)
 	// Logout invokes logout operation.
 	//
-	// Logout and delete session.
+	// Logout and delete session (idempotent - always returns 204).
 	//
 	// POST /auth/logout
-	Logout(ctx context.Context) (LogoutRes, error)
+	Logout(ctx context.Context) error
 	// Mkdir invokes mkdir operation.
 	//
 	// Create a new directory at the specified path.
@@ -1859,12 +1859,12 @@ func (c *Client) sendGetDownloadUrl(ctx context.Context, params GetDownloadUrlPa
 // Check if the service is healthy.
 //
 // GET /health
-func (c *Client) GetHealth(ctx context.Context) (*HealthStatus, error) {
+func (c *Client) GetHealth(ctx context.Context) (GetHealthRes, error) {
 	res, err := c.sendGetHealth(ctx)
 	return res, err
 }
 
-func (c *Client) sendGetHealth(ctx context.Context) (res *HealthStatus, err error) {
+func (c *Client) sendGetHealth(ctx context.Context) (res GetHealthRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getHealth"),
 		semconv.HTTPRequestMethodKey.String("GET"),
@@ -2656,12 +2656,12 @@ func (c *Client) sendHandleCallback(ctx context.Context, request *CallbackReques
 // Start OIDC login flow and return authorization URL.
 //
 // GET /auth/login
-func (c *Client) InitiateLogin(ctx context.Context) (*LoginResponse, error) {
+func (c *Client) InitiateLogin(ctx context.Context) (InitiateLoginRes, error) {
 	res, err := c.sendInitiateLogin(ctx)
 	return res, err
 }
 
-func (c *Client) sendInitiateLogin(ctx context.Context) (res *LoginResponse, err error) {
+func (c *Client) sendInitiateLogin(ctx context.Context) (res InitiateLoginRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("initiateLogin"),
 		semconv.HTTPRequestMethodKey.String("GET"),
@@ -3224,15 +3224,15 @@ func (c *Client) sendListSystems(ctx context.Context) (res ListSystemsRes, err e
 
 // Logout invokes logout operation.
 //
-// Logout and delete session.
+// Logout and delete session (idempotent - always returns 204).
 //
 // POST /auth/logout
-func (c *Client) Logout(ctx context.Context) (LogoutRes, error) {
-	res, err := c.sendLogout(ctx)
-	return res, err
+func (c *Client) Logout(ctx context.Context) error {
+	_, err := c.sendLogout(ctx)
+	return err
 }
 
-func (c *Client) sendLogout(ctx context.Context) (res LogoutRes, err error) {
+func (c *Client) sendLogout(ctx context.Context) (res *LogoutNoContent, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("logout"),
 		semconv.HTTPRequestMethodKey.String("POST"),
@@ -3277,39 +3277,6 @@ func (c *Client) sendLogout(ctx context.Context) (res LogoutRes, err error) {
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, LogoutOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"SessionAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"

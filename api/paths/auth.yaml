@@ -65,23 +65,10 @@
   post:
     operationId: logout
     summary: Logout
-    description: Logout and delete session
+    description: Logout and delete session (idempotent - always returns 204)
     tags:
       - Auth
-    security:
-      - sessionAuth: []
+    security: []
     responses:
       '204':
         description: Logout successful
-      '401':
-        description: Unauthorized
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"
-      default:
-        description: Error
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/Error"

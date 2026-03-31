@@ -3,16 +3,11 @@
 package apiv1
 
 import (
-	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/go-faster/errors"
 )
-
-func (s *ErrorStatusCode) Error() string {
-	return fmt.Sprintf("code %d: %+v", s.StatusCode, s.Response)
-}
 
 // AddGroupMemberNoContent is response for AddGroupMember operation.
 type AddGroupMemberNoContent struct{}
@@ -535,7 +530,6 @@ func (s *Error) SetError(val ErrorError) {
 }
 
 func (*Error) listSystemsRes() {}
-func (*Error) logoutRes()      {}
 
 type ErrorError struct {
 	// Error type.
@@ -589,6 +583,36 @@ func (s *ErrorStatusCode) SetStatusCode(val int) {
 func (s *ErrorStatusCode) SetResponse(val Error) {
 	s.Response = val
 }
+
+func (*ErrorStatusCode) addGroupMemberRes()    {}
+func (*ErrorStatusCode) chmodRes()             {}
+func (*ErrorStatusCode) completeUploadRes()    {}
+func (*ErrorStatusCode) createSymlinkRes()     {}
+func (*ErrorStatusCode) createSystemGroupRes() {}
+func (*ErrorStatusCode) createSystemRes()      {}
+func (*ErrorStatusCode) createSystemUserRes()  {}
+func (*ErrorStatusCode) createUserRes()        {}
+func (*ErrorStatusCode) deleteSystemGroupRes() {}
+func (*ErrorStatusCode) deleteSystemUserRes()  {}
+func (*ErrorStatusCode) deleteUserRes()        {}
+func (*ErrorStatusCode) getDownloadUrlRes()    {}
+func (*ErrorStatusCode) getHealthRes()         {}
+func (*ErrorStatusCode) getRootDirectoryRes()  {}
+func (*ErrorStatusCode) getSystemGroupRes()    {}
+func (*ErrorStatusCode) getSystemRes()         {}
+func (*ErrorStatusCode) getSystemUserRes()     {}
+func (*ErrorStatusCode) getUserRes()           {}
+func (*ErrorStatusCode) handleCallbackRes()    {}
+func (*ErrorStatusCode) initiateLoginRes()     {}
+func (*ErrorStatusCode) initiateUploadRes()    {}
+func (*ErrorStatusCode) listSystemGroupsRes()  {}
+func (*ErrorStatusCode) listSystemUsersRes()   {}
+func (*ErrorStatusCode) listSystemsRes()       {}
+func (*ErrorStatusCode) mkdirRes()             {}
+func (*ErrorStatusCode) readDirRes()           {}
+func (*ErrorStatusCode) removeGroupMemberRes() {}
+func (*ErrorStatusCode) statPathRes()          {}
+func (*ErrorStatusCode) unlinkRes()            {}
 
 type GetDownloadUrlForbidden Error
 
@@ -677,6 +701,8 @@ func (s *HealthStatus) SetStatus(val HealthStatusStatus) {
 func (s *HealthStatus) SetVersion(val OptString) {
 	s.Version = val
 }
+
+func (*HealthStatus) getHealthRes() {}
 
 // Health status.
 type HealthStatusStatus string
@@ -982,10 +1008,10 @@ func (s *LoginResponse) SetState(val string) {
 	s.State = val
 }
 
+func (*LoginResponse) initiateLoginRes() {}
+
 // LogoutNoContent is response for Logout operation.
 type LogoutNoContent struct{}
-
-func (*LogoutNoContent) logoutRes() {}
 
 type MkdirBadRequest Error
 

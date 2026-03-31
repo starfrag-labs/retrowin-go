@@ -172,23 +172,44 @@ func ProvideHTTPMux(
 		_, _ = w.Write([]byte(`{"status":"healthy"}`))
 	})
 
-	// API routes with /v1 prefix
-	mux.Handle("/v1/", http.StripPrefix("/v1", ogenServer))
+	// API routes (no prefix)
+	mux.Handle("/", ogenServer)
 
 	// Serve OpenAPI spec and Swagger UI
-	mux.HandleFunc("/v1/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, cfg.HTTP.OpenAPIPath)
 	})
-	mux.HandleFunc("/v1/swagger", httpSwagger.Handler(
-		httpSwagger.URL("/v1/openapi.json"),
+	mux.HandleFunc("/swagger", httpSwagger.Handler(
+		httpSwagger.URL("/openapi.json"),
 	))
 
 	return mux
 }
 
+// logoutMiddleware wraps the handler to clear session cookie on logout.
+func logoutMiddleware(next http.Handler, secure bool) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// For logout requests, set the cookie-clearing header before the handler runs
+		if r.Method == http.MethodPost && r.URL.Path == "/auth/logout" {
+			// Clear the session cookie before calling the handler
+			http.SetCookie(w, &http.Cookie{
+				Name:     "retrowin_session",
+				Value:    "",
+				Path:     "/",
+				HttpOnly: true,
+				Secure:   secure,
+				MaxAge:   -1,
+			})
+		}
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ProvideHTTPHandler provides the HTTP handler.
-func ProvideHTTPHandler(mux *http.ServeMux) http.Handler {
-	return mux
+func ProvideHTTPHandler(mux *http.ServeMux, cfg *config.Config) http.Handler {
+	return logoutMiddleware(mux, cfg.Auth.Session.Secure)
 }
 
 // ProvideHTTPServer provides the HTTP server.

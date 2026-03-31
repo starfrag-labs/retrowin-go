@@ -10,7 +10,7 @@ import (
 
 const (
 	// SessionCookieName is the name of the session cookie.
-	SessionCookieName = "sid"
+	SessionCookieName = "retrowin_session"
 )
 
 // SessionAuth holds session authentication configuration.

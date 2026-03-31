@@ -39,8 +39,10 @@ const (
 	PermOtherRX  = PermOtherRead | PermOtherExec
 	PermOtherR   = PermOtherRead
 	PermOwnerRW  = PermOwnerRead | PermOwnerWrite
+)
 
-	// Inode flags
+// Inode flags
+const (
 	FlagRoot = 1 << iota // Root directory of a filesystem
 )
 
