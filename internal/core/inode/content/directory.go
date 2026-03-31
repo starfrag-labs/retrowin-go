@@ -7,7 +7,7 @@ type DirContent struct {
 
 // DirEntry represents a filename to inode mapping within a directory.
 type DirEntry struct {
-	Name      string `json:"name"`
-	InodeID   string `json:"inode_id"`
-	FileType  uint8  `json:"file_type"`
+	Name     string `json:"name"`
+	InodeID  string `json:"inode_id"`
+	FileType uint8  `json:"file_type"`
 }

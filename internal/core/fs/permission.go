@@ -30,18 +30,6 @@ func (s *service) checkPermFromContext(ctx context.Context, in *inode.Inode, acc
 	return s.checkPermWithGIDs(in, uid, gids, access)
 }
 
-// checkPerm verifies if uid has the requested access to the inode.
-// Used for internal operations where uid is already known.
-func (s *service) checkPerm(in *inode.Inode, uid int, access AccessType) error {
-	if uid == 0 {
-		return nil // uid not set, skip permission check (e.g. internal calls)
-	}
-
-	// For internal calls, we don't have context to resolve GIDs
-	// This should be replaced with proper context passing
-	return s.checkPermWithGIDs(in, uid, nil, access)
-}
-
 // checkPermWithGIDs performs the actual permission check.
 func (s *service) checkPermWithGIDs(in *inode.Inode, uid int, gids []int, access AccessType) error {
 	mode := in.Permissions()

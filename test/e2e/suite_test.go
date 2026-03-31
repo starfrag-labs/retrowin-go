@@ -91,7 +91,7 @@ func TestSuite_ServerStartup(t *testing.T) {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"healthy"}`))
+		_, _ = w.Write([]byte(`{"status":"healthy"}`))
 	})
 
 	server := &http.Server{
@@ -116,7 +116,7 @@ func TestSuite_ServerStartup(t *testing.T) {
 	// Test /health endpoint
 	resp, err := http.Get("http://127.0.0.1:8080/health")
 	require.NoError(t, err, "Failed to call /health endpoint")
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "Health status should be 200")
 
@@ -204,7 +204,7 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	// Test /health endpoint - this MUST succeed for the test to pass
 	resp, err := http.Get("http://127.0.0.1:8080/health")
 	require.NoError(t, err, "HTTP server must be reachable on /health endpoint")
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "Health check should return 200")
 
@@ -215,7 +215,7 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	t.Log("Full fx server startup test passed - server is running and responding")
 
 	// Shutdown the app
-	app.Stop(context.Background())
+	_ = app.Stop(context.Background())
 	select {
 	case <-appDone:
 	case <-time.After(10 * time.Second):

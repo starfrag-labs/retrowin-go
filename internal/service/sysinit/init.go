@@ -22,7 +22,7 @@ type InitService interface {
 type InitSystemCommand struct {
 	Name         string
 	Description  *string
-	RootUserID   string   // External user ID for root
+	RootUserID   string        // External user ID for root
 	InitialUsers []InitialUser // Optional initial users to create
 }
 

@@ -13,8 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	appconfig "github.com/starfrag-lab/retrowin-go/internal/config"
-	apperrors "github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
+	apperrors "github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
 // S3Storage implements the object.Storage interface using AWS S3.

@@ -69,4 +69,3 @@ func (Object) Edges() []ent.Edge {
 			Unique(),
 	}
 }
-

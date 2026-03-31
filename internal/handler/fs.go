@@ -143,17 +143,17 @@ func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.
 
 func (h *Handler) toInode(in *inode.Inode) *apiv1.Inode {
 	return &apiv1.Inode{
-		ID:         in.ID(),
-		SystemId:   in.SystemID(),
-		Mode:       int32(in.Mode()),
-		UID:        int32(in.UID()),
-		Gid:        int32(in.GID()),
-		Size:       in.Size(),
-		LinkCount:  int32(in.LinkCount()),
-		Flags:      int32(in.Flags()),
-		Atime:      toOptTimestamp(in.Atime()),
-		Mtime:      toOptTimestamp(in.Mtime()),
-		Ctime:      toOptTimestamp(in.Ctime()),
-		CreatedAt:  toOptTimestamp(in.CreatedAt()),
+		ID:        in.ID(),
+		SystemId:  in.SystemID(),
+		Mode:      int32(in.Mode()),
+		UID:       int32(in.UID()),
+		Gid:       int32(in.GID()),
+		Size:      in.Size(),
+		LinkCount: int32(in.LinkCount()),
+		Flags:     int32(in.Flags()),
+		Atime:     toOptTimestamp(in.Atime()),
+		Mtime:     toOptTimestamp(in.Mtime()),
+		Ctime:     toOptTimestamp(in.Ctime()),
+		CreatedAt: toOptTimestamp(in.CreatedAt()),
 	}
 }
