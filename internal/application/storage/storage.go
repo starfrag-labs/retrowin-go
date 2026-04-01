@@ -86,7 +86,7 @@ func (s *service) CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand
 	// Mark object as active (verifies storage existence internally)
 	obj, err := s.objectSvc.CompleteUpload(ctx, cmd.ObjectID)
 	if err != nil {
-		return nil, errors.WrapInternal(err, "failed to complete upload")
+		return nil, errors.FromError(err)
 	}
 
 	// Create inode with object reference

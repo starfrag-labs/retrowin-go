@@ -80,9 +80,16 @@ func (s *MemoryStorage) GetPresignedDownloadURL(ctx context.Context, bucket stri
 
 // GetPresignedUploadURL generates a mock presigned URL for upload.
 // The URL contains the bucket and key information for test verification.
+// Auto-stores a placeholder object so CompleteUpload can verify existence.
 func (s *MemoryStorage) GetPresignedUploadURL(ctx context.Context, bucket string, key string, contentType string, size int64, expiry time.Duration) (string, error) {
 	resolvedBucket := s.resolveBucket(bucket)
 	fullKey := s.objectKey(resolvedBucket, key)
+
+	// Auto-store placeholder to simulate successful client upload
+	s.mu.Lock()
+	s.objects[fullKey] = []byte{}
+	s.objectSizes[fullKey] = size
+	s.mu.Unlock()
 
 	// Generate a mock URL with embedded information
 	token := uuid.New().String()
