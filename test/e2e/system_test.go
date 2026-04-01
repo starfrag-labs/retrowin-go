@@ -180,7 +180,7 @@ func TestSystem_List(t *testing.T) {
 	require.NoError(t, err, "Failed to setup authenticated user")
 
 	// Create multiple test systems
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		req := map[string]any{
 			"name":        "list-test-system-" + string(rune('a'+i)),
 			"description": "System for list test",
