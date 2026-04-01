@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -342,6 +343,9 @@ func TestUpload_FullFlow(t *testing.T) {
 		completeResp2, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq2)
 		require.NoError(t, err)
 		defer func() { _ = completeResp2.Body.Close() }()
-		require.Equal(t, http.StatusCreated, completeResp2.StatusCode)
+		if completeResp2.StatusCode != http.StatusCreated {
+			body, _ := io.ReadAll(completeResp2.Body)
+			t.Fatalf("Expected 201, got %d: %s", completeResp2.StatusCode, string(body))
+		}
 	})
 }

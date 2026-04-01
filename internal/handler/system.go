@@ -5,6 +5,7 @@ import (
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
+	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
@@ -39,16 +40,33 @@ func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemReque
 
 // ListSystems implements GET /systems.
 func (h *Handler) ListSystems(ctx context.Context) (apiv1.ListSystemsRes, error) {
-	systems, err := h.systemSvc.Find(ctx, system.Filter{})
+	userID, ok := utils.GetUserID(ctx)
+	if !ok {
+		return nil, h.domainError(errors.Unauthorized("user not authenticated"))
+	}
+
+	// Find all system memberships for this user
+	memberships, err := h.sysUserSvc.Find(ctx, coreuser.ByUserID(userID))
 	if err != nil {
 		return nil, h.domainError(err)
 	}
 
-	resp := &apiv1.SystemListResponse{
-		Systems: make([]apiv1.System, len(systems)),
+	// Collect system IDs
+	systemIDs := make([]string, len(memberships))
+	for i, m := range memberships {
+		systemIDs[i] = m.SystemID()
 	}
-	for i, sys := range systems {
-		resp.Systems[i] = *h.toSystem(sys)
+
+	// Load each system
+	resp := &apiv1.SystemListResponse{
+		Systems: make([]apiv1.System, 0, len(systemIDs)),
+	}
+	for _, sysID := range systemIDs {
+		sys, err := h.systemSvc.GetByID(ctx, sysID)
+		if err != nil {
+			continue // Skip systems that may have been deleted
+		}
+		resp.Systems = append(resp.Systems, *h.toSystem(sys))
 	}
 
 	return resp, nil

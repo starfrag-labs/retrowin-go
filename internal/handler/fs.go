@@ -46,6 +46,10 @@ func (h *Handler) StatPath(ctx context.Context, params apiv1.StatPathParams) (ap
 
 // ReadDir implements GET /fs/{systemId}/readdir.
 func (h *Handler) ReadDir(ctx context.Context, params apiv1.ReadDirParams) (apiv1.ReadDirRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	// First resolve the directory path
 	dirInode, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
@@ -74,6 +78,10 @@ func (h *Handler) ReadDir(ctx context.Context, params apiv1.ReadDirParams) (apiv
 
 // Mkdir implements POST /fs/{systemId}/mkdir.
 func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params apiv1.MkdirParams) (apiv1.MkdirRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	mode := inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherRX
 	if req.Mode.Set {
 		mode = inode.ModeDirectory | int(req.Mode.Value)
@@ -120,6 +128,17 @@ func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params api
 
 // CreateSymlink implements POST /fs/{systemId}/symlink.
 func (h *Handler) CreateSymlink(ctx context.Context, req *apiv1.SymlinkRequest, params apiv1.CreateSymlinkParams) (apiv1.CreateSymlinkRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	if req.Target == "" {
+		return nil, h.domainError(errors.BadRequest("target path is required"))
+	}
+	if len(req.Target) > 4096 {
+		return nil, h.domainError(errors.BadRequest("target path too long"))
+	}
+
 	// Parse link path to get parent directory and link name
 	linkDir := path.Dir(req.LinkPath)
 	linkName := path.Base(req.LinkPath)
@@ -157,6 +176,14 @@ func (h *Handler) CreateSymlink(ctx context.Context, req *apiv1.SymlinkRequest, 
 
 // Chmod implements PATCH /fs/{systemId}/chmod.
 func (h *Handler) Chmod(ctx context.Context, req *apiv1.ChmodRequest, params apiv1.ChmodParams) (apiv1.ChmodRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	if req.Mode < 0 || req.Mode > 0o777 {
+		return nil, h.domainError(errors.BadRequest("mode must be between 0 and 0o777"))
+	}
+
 	// Resolve path to get inode
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, req.Path)
 	if err != nil {
@@ -185,6 +212,10 @@ func (h *Handler) Chmod(ctx context.Context, req *apiv1.ChmodRequest, params api
 
 // Unlink implements DELETE /fs/{systemId}/unlink.
 func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.UnlinkRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	// Resolve path to get inode and parent
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
@@ -205,6 +236,9 @@ func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.
 	if err := h.fsSvc.Unlink(ctx, parentDir.ID(), entryName); err != nil {
 		return nil, h.domainError(err)
 	}
+
+	// Clean up S3 object if this is an object inode (best-effort)
+	_ = h.storageSvc.DeleteObjectByInode(ctx, in.ID())
 
 	// Delete the inode
 	if err := h.fsSvc.Delete(ctx, in.ID()); err != nil {

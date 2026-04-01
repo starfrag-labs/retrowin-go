@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"time"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
@@ -21,6 +22,10 @@ type StorageService interface {
 	CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand) (*UploadResult, error)
 
 	GetDownloadURL(ctx context.Context, id string) (string, time.Time, error)
+
+	// DeleteObjectByInode deletes the S3 object referenced by the given inode.
+	// Parses ObjectContent from inode content, then deletes the object from storage and DB.
+	DeleteObjectByInode(ctx context.Context, inodeID string) error
 }
 
 // InitiateUploadCommand for starting a presigned upload.
@@ -145,4 +150,34 @@ func (s *service) GetDownloadURL(ctx context.Context, id string) (string, time.T
 	}
 
 	return s.objectSvc.GetDownloadURL(ctx, c.ObjectID)
+}
+
+// DeleteObjectByInode deletes the S3 object referenced by the given inode.
+func (s *service) DeleteObjectByInode(ctx context.Context, inodeID string) error {
+	in, err := s.fsSvc.Get(ctx, inodeID)
+	if err != nil {
+		return err
+	}
+
+	// Only process object inodes
+	if in.Mode()&inode.ModeTypeMask != inode.ModeObject {
+		return nil
+	}
+
+	var c content.ObjectContent
+	if err := json.Unmarshal(in.Content(), &c); err != nil {
+		return nil // Not an object content, skip silently
+	}
+	if c.ObjectID == "" {
+		return nil
+	}
+
+	// Best-effort S3 cleanup - ignore storage errors
+	if err := s.objectSvc.Delete(ctx, c.ObjectID); err != nil {
+		slog.Warn("failed to delete object from storage, skipping",
+			"object_id", c.ObjectID,
+			"error", err,
+		)
+	}
+	return nil
 }

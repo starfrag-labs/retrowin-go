@@ -18,6 +18,9 @@ func (h *Handler) InitiateUpload(ctx context.Context, req *apiv1.InitiateUploadR
 	if req.Path == "" || req.Path[0] != '/' {
 		return nil, errors.BadRequest("path must be absolute (start with /)")
 	}
+	if req.Size <= 0 {
+		return nil, errors.BadRequest("size must be positive")
+	}
 
 	var contentType string
 	if req.ContentType.Set {

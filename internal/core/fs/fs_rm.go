@@ -3,6 +3,7 @@ package fs
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
@@ -44,7 +45,7 @@ func (s *service) deleteObjectRef(ctx context.Context, raw []byte) error {
 		return nil
 	}
 	if err := s.objectSvc.Delete(ctx, c.ObjectID); err != nil {
-		return errors.WrapInternal(err, "failed to delete object")
+		slog.Warn("failed to delete object, skipping", "object_id", c.ObjectID, "error", err)
 	}
 	return nil
 }
