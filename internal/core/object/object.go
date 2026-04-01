@@ -97,7 +97,7 @@ type ObjectService interface {
 
 	Find(ctx context.Context, filter Filter) ([]*Object, error)
 	FindOne(ctx context.Context, filter Filter) (*Object, error)
-	GetDownloadURL(ctx context.Context, id string) (string, error)
+	GetDownloadURL(ctx context.Context, id string) (string, time.Time, error)
 
 	// GC: Find pending objects older than threshold.
 	FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error)
@@ -311,20 +311,20 @@ func (s *service) FindOne(ctx context.Context, filter Filter) (*Object, error) {
 	return obj, nil
 }
 
-func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error) {
+func (s *service) GetDownloadURL(ctx context.Context, id string) (string, time.Time, error) {
 	obj, err := s.repo.GetByID(ctx, s.client, id)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
 	if obj == nil {
-		return "", errors.NotFound("object not found")
+		return "", time.Time{}, errors.NotFound("object not found")
 	}
 
-	url, err := s.storage.GetPresignedDownloadURL(ctx, obj.Bucket(), obj.StorageKey(), DefaultDownloadExpiry)
+	downloadURL, err := s.storage.GetPresignedDownloadURL(ctx, obj.Bucket(), obj.StorageKey(), DefaultDownloadExpiry)
 	if err != nil {
-		return "", errors.WrapInternal(err, "failed to generate download URL")
+		return "", time.Time{}, errors.WrapInternal(err, "failed to generate download URL")
 	}
-	return url, nil
+	return downloadURL, time.Now().Add(DefaultDownloadExpiry), nil
 }
 
 // FindPendingOlderThan finds pending objects older than threshold for GC.

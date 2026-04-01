@@ -10,6 +10,10 @@ import (
 
 // CreateSystemUser implements POST /systems/{systemId}/users.
 func (h *Handler) CreateSystemUser(ctx context.Context, req *apiv1.CreateSystemUserRequest, params apiv1.CreateSystemUserParams) (apiv1.CreateSystemUserRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	cmd := &coreuser.CreateCommand{
 		UserID:   req.UserId,
 		SystemID: params.SystemId,
@@ -22,7 +26,7 @@ func (h *Handler) CreateSystemUser(ctx context.Context, req *apiv1.CreateSystemU
 
 	sysUser, err := h.sysUserSvc.Create(ctx, cmd)
 	if err != nil {
-		return nil, err
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.SystemUserResponse{
@@ -32,9 +36,13 @@ func (h *Handler) CreateSystemUser(ctx context.Context, req *apiv1.CreateSystemU
 
 // ListSystemUsers implements GET /systems/{systemId}/users.
 func (h *Handler) ListSystemUsers(ctx context.Context, params apiv1.ListSystemUsersParams) (apiv1.ListSystemUsersRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	users, err := h.sysUserSvc.Find(ctx, coreuser.BySystemID(params.SystemId))
 	if err != nil {
-		return nil, err
+		return nil, h.domainError(err)
 	}
 
 	resp := &apiv1.SystemUserListResponse{
@@ -49,44 +57,34 @@ func (h *Handler) ListSystemUsers(ctx context.Context, params apiv1.ListSystemUs
 
 // GetSystemUser implements GET /systems/{systemId}/users/{uid}.
 func (h *Handler) GetSystemUser(ctx context.Context, params apiv1.GetSystemUserParams) (apiv1.GetSystemUserRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	uid := int(params.UID)
-	users, err := h.sysUserSvc.Find(ctx, coreuser.Filter{
-		SystemID: &params.SystemId,
-	})
+	user, err := h.sysUserSvc.FindOne(ctx, coreuser.BySystemIDAndUID(params.SystemId, uid))
 	if err != nil {
-		return nil, err
+		return nil, h.domainError(err)
+	}
+	if user == nil {
+		return &apiv1.GetSystemUserNotFound{}, nil
 	}
 
-	// Find user with matching UID
-	for _, u := range users {
-		if u.UID() == uid {
-			return &apiv1.SystemUserResponse{
-				User: *h.toSystemUser(u),
-			}, nil
-		}
-	}
-
-	return &apiv1.GetSystemUserNotFound{}, nil
+	return &apiv1.SystemUserResponse{
+		User: *h.toSystemUser(user),
+	}, nil
 }
 
 // DeleteSystemUser implements DELETE /systems/{systemId}/users/{uid}.
 func (h *Handler) DeleteSystemUser(ctx context.Context, params apiv1.DeleteSystemUserParams) (apiv1.DeleteSystemUserRes, error) {
-	// Find user by UID within system
-	uid := int(params.UID)
-	users, err := h.sysUserSvc.Find(ctx, coreuser.Filter{
-		SystemID: &params.SystemId,
-	})
-	if err != nil {
-		return nil, err
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
 	}
 
-	// Find user with matching UID
-	var targetUser *coreuser.SystemUser
-	for _, u := range users {
-		if u.UID() == uid {
-			targetUser = u
-			break
-		}
+	uid := int(params.UID)
+	targetUser, err := h.sysUserSvc.FindOne(ctx, coreuser.BySystemIDAndUID(params.SystemId, uid))
+	if err != nil {
+		return nil, h.domainError(err)
 	}
 
 	if targetUser == nil {
@@ -94,7 +92,7 @@ func (h *Handler) DeleteSystemUser(ctx context.Context, params apiv1.DeleteSyste
 	}
 
 	if err := h.sysUserSvc.Delete(ctx, targetUser.ID()); err != nil {
-		return nil, err
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.DeleteSystemUserNoContent{}, nil

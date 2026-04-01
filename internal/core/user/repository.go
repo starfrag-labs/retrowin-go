@@ -47,6 +47,7 @@ type QueryFilter struct {
 	UserID   *string
 	SystemID *string
 	Username *string
+	UID      *int
 }
 
 // GroupCreateParams for creating a system-group (repository layer).

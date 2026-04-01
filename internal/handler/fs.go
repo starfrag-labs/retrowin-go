@@ -14,6 +14,10 @@ import (
 
 // GetRootDirectory implements GET /fs/{systemId}/root.
 func (h *Handler) GetRootDirectory(ctx context.Context, params apiv1.GetRootDirectoryParams) (apiv1.GetRootDirectoryRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	rootInode, err := h.fsSvc.GetRootDirectory(ctx, params.SystemId)
 	if err != nil {
 		return nil, h.domainError(err)
@@ -26,6 +30,10 @@ func (h *Handler) GetRootDirectory(ctx context.Context, params apiv1.GetRootDire
 
 // StatPath implements GET /fs/{systemId}/stat.
 func (h *Handler) StatPath(ctx context.Context, params apiv1.StatPathParams) (apiv1.StatPathRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
 		return nil, h.domainError(err)

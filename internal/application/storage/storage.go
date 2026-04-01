@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
@@ -19,7 +20,7 @@ type StorageService interface {
 	// CompleteUpload verifies upload completion and creates the inode.
 	CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand) (*UploadResult, error)
 
-	GetDownloadURL(ctx context.Context, id string) (string, error)
+	GetDownloadURL(ctx context.Context, id string) (string, time.Time, error)
 }
 
 // InitiateUploadCommand for starting a presigned upload.
@@ -129,18 +130,18 @@ func (s *service) createInodeWithObject(ctx context.Context, systemID string, mo
 	}, nil
 }
 
-func (s *service) GetDownloadURL(ctx context.Context, id string) (string, error) {
+func (s *service) GetDownloadURL(ctx context.Context, id string) (string, time.Time, error) {
 	in, err := s.fsSvc.Get(ctx, id)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
 
 	var c content.ObjectContent
 	if err := json.Unmarshal(in.Content(), &c); err != nil {
-		return "", errors.WrapInternal(err, "failed to parse object content")
+		return "", time.Time{}, errors.WrapInternal(err, "failed to parse object content")
 	}
 	if c.ObjectID == "" {
-		return "", errors.BadRequest("inode has no object reference")
+		return "", time.Time{}, errors.BadRequest("inode has no object reference")
 	}
 
 	return s.objectSvc.GetDownloadURL(ctx, c.ObjectID)

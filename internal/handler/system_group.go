@@ -21,7 +21,7 @@ func (h *Handler) CreateSystemGroup(ctx context.Context, req *apiv1.CreateSystem
 
 	group, err := h.sysGroupSvc.Create(ctx, cmd)
 	if err != nil {
-		return nil, err
+		return nil, h.domainError(err)
 	}
 
 	return &apiv1.SystemGroupResponse{
@@ -33,7 +33,7 @@ func (h *Handler) CreateSystemGroup(ctx context.Context, req *apiv1.CreateSystem
 func (h *Handler) ListSystemGroups(ctx context.Context, params apiv1.ListSystemGroupsParams) (apiv1.ListSystemGroupsRes, error) {
 	groups, err := h.sysGroupSvc.Find(ctx, coreuser.GroupBySystemID(params.SystemId))
 	if err != nil {
-		return nil, err
+		return nil, h.domainError(err)
 	}
 
 	resp := &apiv1.SystemGroupListResponse{

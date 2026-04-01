@@ -7,6 +7,7 @@ import (
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/middleware"
 )
 
@@ -37,7 +38,10 @@ func (h *Handler) HandleCallback(ctx context.Context, req *apiv1.CallbackRequest
 
 	resp, err := h.authSvc.HandleCallback(ctx, callbackReq)
 	if err != nil {
-		return &apiv1.HandleCallbackUnauthorized{}, nil
+		if errors.IsUnauthorized(err) || errors.IsNotFound(err) {
+			return &apiv1.HandleCallbackUnauthorized{}, nil
+		}
+		return &apiv1.HandleCallbackBadRequest{}, nil
 	}
 
 	return &apiv1.CallbackResponse{

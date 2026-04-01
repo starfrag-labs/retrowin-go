@@ -104,6 +104,10 @@ func ByUserAndSystem(userID, systemID string) Filter {
 	return Filter{UserID: &userID, SystemID: &systemID}
 }
 
+func BySystemIDAndUID(systemID string, uid int) Filter {
+	return Filter{SystemID: &systemID, UID: &uid}
+}
+
 const (
 	// MinUID is the minimum UID for regular users.
 	MinUID = 1000

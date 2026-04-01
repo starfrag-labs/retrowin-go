@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"time"
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
@@ -9,8 +10,10 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	corefs "github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
+	"github.com/starfrag-lab/retrowin-go/internal/utils"
 	extuser "github.com/starfrag-lab/retrowin-go/internal/user"
 )
 
@@ -75,5 +78,19 @@ func toOptTimestamp(t time.Time) apiv1.OptTimestamp {
 
 // domainError converts domain errors to HTTP errors.
 func (h *Handler) domainError(err error) error {
-	return err // For now, just return the error directly
+	return err // ErrorHandler/NewError in errors.go handles status code mapping
+}
+
+// checkSystemAccess verifies that the authenticated user has access to the given system.
+func (h *Handler) checkSystemAccess(ctx context.Context, systemID string) error {
+	userID, ok := utils.GetUserID(ctx)
+	if !ok {
+		return errors.Unauthorized("user not authenticated")
+	}
+
+	_, err := h.sysUserSvc.GetByUserAndSystem(ctx, userID, systemID)
+	if err != nil {
+		return errors.Forbidden("access denied to system")
+	}
+	return nil
 }

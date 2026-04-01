@@ -109,7 +109,7 @@ func (h *Handler) GetDownloadUrl(ctx context.Context, params apiv1.GetDownloadUr
 		return nil, h.domainError(err)
 	}
 
-	downloadURL, err := h.storageSvc.GetDownloadURL(ctx, in.ID())
+	downloadURL, expiresAt, err := h.storageSvc.GetDownloadURL(ctx, in.ID())
 	if err != nil {
 		return nil, h.domainError(err)
 	}
@@ -119,7 +119,7 @@ func (h *Handler) GetDownloadUrl(ctx context.Context, params apiv1.GetDownloadUr
 	return &apiv1.DownloadURLResponse{
 		DownloadUrl: apiv1.DownloadURL{
 			DownloadUrl: *parsedURL,
-			ExpiresAt:   toTimestamp(in.Mtime()), // TODO: Use actual expiry
+			ExpiresAt:   toTimestamp(expiresAt),
 		},
 	}, nil
 }

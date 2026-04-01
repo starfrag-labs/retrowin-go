@@ -133,6 +133,9 @@ func applySystemUserFilter(query *ent.UserSystemQuery, filter *user.QueryFilter)
 	if filter.Username != nil {
 		query = query.Where(entusersystem.UsernameEQ(*filter.Username))
 	}
+	if filter.UID != nil {
+		query = query.Where(entusersystem.UIDEQ(*filter.UID))
+	}
 	return query
 }
 
