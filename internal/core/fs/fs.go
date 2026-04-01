@@ -17,6 +17,7 @@ type FsService interface {
 	Get(ctx context.Context, id string) (*inode.Inode, error)
 	ReadDir(ctx context.Context, id string) ([]content.DirEntry, error)
 	Link(ctx context.Context, dirID string, entry content.DirEntry) error
+	ReplaceLink(ctx context.Context, dirID string, entry content.DirEntry) (string, error)
 	Unlink(ctx context.Context, dirID string, name string) error
 	UpdateContent(ctx context.Context, cmd *UpdateContentCommand) (*inode.Inode, error)
 	UpdateMode(ctx context.Context, cmd *UpdateModeCommand) error

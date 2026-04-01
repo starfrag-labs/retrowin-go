@@ -29,10 +29,6 @@ type CreateSystemUserRes interface {
 	createSystemUserRes()
 }
 
-type CreateUserRes interface {
-	createUserRes()
-}
-
 type DeleteSystemGroupRes interface {
 	deleteSystemGroupRes()
 }

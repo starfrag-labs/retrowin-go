@@ -98,7 +98,7 @@ func TestAuth_Logout(t *testing.T) {
 		// Verify session cookie is cleared
 		var sessionCleared bool
 		for _, cookie := range logoutResp.Cookies() {
-			if cookie.Name == "retrowin_session" && (cookie.MaxAge < 0 || cookie.Value == "") {
+			if cookie.Name == "session_id" && (cookie.MaxAge < 0 || cookie.Value == "") {
 				sessionCleared = true
 				break
 			}
@@ -106,7 +106,7 @@ func TestAuth_Logout(t *testing.T) {
 		assert.True(t, sessionCleared, "Session cookie should be cleared")
 	})
 
-	t.Run("deletes session and clears cookie with retrowin_session", func(t *testing.T) {
+	t.Run("deletes session and clears cookie with session_id", func(t *testing.T) {
 		// Setup: Create user and session
 		user, err := suite.CreateTestUser(ctx, "keycloak", "test-user-2", "testuser2")
 		require.NoError(t, err, "Failed to create test user")
@@ -127,15 +127,15 @@ func TestAuth_Logout(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, logoutResp.StatusCode,
 			"Expected 204 No Content, got %d", logoutResp.StatusCode)
 
-		// Verify retrowin_session cookie is cleared
+		// Verify session_id cookie is cleared
 		var sessionCleared bool
 		for _, cookie := range logoutResp.Cookies() {
-			if cookie.Name == "retrowin_session" && (cookie.MaxAge < 0 || cookie.Value == "") {
+			if cookie.Name == "session_id" && (cookie.MaxAge < 0 || cookie.Value == "") {
 				sessionCleared = true
 				break
 			}
 		}
-		assert.True(t, sessionCleared, "retrowin_session cookie should be cleared")
+		assert.True(t, sessionCleared, "session_id cookie should be cleared")
 	})
 }
 
@@ -191,7 +191,7 @@ func TestAuth_SessionValidation(t *testing.T) {
 
 		// Set invalid session cookie
 		suite.AddCookie(&http.Cookie{
-			Name:  "retrowin_session",
+			Name:  "session_id",
 			Value: "invalid-session-id",
 		})
 

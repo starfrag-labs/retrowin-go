@@ -349,41 +349,6 @@ type CreateSystemUserUnauthorized Error
 
 func (*CreateSystemUserUnauthorized) createSystemUserRes() {}
 
-type CreateUserBadRequest Error
-
-func (*CreateUserBadRequest) createUserRes() {}
-
-type CreateUserConflict Error
-
-func (*CreateUserConflict) createUserRes() {}
-
-// Ref: #/components/schemas/CreateUserRequest
-type CreateUserRequest struct {
-	Provider Provider `json:"provider"`
-	// User ID from the authentication provider.
-	ProviderId string `json:"providerId"`
-}
-
-// GetProvider returns the value of Provider.
-func (s *CreateUserRequest) GetProvider() Provider {
-	return s.Provider
-}
-
-// GetProviderId returns the value of ProviderId.
-func (s *CreateUserRequest) GetProviderId() string {
-	return s.ProviderId
-}
-
-// SetProvider sets the value of Provider.
-func (s *CreateUserRequest) SetProvider(val Provider) {
-	s.Provider = val
-}
-
-// SetProviderId sets the value of ProviderId.
-func (s *CreateUserRequest) SetProviderId(val string) {
-	s.ProviderId = val
-}
-
 // DeleteSystemGroupNoContent is response for DeleteSystemGroup operation.
 type DeleteSystemGroupNoContent struct{}
 
@@ -601,7 +566,6 @@ func (*ErrorStatusCode) createSymlinkRes()     {}
 func (*ErrorStatusCode) createSystemGroupRes() {}
 func (*ErrorStatusCode) createSystemRes()      {}
 func (*ErrorStatusCode) createSystemUserRes()  {}
-func (*ErrorStatusCode) createUserRes()        {}
 func (*ErrorStatusCode) deleteSystemGroupRes() {}
 func (*ErrorStatusCode) deleteSystemUserRes()  {}
 func (*ErrorStatusCode) deleteUserRes()        {}
@@ -1982,5 +1946,4 @@ func (s *UserResponse) SetUser(val User) {
 	s.User = val
 }
 
-func (*UserResponse) createUserRes() {}
-func (*UserResponse) getUserRes()    {}
+func (*UserResponse) getUserRes() {}

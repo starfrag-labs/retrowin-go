@@ -239,10 +239,11 @@ func (s *Suite) Start(ctx context.Context) error {
 				RedirectURI: "http://localhost:18080/auth/callback",
 			},
 			Session: config.SessionConfig{
-				TTL:      3600,
-				Secure:   false,
-				StateTTL: 300,
-				RedisKey: "retrowin-test",
+				TTL:        3600,
+				Secure:     false,
+				StateTTL:   300,
+				RedisKey:   "retrowin-test",
+				CookieName: "session_id",
 			},
 		},
 	}
@@ -553,7 +554,7 @@ func (s *Suite) LoginAs(ctx context.Context, userID string) error {
 		return err
 	}
 	sessionCookie := &http.Cookie{
-		Name:  "retrowin_session",
+		Name:  "session_id",
 		Value: sessionID,
 	}
 	s.cookieJar = append(s.cookieJar, sessionCookie)

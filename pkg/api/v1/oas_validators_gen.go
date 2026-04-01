@@ -200,29 +200,6 @@ func (s *CreateSystemUserRequest) Validate() error {
 	return nil
 }
 
-func (s *CreateUserRequest) Validate() error {
-	if s == nil {
-		return validate.ErrNilPointer
-	}
-
-	var failures []validate.FieldError
-	if err := func() error {
-		if err := s.Provider.Validate(); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		failures = append(failures, validate.FieldError{
-			Name:  "provider",
-			Error: err,
-		})
-	}
-	if len(failures) > 0 {
-		return &validate.Error{Fields: failures}
-	}
-	return nil
-}
-
 func (s *DirContentResponse) Validate() error {
 	if s == nil {
 		return validate.ErrNilPointer

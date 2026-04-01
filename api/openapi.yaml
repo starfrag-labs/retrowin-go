@@ -18,7 +18,7 @@ components:
     sessionAuth:
       type: apiKey
       in: cookie
-      name: retrowin_session
+      name: session_id
       description: Session-based authentication via cookie
 
   schemas:
@@ -47,8 +47,6 @@ components:
     # User schemas
     User:
       $ref: "./schemas/user.yaml#/User"
-    CreateUserRequest:
-      $ref: "./schemas/user.yaml#/CreateUserRequest"
     UserResponse:
       $ref: "./schemas/user.yaml#/UserResponse"
 

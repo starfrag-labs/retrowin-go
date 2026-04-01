@@ -38,9 +38,6 @@ var (
 	rn17AllowedHeaders = map[string]string{
 		"POST": "Content-Type",
 	}
-	rn18AllowedHeaders = map[string]string{
-		"POST": "Content-Type",
-	}
 )
 
 func (s *Server) cutPrefix(path string) (string, bool) {
@@ -872,13 +869,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						s.handleDeleteUserRequest([0]string{}, elemIsEscaped, w, r)
 					case "GET":
 						s.handleGetUserRequest([0]string{}, elemIsEscaped, w, r)
-					case "POST":
-						s.handleCreateUserRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, notAllowedParams{
-							allowedMethods: "DELETE,GET,POST",
-							allowedHeaders: rn18AllowedHeaders,
-							acceptPost:     "application/json",
+							allowedMethods: "DELETE,GET",
+							allowedHeaders: nil,
+							acceptPost:     "",
 							acceptPatch:    "",
 						})
 					}
@@ -1765,15 +1760,6 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = GetUserOperation
 						r.summary = "Get current user"
 						r.operationID = "getUser"
-						r.operationGroup = ""
-						r.pathPattern = "/user"
-						r.args = args
-						r.count = 0
-						return r, true
-					case "POST":
-						r.name = CreateUserOperation
-						r.summary = "Create a new user"
-						r.operationID = "createUser"
 						r.operationGroup = ""
 						r.pathPattern = "/user"
 						r.args = args

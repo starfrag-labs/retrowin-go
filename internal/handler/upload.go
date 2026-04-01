@@ -71,32 +71,26 @@ func (h *Handler) CompleteUpload(ctx context.Context, req *apiv1.CompleteUploadR
 		return nil, h.domainError(err)
 	}
 
-	// Resolve parent directory and link the inode
+	// Resolve parent directory
 	parentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, dirPath)
 	if err != nil {
 		return nil, h.domainError(err)
 	}
 
-	// Check if entry already exists (overwrite case)
-	existing, err := h.fsSvc.ResolvePath(ctx, params.SystemId, req.Path)
-	if err == nil && existing != nil {
-		// Unlink old entry from parent directory
-		if err := h.fsSvc.Unlink(ctx, parentDir.ID(), fileName); err != nil {
-			return nil, h.domainError(err)
-		}
-		// Delete old inode
-		if err := h.fsSvc.Delete(ctx, existing.ID()); err != nil {
-			return nil, h.domainError(err)
-		}
-	}
-
+	// Atomically replace or add the directory entry (reduces race window)
 	entry := content.DirEntry{
 		Name:     fileName,
 		InodeID:  result.Inode.ID(),
 		FileType: uint8(inode.ModeObject >> 12),
 	}
-	if err := h.fsSvc.Link(ctx, parentDir.ID(), entry); err != nil {
+	prevInodeID, err := h.fsSvc.ReplaceLink(ctx, parentDir.ID(), entry)
+	if err != nil {
 		return nil, h.domainError(err)
+	}
+
+	// Clean up previous inode if replaced (best-effort)
+	if prevInodeID != "" {
+		_ = h.fsSvc.Delete(ctx, prevInodeID)
 	}
 
 	return &apiv1.InodeResponse{

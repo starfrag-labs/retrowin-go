@@ -27,18 +27,6 @@ User:
     updatedAt:
       $ref: './common.yaml#/Timestamp'
 
-CreateUserRequest:
-  type: object
-  required:
-    - provider
-    - providerId
-  properties:
-    provider:
-      $ref: '#/Provider'
-    providerId:
-      type: string
-      description: User ID from the authentication provider
-
 UserResponse:
   type: object
   required:

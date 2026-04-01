@@ -82,15 +82,6 @@ func (UnimplementedHandler) CreateSystemUser(ctx context.Context, req *CreateSys
 	return r, ht.ErrNotImplemented
 }
 
-// CreateUser implements createUser operation.
-//
-// Create a new user.
-//
-// POST /user
-func (UnimplementedHandler) CreateUser(ctx context.Context, req *CreateUserRequest) (r CreateUserRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // DeleteSystemGroup implements deleteSystemGroup operation.
 //
 // Delete a group from a system.

@@ -42,7 +42,6 @@ var operationRolesSessionAuth = map[string][]string{
 	CreateSystemOperation:      []string{},
 	CreateSystemGroupOperation: []string{},
 	CreateSystemUserOperation:  []string{},
-	CreateUserOperation:        []string{},
 	DeleteSystemGroupOperation: []string{},
 	DeleteSystemUserOperation:  []string{},
 	DeleteUserOperation:        []string{},
@@ -86,7 +85,7 @@ func GetRolesForSessionAuth(operation string) []string {
 
 func (s *Server) securitySessionAuth(ctx context.Context, operationName OperationName, req *http.Request) (context.Context, bool, error) {
 	var t SessionAuth
-	const parameterName = "retrowin_session"
+	const parameterName = "session_id"
 	var value string
 	switch cookie, err := req.Cookie(parameterName); {
 	case err == nil: // if NO error
@@ -120,7 +119,7 @@ func (s *Client) securitySessionAuth(ctx context.Context, operationName Operatio
 		return errors.Wrap(err, "security source \"SessionAuth\"")
 	}
 	req.AddCookie(&http.Cookie{
-		Name:  "retrowin_session",
+		Name:  "session_id",
 		Value: t.APIKey,
 	})
 	return nil

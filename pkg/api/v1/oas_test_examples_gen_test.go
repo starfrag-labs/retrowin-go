@@ -371,42 +371,6 @@ func TestCreateSystemUserUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 CreateSystemUserUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestCreateUserBadRequest_EncodeDecode(t *testing.T) {
-	var typ CreateUserBadRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateUserBadRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateUserConflict_EncodeDecode(t *testing.T) {
-	var typ CreateUserConflict
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateUserConflict
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestCreateUserRequest_EncodeDecode(t *testing.T) {
-	var typ CreateUserRequest
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 CreateUserRequest
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
 func TestDeleteSystemGroupNotFound_EncodeDecode(t *testing.T) {
 	var typ DeleteSystemGroupNotFound
 	typ.SetFake()

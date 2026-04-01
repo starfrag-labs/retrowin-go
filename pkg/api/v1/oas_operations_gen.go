@@ -13,7 +13,6 @@ const (
 	CreateSystemOperation      OperationName = "CreateSystem"
 	CreateSystemGroupOperation OperationName = "CreateSystemGroup"
 	CreateSystemUserOperation  OperationName = "CreateSystemUser"
-	CreateUserOperation        OperationName = "CreateUser"
 	DeleteSystemGroupOperation OperationName = "DeleteSystemGroup"
 	DeleteSystemUserOperation  OperationName = "DeleteSystemUser"
 	DeleteUserOperation        OperationName = "DeleteUser"

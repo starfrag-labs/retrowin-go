@@ -4,6 +4,7 @@ package retrowinserver
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -186,30 +187,77 @@ func ProvideHTTPMux(
 	return mux
 }
 
-// logoutMiddleware wraps the handler to clear session cookie on logout.
-func logoutMiddleware(next http.Handler, secure bool) http.Handler {
+// sessionMiddleware wraps the handler to manage session cookies:
+// - On callback: captures the response body to extract session ID and sets the cookie.
+// - On logout: clears the session cookie.
+func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// For logout requests, set the cookie-clearing header before the handler runs
+		// Logout: clear session cookie before the handler runs
 		if r.Method == http.MethodPost && r.URL.Path == "/auth/logout" {
-			// Clear the session cookie before calling the handler
 			http.SetCookie(w, &http.Cookie{
-				Name:     "retrowin_session",
+				Name:     cookieName,
 				Value:    "",
 				Path:     "/",
 				HttpOnly: true,
 				Secure:   secure,
 				MaxAge:   -1,
 			})
+			next.ServeHTTP(w, r)
+			return
 		}
 
-		// Call the next handler
+		// Callback: capture response to extract session ID and set cookie
+		if r.Method == http.MethodPost && r.URL.Path == "/auth/callback" {
+			rec := &responseRecorder{ResponseWriter: w}
+			next.ServeHTTP(rec, r)
+
+			// Only set cookie on successful callback (200 status)
+			if rec.statusCode == http.StatusOK && len(rec.body) > 0 {
+				var resp struct {
+					SessionID string `json:"sessionId"`
+				}
+				if err := json.Unmarshal(rec.body, &resp); err == nil && resp.SessionID != "" {
+					http.SetCookie(w, &http.Cookie{
+						Name:     cookieName,
+						Value:    resp.SessionID,
+						Path:     "/",
+						HttpOnly: true,
+						Secure:   secure,
+						MaxAge:   ttl,
+						SameSite: http.SameSiteLaxMode,
+					})
+				}
+			}
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
 
+// responseRecorder captures the response body and status code.
+type responseRecorder struct {
+	http.ResponseWriter
+	statusCode int
+	body       []byte
+}
+
+func (r *responseRecorder) WriteHeader(code int) {
+	r.statusCode = code
+	r.ResponseWriter.WriteHeader(code)
+}
+
+func (r *responseRecorder) Write(b []byte) (int, error) {
+	if r.statusCode == 0 {
+		r.statusCode = http.StatusOK
+	}
+	r.body = append(r.body, b...)
+	return r.ResponseWriter.Write(b)
+}
+
 // ProvideHTTPHandler provides the HTTP handler.
 func ProvideHTTPHandler(mux *http.ServeMux, cfg *config.Config) http.Handler {
-	return logoutMiddleware(mux, cfg.Auth.Session.Secure)
+	return sessionMiddleware(mux, cfg.Auth.Session.Secure, cfg.Auth.Session.TTL, cfg.Auth.Session.CookieName)
 }
 
 // ProvideHTTPServer provides the HTTP server.

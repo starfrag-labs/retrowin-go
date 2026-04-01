@@ -92,10 +92,11 @@ type KeycloakConfig struct {
 
 // SessionConfig holds session configuration.
 type SessionConfig struct {
-	TTL      int    `mapstructure:"ttl" yaml:"ttl"`             // Session TTL in seconds
-	Secure   bool   `mapstructure:"secure" yaml:"secure"`       // Set Secure flag on cookie
-	StateTTL int    `mapstructure:"state_ttl" yaml:"state_ttl"` // OAuth state TTL in seconds
-	RedisKey string `mapstructure:"redis_key" yaml:"redis_key"` // Redis key prefix
+	TTL        int    `mapstructure:"ttl" yaml:"ttl"`                 // Session TTL in seconds
+	Secure     bool   `mapstructure:"secure" yaml:"secure"`           // Set Secure flag on cookie
+	StateTTL   int    `mapstructure:"state_ttl" yaml:"state_ttl"`     // OAuth state TTL in seconds
+	RedisKey   string `mapstructure:"redis_key" yaml:"redis_key"`     // Redis key prefix
+	CookieName string `mapstructure:"cookie_name" yaml:"cookie_name"` // Session cookie name
 }
 
 // OIDCRedirectURI returns the OIDC redirect URI.
@@ -170,6 +171,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("auth.session.secure", false)
 	v.SetDefault("auth.session.state_ttl", 300) // 5 minutes
 	v.SetDefault("auth.session.redis_key", "retrowin")
+	v.SetDefault("auth.session.cookie_name", "session_id")
 	v.SetDefault("auth.keycloak.redirect_uri", "http://localhost:8080/auth/callback")
 }
 

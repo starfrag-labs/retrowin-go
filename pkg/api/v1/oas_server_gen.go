@@ -56,12 +56,6 @@ type Handler interface {
 	//
 	// POST /systems/{systemId}/users
 	CreateSystemUser(ctx context.Context, req *CreateSystemUserRequest, params CreateSystemUserParams) (CreateSystemUserRes, error)
-	// CreateUser implements createUser operation.
-	//
-	// Create a new user.
-	//
-	// POST /user
-	CreateUser(ctx context.Context, req *CreateUserRequest) (CreateUserRes, error)
 	// DeleteSystemGroup implements deleteSystemGroup operation.
 	//
 	// Delete a group from a system.

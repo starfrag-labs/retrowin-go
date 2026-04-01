@@ -364,7 +364,7 @@ func TestFs_Symlink(t *testing.T) {
 
 	t.Run("creates symbolic link", func(t *testing.T) {
 		req := map[string]any{
-			"target":    "/home/targetdir",
+			"target":   "/home/targetdir",
 			"linkPath": "/home/linkdir",
 		}
 
@@ -403,7 +403,7 @@ func TestFs_Symlink(t *testing.T) {
 
 	t.Run("can create dangling symlink", func(t *testing.T) {
 		req := map[string]any{
-			"target":    "/home/nonexistent.txt",
+			"target":   "/home/nonexistent.txt",
 			"linkPath": "/home/dangling.txt",
 		}
 

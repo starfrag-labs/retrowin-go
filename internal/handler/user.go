@@ -30,26 +30,6 @@ func (h *Handler) GetUser(ctx context.Context) (apiv1.GetUserRes, error) {
 	}, nil
 }
 
-// CreateUser implements POST /user.
-func (h *Handler) CreateUser(ctx context.Context, req *apiv1.CreateUserRequest) (apiv1.CreateUserRes, error) {
-	cmd := &extuser.CreateCommand{
-		Provider:   string(req.Provider),
-		ProviderID: req.ProviderId,
-	}
-
-	u, err := h.extUserSvc.Create(ctx, cmd)
-	if err != nil {
-		if errors.IsConflict(err) {
-			return &apiv1.CreateUserConflict{}, nil
-		}
-		return &apiv1.CreateUserBadRequest{}, nil
-	}
-
-	return &apiv1.UserResponse{
-		User: *h.toExtUser(u),
-	}, nil
-}
-
 // DeleteUser implements DELETE /user.
 func (h *Handler) DeleteUser(ctx context.Context) (apiv1.DeleteUserRes, error) {
 	userID := middleware.GetUserID(ctx)

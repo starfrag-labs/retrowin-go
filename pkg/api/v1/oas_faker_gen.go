@@ -328,38 +328,6 @@ func (s *CreateSystemUserUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *CreateUserBadRequest) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = CreateUserBadRequest(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *CreateUserConflict) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = CreateUserConflict(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *CreateUserRequest) SetFake() {
-	{
-		{
-			s.Provider.SetFake()
-		}
-	}
-	{
-		{
-			s.ProviderId = "string"
-		}
-	}
-}
-
-// SetFake set fake values.
 func (s *DeleteSystemGroupNotFound) SetFake() {
 	var unwrapped Error
 	{
