@@ -33,7 +33,7 @@ func TestSystem_Init(t *testing.T) {
 
 	t.Run("initializes system with root user", func(t *testing.T) {
 		// Create system via API
-		req := map[string]interface{}{
+		req := map[string]any{
 			"name":        "test-system-1",
 			"description": "Test system for e2e tests",
 		}
@@ -43,7 +43,7 @@ func TestSystem_Init(t *testing.T) {
 		defer func() { _ = resp.Body.Close() }()
 
 		// Read and verify response
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
@@ -51,7 +51,7 @@ func TestSystem_Init(t *testing.T) {
 			"Expected 201 Created, got %d", resp.StatusCode)
 
 		// Response is wrapped in "system" object
-		system, ok := result["system"].(map[string]interface{})
+		system, ok := result["system"].(map[string]any)
 		require.True(t, ok, "Response should contain system object")
 
 		assert.NotEmpty(t, system["id"], "System ID should be set")
@@ -61,7 +61,7 @@ func TestSystem_Init(t *testing.T) {
 
 	t.Run("creates multiple systems independently", func(t *testing.T) {
 		// Create first system
-		req1 := map[string]interface{}{
+		req1 := map[string]any{
 			"name":        "system-alpha",
 			"description": "First test system",
 		}
@@ -70,12 +70,12 @@ func TestSystem_Init(t *testing.T) {
 		defer func() { _ = resp1.Body.Close() }()
 		require.Equal(t, http.StatusCreated, resp1.StatusCode)
 
-		var result1 map[string]interface{}
+		var result1 map[string]any
 		_ = suite.ReadJSON(resp1, &result1)
-		system1, _ := result1["system"].(map[string]interface{})
+		system1, _ := result1["system"].(map[string]any)
 
 		// Create second system
-		req2 := map[string]interface{}{
+		req2 := map[string]any{
 			"name":        "system-beta",
 			"description": "Second test system",
 		}
@@ -85,9 +85,9 @@ func TestSystem_Init(t *testing.T) {
 		require.Equal(t, http.StatusCreated, resp2.StatusCode,
 			"Expected 201 Created, got %d: %s", resp2.StatusCode, suite.ReadBody(resp2))
 
-		var result2 map[string]interface{}
+		var result2 map[string]any
 		_ = suite.ReadJSON(resp2, &result2)
-		system2, _ := result2["system"].(map[string]interface{})
+		system2, _ := result2["system"].(map[string]any)
 
 		// Verify systems have different IDs
 		assert.NotEqual(t, system1["id"], system2["id"],
@@ -117,7 +117,7 @@ func TestSystem_Get(t *testing.T) {
 	require.NoError(t, err, "Failed to setup authenticated user")
 
 	// Create a test system first
-	createResp, err := suite.Post("/systems", map[string]interface{}{
+	createResp, err := suite.Post("/systems", map[string]any{
 		"name":        "get-test-system",
 		"description": "System for get test",
 	})
@@ -125,9 +125,9 @@ func TestSystem_Get(t *testing.T) {
 	defer func() { _ = createResp.Body.Close() }()
 	require.Equal(t, http.StatusCreated, createResp.StatusCode)
 
-	var createResult map[string]interface{}
+	var createResult map[string]any
 	_ = suite.ReadJSON(createResp, &createResult)
-	systemData, _ := createResult["system"].(map[string]interface{})
+	systemData, _ := createResult["system"].(map[string]any)
 	systemID := systemData["id"].(string)
 
 	t.Run("returns system by ID", func(t *testing.T) {
@@ -138,11 +138,11 @@ func TestSystem_Get(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		system, ok := result["system"].(map[string]interface{})
+		system, ok := result["system"].(map[string]any)
 		require.True(t, ok, "Response should contain system object")
 		assert.Equal(t, systemID, system["id"], "System ID should match")
 		assert.Equal(t, "get-test-system", system["name"], "System name should match")
@@ -181,7 +181,7 @@ func TestSystem_List(t *testing.T) {
 
 	// Create multiple test systems
 	for i := 0; i < 3; i++ {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"name":        "list-test-system-" + string(rune('a'+i)),
 			"description": "System for list test",
 		}
@@ -199,14 +199,14 @@ func TestSystem_List(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
 		// Check that systems array exists and has at least our created systems
-		systems, ok := result["systems"].([]interface{})
+		systems, ok := result["systems"].([]any)
 		if !ok {
-			systems, ok = result["data"].([]interface{})
+			systems, ok = result["data"].([]any)
 		}
 		require.True(t, ok, "Response should contain systems array")
 		assert.GreaterOrEqual(t, len(systems), 3,
@@ -235,7 +235,7 @@ func TestSystem_Unauthorized(t *testing.T) {
 	suite.ClearCookies()
 
 	t.Run("rejects system creation without auth", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"name":        "unauthorized-system",
 			"description": "Should fail",
 		}

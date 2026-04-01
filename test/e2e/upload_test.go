@@ -17,10 +17,6 @@ func TestUpload_Initiate(t *testing.T) {
 		t.Skip("Skipping e2e test in short mode")
 	}
 
-	// NOTE: Memory storage provider does not support presigned URLs
-	// This test requires a real S3-compatible storage backend
-	t.Skip("Skipping: memory storage provider does not support presigned URLs")
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
@@ -35,10 +31,10 @@ func TestUpload_Initiate(t *testing.T) {
 	// Setup user and system via API (for proper filesystem initialization)
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("initiates upload for new file", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path":        "/home/uploaded.txt",
 			"contentType": "text/plain",
 			"size":        int64(1024),
@@ -48,7 +44,7 @@ func TestUpload_Initiate(t *testing.T) {
 		require.NoError(t, err, "Failed to initiate upload")
 		defer func() { _ = resp.Body.Close() }()
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
@@ -56,7 +52,7 @@ func TestUpload_Initiate(t *testing.T) {
 			"Expected 201 Created, got %d: %v", resp.StatusCode, result)
 
 		// Check uploadSession object
-		session, ok := result["uploadSession"].(map[string]interface{})
+		session, ok := result["uploadSession"].(map[string]any)
 		require.True(t, ok, "Response should contain uploadSession object, got: %v", result)
 
 		// Should return object ID and upload URL
@@ -66,7 +62,7 @@ func TestUpload_Initiate(t *testing.T) {
 	})
 
 	t.Run("rejects upload for invalid path", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path":        "invalid-no-leading-slash",
 			"contentType": "text/plain",
 			"size":        int64(1024),
@@ -83,7 +79,7 @@ func TestUpload_Initiate(t *testing.T) {
 	t.Run("rejects upload without authentication", func(t *testing.T) {
 		suite.ClearCookies()
 
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path":        "/home/unauthorized.txt",
 			"contentType": "text/plain",
 			"size":        int64(1024),
@@ -104,10 +100,6 @@ func TestUpload_Complete(t *testing.T) {
 		t.Skip("Skipping e2e test in short mode")
 	}
 
-	// NOTE: Memory storage provider does not support presigned URLs
-	// This test requires a real S3-compatible storage backend
-	t.Skip("Skipping: memory storage provider does not support presigned URLs")
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
@@ -122,11 +114,11 @@ func TestUpload_Complete(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	// Helper to initiate upload and get object ID
 	initiateUpload := func(t *testing.T, path string) string {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path":        path,
 			"contentType": "text/plain",
 			"size":        int64(100),
@@ -137,11 +129,11 @@ func TestUpload_Complete(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, resp.StatusCode, "Initiate should succeed")
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		session, ok := result["uploadSession"].(map[string]interface{})
+		session, ok := result["uploadSession"].(map[string]any)
 		require.True(t, ok, "Response should contain uploadSession")
 		return session["objectId"].(string)
 	}
@@ -149,10 +141,7 @@ func TestUpload_Complete(t *testing.T) {
 	t.Run("completes upload and creates inode", func(t *testing.T) {
 		objectID := initiateUpload(t, "/home/completed.txt")
 
-		// In a real test, we would upload to the presigned URL here
-		// For now, we'll test the complete step
-
-		completeReq := map[string]interface{}{
+		completeReq := map[string]any{
 			"objectId": objectID,
 			"path":     "/home/completed.txt",
 			"mode":     0644,
@@ -162,13 +151,13 @@ func TestUpload_Complete(t *testing.T) {
 		require.NoError(t, err, "Failed to complete upload")
 		defer func() { _ = completeResp.Body.Close() }()
 
-		// Note: This may fail if the actual storage upload didn't happen
-		// The test should be adapted based on your storage backend
-		_ = completeResp.StatusCode
+		// Memory storage accepts completion
+		require.Equal(t, http.StatusCreated, completeResp.StatusCode,
+			"Expected 201 Created, got %d", completeResp.StatusCode)
 	})
 
 	t.Run("rejects completion with invalid object ID", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"objectId": "nonexistent-object-id",
 			"path":     "/home/invalid.txt",
 			"mode":     0644,
@@ -186,7 +175,7 @@ func TestUpload_Complete(t *testing.T) {
 		objectID := initiateUpload(t, "/home/custom-perms.txt")
 
 		// Complete with custom permissions
-		completeReq := map[string]interface{}{
+		completeReq := map[string]any{
 			"objectId": objectID,
 			"path":     "/home/custom-perms.txt",
 			"mode":     0600,
@@ -194,7 +183,10 @@ func TestUpload_Complete(t *testing.T) {
 
 		completeResp, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq)
 		require.NoError(t, err)
-		_ = completeResp.Body.Close()
+		defer func() { _ = completeResp.Body.Close() }()
+
+		require.Equal(t, http.StatusCreated, completeResp.StatusCode,
+			"Expected 201 Created, got %d", completeResp.StatusCode)
 	})
 }
 
@@ -218,7 +210,7 @@ func TestUpload_Download(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("returns 404 for non-existent file", func(t *testing.T) {
 		resp, err := suite.Get("/fs/" + systemID + "/download?path=" + url.QueryEscape("/home/nonexistent.txt"))
@@ -245,10 +237,6 @@ func TestUpload_FullFlow(t *testing.T) {
 		t.Skip("Skipping e2e test in short mode")
 	}
 
-	// NOTE: Memory storage provider does not support presigned URLs
-	// This test requires a real S3-compatible storage backend
-	t.Skip("Skipping: memory storage provider does not support presigned URLs")
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
@@ -263,11 +251,11 @@ func TestUpload_FullFlow(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	// Helper to initiate upload and get session info
 	initiateUpload := func(t *testing.T, path string) (objectID, uploadURL string) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path":        path,
 			"contentType": "text/plain",
 			"size":        int64(100),
@@ -278,11 +266,11 @@ func TestUpload_FullFlow(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, resp.StatusCode, "Initiate should succeed")
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		session, ok := result["uploadSession"].(map[string]interface{})
+		session, ok := result["uploadSession"].(map[string]any)
 		require.True(t, ok, "Response should contain uploadSession")
 		return session["objectId"].(string), session["uploadUrl"].(string)
 	}
@@ -293,37 +281,40 @@ func TestUpload_FullFlow(t *testing.T) {
 		assert.NotEmpty(t, objectID, "Should have objectId")
 		assert.NotEmpty(t, uploadURL, "Should have uploadUrl")
 
-		// Step 2: Upload to presigned URL
-		// In a real test, you would use the upload URL to upload data
-		// For testing with memory storage, this might be simulated
-
-		// Step 3: Complete upload
-		completeReq := map[string]interface{}{
+		// Complete upload
+		completeReq := map[string]any{
 			"objectId": objectID,
 			"path":     "/home/cycle-test.txt",
 			"mode":     0644,
 		}
 		completeResp, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq)
 		require.NoError(t, err, "Failed to complete upload")
-		_ = completeResp.Body.Close()
+		defer func() { _ = completeResp.Body.Close() }()
 
-		// Step 4: Get download URL (if file was created)
+		require.Equal(t, http.StatusCreated, completeResp.StatusCode,
+			"Expected 201 Created, got %d", completeResp.StatusCode)
+
+		// Get download URL
 		downloadResp, err := suite.Get("/fs/" + systemID + "/download?path=" + url.QueryEscape("/home/cycle-test.txt"))
 		require.NoError(t, err, "Failed to get download URL")
-		_ = downloadResp.Body.Close()
+		defer func() { _ = downloadResp.Body.Close() }()
+
+		require.Equal(t, http.StatusOK, downloadResp.StatusCode,
+			"Expected 200 OK, got %d", downloadResp.StatusCode)
 	})
 
 	t.Run("overwrite existing file", func(t *testing.T) {
 		objectID1, _ := initiateUpload(t, "/home/overwrite.txt")
 
-		completeReq1 := map[string]interface{}{
+		completeReq1 := map[string]any{
 			"objectId": objectID1,
 			"path":     "/home/overwrite.txt",
 			"mode":     0644,
 		}
 		completeResp1, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq1)
 		require.NoError(t, err)
-		_ = completeResp1.Body.Close()
+		defer func() { _ = completeResp1.Body.Close() }()
+		require.Equal(t, http.StatusCreated, completeResp1.StatusCode)
 
 		// Upload second version (same path)
 		objectID2, _ := initiateUpload(t, "/home/overwrite.txt")
@@ -333,13 +324,14 @@ func TestUpload_FullFlow(t *testing.T) {
 			"Different uploads should have different objectIds")
 
 		// Complete second version
-		completeReq2 := map[string]interface{}{
+		completeReq2 := map[string]any{
 			"objectId": objectID2,
 			"path":     "/home/overwrite.txt",
 			"mode":     0644,
 		}
 		completeResp2, err := suite.Post("/fs/"+systemID+"/upload/complete", completeReq2)
 		require.NoError(t, err)
-		_ = completeResp2.Body.Close()
+		defer func() { _ = completeResp2.Body.Close() }()
+		require.Equal(t, http.StatusCreated, completeResp2.StatusCode)
 	})
 }

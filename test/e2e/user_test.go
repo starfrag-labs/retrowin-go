@@ -40,12 +40,12 @@ func TestUser_Get(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
 		// Response is wrapped in "user" object
-		userData, ok := result["user"].(map[string]interface{})
+		userData, ok := result["user"].(map[string]any)
 		require.True(t, ok, "Response should contain user object")
 
 		assert.Equal(t, user.ID, userData["id"], "User ID should match")
@@ -85,14 +85,14 @@ func TestSystemUser_Create(t *testing.T) {
 	// Setup user and system via API (for proper filesystem initialization)
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("creates user with auto-assigned UID", func(t *testing.T) {
 		// Create a real user in the database first
 		newUser, err := suite.CreateTestUser(ctx, "test-provider", "auto-user-provider-id", "auto-user")
 		require.NoError(t, err, "Failed to create test user")
 
-		req := map[string]interface{}{
+		req := map[string]any{
 			"userId":   newUser.ID,
 			"username": "newuser",
 		}
@@ -103,12 +103,12 @@ func TestSystemUser_Create(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, resp.StatusCode, "Expected 201 Created")
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
 		// Response is wrapped in "user" object
-		sysUser, ok := result["user"].(map[string]interface{})
+		sysUser, ok := result["user"].(map[string]any)
 		require.True(t, ok, "Response should contain user object")
 
 		// UID should be auto-assigned (starting from 1000)
@@ -127,7 +127,7 @@ func TestSystemUser_Create(t *testing.T) {
 		newUser, err := suite.CreateTestUser(ctx, "test-provider", "explicit-user-provider-id", "explicit-user")
 		require.NoError(t, err, "Failed to create test user")
 
-		req := map[string]interface{}{
+		req := map[string]any{
 			"userId":   newUser.ID,
 			"username": "explicituser",
 			"uid":      2000,
@@ -140,11 +140,11 @@ func TestSystemUser_Create(t *testing.T) {
 		require.Equal(t, http.StatusCreated, resp.StatusCode,
 			"Expected 201 Created, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		sysUser, ok := result["user"].(map[string]interface{})
+		sysUser, ok := result["user"].(map[string]any)
 		require.True(t, ok, "Response should contain user object")
 
 		uid, ok := sysUser["uid"].(float64)
@@ -158,7 +158,7 @@ func TestSystemUser_Create(t *testing.T) {
 		require.NoError(t, err, "Failed to create test user")
 
 		// First create should succeed
-		req := map[string]interface{}{
+		req := map[string]any{
 			"userId":   newUser.ID,
 			"username": "dupuser",
 		}
@@ -184,7 +184,7 @@ func TestSystemUser_Create(t *testing.T) {
 		user2, err := suite.CreateTestUser(ctx, "test-provider", "dupname2-provider-id", "dupname2-user")
 		require.NoError(t, err, "Failed to create test user 2")
 
-		req1 := map[string]interface{}{
+		req1 := map[string]any{
 			"userId":   user1.ID,
 			"username": "dupusername",
 		}
@@ -194,7 +194,7 @@ func TestSystemUser_Create(t *testing.T) {
 		require.Equal(t, http.StatusCreated, resp1.StatusCode)
 
 		// Same username, different userId
-		req2 := map[string]interface{}{
+		req2 := map[string]any{
 			"userId":   user2.ID,
 			"username": "dupusername",
 		}
@@ -227,14 +227,14 @@ func TestSystemUser_List(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	// Create additional system users (with real users in database)
 	for i := 0; i < 3; i++ {
 		newUser, err := suite.CreateTestUser(ctx, "test-provider", "list-user-provider-id-"+string(rune('a'+i)), "list-user-"+string(rune('a'+i)))
 		require.NoError(t, err, "Failed to create test user")
 
-		req := map[string]interface{}{
+		req := map[string]any{
 			"userId":   newUser.ID,
 			"username": "listuser" + string(rune('a'+i)),
 		}
@@ -251,14 +251,14 @@ func TestSystemUser_List(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
 		// Check users array
-		users, ok := result["users"].([]interface{})
+		users, ok := result["users"].([]any)
 		if !ok {
-			users, ok = result["data"].([]interface{})
+			users, ok = result["data"].([]any)
 		}
 		require.True(t, ok, "Response should contain users array")
 		assert.GreaterOrEqual(t, len(users), 3,
@@ -286,14 +286,14 @@ func TestSystemUser_Delete(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	// Create a real user in the database first
 	newUser, err := suite.CreateTestUser(ctx, "test-provider", "delete-user-provider-id", "delete-user")
 	require.NoError(t, err, "Failed to create test user")
 
 	// Create a system user to delete
-	req := map[string]interface{}{
+	req := map[string]any{
 		"userId":   newUser.ID,
 		"username": "deleteuser",
 	}
@@ -302,11 +302,11 @@ func TestSystemUser_Delete(t *testing.T) {
 	defer func() { _ = createResp.Body.Close() }()
 	require.Equal(t, http.StatusCreated, createResp.StatusCode, "Expected 201 Created for user to delete")
 
-	var createResult map[string]interface{}
+	var createResult map[string]any
 	err = suite.ReadJSON(createResp, &createResult)
 	require.NoError(t, err, "Failed to read create response JSON")
 
-	sysUser, ok := createResult["user"].(map[string]interface{})
+	sysUser, ok := createResult["user"].(map[string]any)
 	require.True(t, ok, "Response should contain user object, got: %v", createResult)
 	uid := int(sysUser["uid"].(float64))
 
@@ -356,10 +356,10 @@ func TestSystemGroup(t *testing.T) {
 	// Setup system via API (user is already created as root when system is initialized)
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("creates group with auto-assigned GID", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"name": "developers",
 		}
 
@@ -370,11 +370,11 @@ func TestSystemGroup(t *testing.T) {
 		require.Equal(t, http.StatusCreated, resp.StatusCode,
 			"Expected 201 Created, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		group, ok := result["group"].(map[string]interface{})
+		group, ok := result["group"].(map[string]any)
 		if !ok {
 			// Maybe not wrapped
 			group = result
@@ -387,19 +387,19 @@ func TestSystemGroup(t *testing.T) {
 
 	t.Run("adds user to group", func(t *testing.T) {
 		// First create a group
-		grpReq := map[string]interface{}{
+		grpReq := map[string]any{
 			"name": "testgroup",
 		}
 		grpResp, err := suite.Post("/systems/"+systemID+"/groups", grpReq)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusCreated, grpResp.StatusCode, "Expected 201 Created for group")
 
-		var grpResult map[string]interface{}
+		var grpResult map[string]any
 		err = suite.ReadJSON(grpResp, &grpResult)
 		_ = grpResp.Body.Close()
 		require.NoError(t, err, "Failed to read group response JSON")
 
-		group, ok := grpResult["group"].(map[string]interface{})
+		group, ok := grpResult["group"].(map[string]any)
 		require.True(t, ok, "Response should contain group object, got: %v", grpResult)
 		gid := int(group["gid"].(float64))
 
@@ -409,7 +409,7 @@ func TestSystemGroup(t *testing.T) {
 		newUserID := newUser.ID
 
 		// Create a system user
-		userReq := map[string]interface{}{
+		userReq := map[string]any{
 			"userId":   newUserID,
 			"username": "groupuser",
 		}
@@ -421,12 +421,12 @@ func TestSystemGroup(t *testing.T) {
 			return
 		}
 
-		var userResult map[string]interface{}
+		var userResult map[string]any
 		err = suite.ReadJSON(userResp, &userResult)
 		_ = userResp.Body.Close()
 		require.NoError(t, err, "Failed to read user response JSON")
 
-		sysUser, ok := userResult["user"].(map[string]interface{})
+		sysUser, ok := userResult["user"].(map[string]any)
 		require.True(t, ok, "Response should contain user object, got: %v", userResult)
 		uid := int(sysUser["uid"].(float64))
 

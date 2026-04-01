@@ -320,15 +320,15 @@ func (s *Suite) Get(path string) (*http.Response, error) {
 	return s.Do("GET", path, nil)
 }
 
-func (s *Suite) Post(path string, body interface{}) (*http.Response, error) {
+func (s *Suite) Post(path string, body any) (*http.Response, error) {
 	return s.Do("POST", path, body)
 }
 
-func (s *Suite) Put(path string, body interface{}) (*http.Response, error) {
+func (s *Suite) Put(path string, body any) (*http.Response, error) {
 	return s.Do("PUT", path, body)
 }
 
-func (s *Suite) Patch(path string, body interface{}) (*http.Response, error) {
+func (s *Suite) Patch(path string, body any) (*http.Response, error) {
 	return s.Do("PATCH", path, body)
 }
 
@@ -336,7 +336,7 @@ func (s *Suite) Delete(path string) (*http.Response, error) {
 	return s.Do("DELETE", path, nil)
 }
 
-func (s *Suite) Do(method, path string, body interface{}) (*http.Response, error) {
+func (s *Suite) Do(method, path string, body any) (*http.Response, error) {
 	var reqBody io.Reader
 	if body != nil {
 		jsonData, err := json.Marshal(body)
@@ -370,7 +370,7 @@ func (s *Suite) Do(method, path string, body interface{}) (*http.Response, error
 	return resp, nil
 }
 
-func (s *Suite) ReadJSON(resp *http.Response, v interface{}) error {
+func (s *Suite) ReadJSON(resp *http.Response, v any) error {
 	defer func() { _ = resp.Body.Close() }()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -574,7 +574,7 @@ func (s *Suite) SetupFullEnvironment(ctx context.Context, username string) (*ent
 // SetupFullEnvironmentAPI creates a system via the API (which initializes filesystem)
 // and returns the created system. This is the preferred method for e2e tests that need
 // a properly initialized filesystem.
-func (s *Suite) SetupFullEnvironmentAPI(ctx context.Context, username string) (*ent.User, map[string]interface{}, error) {
+func (s *Suite) SetupFullEnvironmentAPI(ctx context.Context, username string) (*ent.User, map[string]any, error) {
 	// Setup authenticated user
 	u, err := s.SetupAuthenticatedUser(ctx, username)
 	if err != nil {
@@ -582,7 +582,7 @@ func (s *Suite) SetupFullEnvironmentAPI(ctx context.Context, username string) (*
 	}
 
 	// Create system via API (this initializes filesystem with root directory, /home, etc.)
-	req := map[string]interface{}{
+	req := map[string]any{
 		"name":        fmt.Sprintf("%s-system", username),
 		"description": "Test system for e2e tests",
 	}
@@ -598,7 +598,7 @@ func (s *Suite) SetupFullEnvironmentAPI(ctx context.Context, username string) (*
 		return nil, nil, fmt.Errorf("failed to create system: status=%d body=%s", resp.StatusCode, body)
 	}
 
-	var result map[string]interface{}
+	var result map[string]any
 	if err := s.ReadJSON(resp, &result); err != nil {
 		// Re-read since ReadJSON closes body
 		return nil, nil, fmt.Errorf("failed to parse system response: %w", err)
@@ -609,7 +609,7 @@ func (s *Suite) SetupFullEnvironmentAPI(ctx context.Context, username string) (*
 	return u, result, nil
 }
 
-func (s *Suite) BuildURL(path string, params ...interface{}) string {
+func (s *Suite) BuildURL(path string, params ...any) string {
 	return s.BaseURL() + fmt.Sprintf(path, params...)
 }
 

@@ -33,7 +33,7 @@ func TestFs_Stat(t *testing.T) {
 	// Setup user and system via API (for proper filesystem initialization)
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("returns root directory info", func(t *testing.T) {
 		resp, err := suite.Get("/fs/" + systemID + "/root")
@@ -43,12 +43,12 @@ func TestFs_Stat(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
 		// Check inode field
-		inode, ok := result["inode"].(map[string]interface{})
+		inode, ok := result["inode"].(map[string]any)
 		require.True(t, ok, "Response should contain inode object")
 
 		// Verify root directory attributes
@@ -69,11 +69,11 @@ func TestFs_Stat(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Expected 200 OK")
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
-		inode, ok := result["inode"].(map[string]interface{})
+		inode, ok := result["inode"].(map[string]any)
 		require.True(t, ok, "Response should contain inode object")
 		assert.NotEmpty(t, inode["id"], "Inode should have an ID")
 	})
@@ -108,7 +108,7 @@ func TestFs_ReadDir(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("lists root directory", func(t *testing.T) {
 		resp, err := suite.Get("/fs/" + systemID + "/readdir?path=/")
@@ -118,12 +118,12 @@ func TestFs_ReadDir(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
 		// Check entries array
-		entries, ok := result["entries"].([]interface{})
+		entries, ok := result["entries"].([]any)
 		require.True(t, ok, "Response should contain entries array")
 
 		// Root should have at least home directory
@@ -139,12 +139,12 @@ func TestFs_ReadDir(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"Expected 200 OK, got %d", resp.StatusCode)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = suite.ReadJSON(resp, &result)
 		require.NoError(t, err, "Failed to read response JSON")
 
 		// Should have entries
-		entries, ok := result["entries"].([]interface{})
+		entries, ok := result["entries"].([]any)
 		require.True(t, ok, "Response should contain entries array")
 		_ = entries
 	})
@@ -179,10 +179,10 @@ func TestFs_Mkdir(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("creates directory with default permissions", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path": "/home/newdir",
 		}
 
@@ -201,7 +201,7 @@ func TestFs_Mkdir(t *testing.T) {
 	})
 
 	t.Run("creates directory with custom permissions", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path": "/home/privatedir",
 			"mode": 0700,
 		}
@@ -216,18 +216,18 @@ func TestFs_Mkdir(t *testing.T) {
 		// Verify permissions
 		statResp, err := suite.Get("/fs/" + systemID + "/stat?path=" + url.QueryEscape("/home/privatedir"))
 		require.NoError(t, err)
-		var result map[string]interface{}
+		var result map[string]any
 		_ = suite.ReadJSON(statResp, &result)
 		_ = statResp.Body.Close()
 
-		inode, ok := result["inode"].(map[string]interface{})
+		inode, ok := result["inode"].(map[string]any)
 		require.True(t, ok, "Response should contain inode")
 		mode := int(inode["mode"].(float64))
 		assert.Equal(t, 0700, mode&0777, "Permissions should be 0700")
 	})
 
 	t.Run("rejects duplicate directory", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path": "/home/dupdir",
 		}
 
@@ -267,11 +267,11 @@ func TestFs_Delete(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	t.Run("deletes empty directory", func(t *testing.T) {
 		// Create directory first
-		mkdirReq := map[string]interface{}{
+		mkdirReq := map[string]any{
 			"path": "/home/deletedir",
 		}
 		mkdirResp, err := suite.Post("/fs/"+systemID+"/mkdir", mkdirReq)
@@ -297,7 +297,7 @@ func TestFs_Delete(t *testing.T) {
 
 	t.Run("rejects non-empty directory", func(t *testing.T) {
 		// Create directory with a subdirectory inside
-		mkdirReq := map[string]interface{}{
+		mkdirReq := map[string]any{
 			"path": "/home/nonemptydir",
 		}
 		mkdirResp, err := suite.Post("/fs/"+systemID+"/mkdir", mkdirReq)
@@ -305,7 +305,7 @@ func TestFs_Delete(t *testing.T) {
 		_ = mkdirResp.Body.Close()
 
 		// Create subdirectory
-		subReq := map[string]interface{}{
+		subReq := map[string]any{
 			"path": "/home/nonemptydir/subdir",
 		}
 		subResp, err := suite.Post("/fs/"+systemID+"/mkdir", subReq)
@@ -351,10 +351,10 @@ func TestFs_Symlink(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	// Create a target directory first (symlink target needs to exist for useful test)
-	mkdirReq := map[string]interface{}{
+	mkdirReq := map[string]any{
 		"path": "/home/targetdir",
 	}
 	mkdirResp, err := suite.Post("/fs/"+systemID+"/mkdir", mkdirReq)
@@ -363,7 +363,7 @@ func TestFs_Symlink(t *testing.T) {
 	require.Equal(t, http.StatusCreated, mkdirResp.StatusCode)
 
 	t.Run("creates symbolic link", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"target":    "/home/targetdir",
 			"linkPath": "/home/linkdir",
 		}
@@ -382,12 +382,12 @@ func TestFs_Symlink(t *testing.T) {
 			"Expected 201 Created, got %d: %s", resp.StatusCode, string(body))
 
 		// Verify symlink was created from the POST response
-		var result map[string]interface{}
+		var result map[string]any
 		if err := json.Unmarshal(body, &result); err != nil {
 			t.Fatalf("Failed to parse JSON: %v, body: %s", err, string(body))
 		}
 
-		inode, ok := result["inode"].(map[string]interface{})
+		inode, ok := result["inode"].(map[string]any)
 		keys := make([]string, 0, len(result))
 		for k := range result {
 			keys = append(keys, k)
@@ -402,7 +402,7 @@ func TestFs_Symlink(t *testing.T) {
 	})
 
 	t.Run("can create dangling symlink", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"target":    "/home/nonexistent.txt",
 			"linkPath": "/home/dangling.txt",
 		}
@@ -437,10 +437,10 @@ func TestFs_Chmod(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	// Create a directory first
-	mkdirReq := map[string]interface{}{
+	mkdirReq := map[string]any{
 		"path": "/home/chmoddir",
 		"mode": 0755,
 	}
@@ -450,7 +450,7 @@ func TestFs_Chmod(t *testing.T) {
 	require.Equal(t, http.StatusCreated, mkdirResp.StatusCode)
 
 	t.Run("changes directory permissions", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path": "/home/chmoddir",
 			"mode": 0700,
 		}
@@ -465,18 +465,18 @@ func TestFs_Chmod(t *testing.T) {
 		// Verify permissions changed
 		statResp, err := suite.Get("/fs/" + systemID + "/stat?path=" + url.QueryEscape("/home/chmoddir"))
 		require.NoError(t, err)
-		var result map[string]interface{}
+		var result map[string]any
 		_ = suite.ReadJSON(statResp, &result)
 		_ = statResp.Body.Close()
 
-		inode, ok := result["inode"].(map[string]interface{})
+		inode, ok := result["inode"].(map[string]any)
 		require.True(t, ok, "Response should contain inode")
 		mode := int(inode["mode"].(float64))
 		assert.Equal(t, 0700, mode&0777, "Permissions should be 0700")
 	})
 
 	t.Run("returns 404 for non-existent path", func(t *testing.T) {
-		req := map[string]interface{}{
+		req := map[string]any{
 			"path": "/home/nonexistent",
 			"mode": 0755,
 		}
@@ -510,10 +510,10 @@ func TestFs_Permission(t *testing.T) {
 	// Setup user and system via API
 	_, systemData, err := suite.SetupFullEnvironmentAPI(ctx, "testuser")
 	require.NoError(t, err, "Failed to setup full environment")
-	systemID := systemData["system"].(map[string]interface{})["id"].(string)
+	systemID := systemData["system"].(map[string]any)["id"].(string)
 
 	// Create a directory with restricted permissions
-	mkdirReq := map[string]interface{}{
+	mkdirReq := map[string]any{
 		"path": "/home/owneronly",
 		"mode": 0700,
 	}
