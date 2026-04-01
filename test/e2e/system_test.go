@@ -82,7 +82,8 @@ func TestSystem_Init(t *testing.T) {
 		resp2, err := suite.Post("/systems", req2)
 		require.NoError(t, err)
 		defer func() { _ = resp2.Body.Close() }()
-		require.Equal(t, http.StatusCreated, resp2.StatusCode)
+		require.Equal(t, http.StatusCreated, resp2.StatusCode,
+			"Expected 201 Created, got %d: %s", resp2.StatusCode, suite.ReadBody(resp2))
 
 		var result2 map[string]interface{}
 		_ = suite.ReadJSON(resp2, &result2)

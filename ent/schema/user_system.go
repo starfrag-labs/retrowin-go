@@ -37,7 +37,6 @@ func (UserSystem) Fields() []ent.Field {
 
 		// Username for display
 		field.String("username").
-			Unique().
 			MaxLen(32),
 	}
 }

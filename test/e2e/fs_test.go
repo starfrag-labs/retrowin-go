@@ -2,6 +2,8 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -65,8 +67,7 @@ func TestFs_Stat(t *testing.T) {
 		require.NoError(t, err, "Failed to stat /home")
 		defer func() { _ = resp.Body.Close() }()
 
-		require.Equal(t, http.StatusOK, resp.StatusCode,
-			"Expected 200 OK, got %d: %s", resp.StatusCode, suite.ReadBody(resp))
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Expected 200 OK")
 
 		var result map[string]interface{}
 		err = suite.ReadJSON(resp, &result)
@@ -364,35 +365,46 @@ func TestFs_Symlink(t *testing.T) {
 	t.Run("creates symbolic link", func(t *testing.T) {
 		req := map[string]interface{}{
 			"target":    "/home/targetdir",
-			"link_path": "/home/linkdir",
+			"linkPath": "/home/linkdir",
 		}
 
 		resp, err := suite.Post("/fs/"+systemID+"/symlink", req)
 		require.NoError(t, err, "Failed to create symlink")
-		defer func() { _ = resp.Body.Close() }()
+
+		// Read body first (before any assertion that might consume it)
+		body, err := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		require.NoError(t, err, "Failed to read body")
+
+		t.Logf("Symlink status=%d body=%s", resp.StatusCode, string(body))
 
 		require.Equal(t, http.StatusCreated, resp.StatusCode,
-			"Expected 201 Created, got %d: %s", resp.StatusCode, suite.ReadBody(resp))
+			"Expected 201 Created, got %d: %s", resp.StatusCode, string(body))
 
-		// Verify link was created
-		statResp, err := suite.Get("/fs/" + systemID + "/stat?path=" + url.QueryEscape("/home/linkdir"))
-		require.NoError(t, err)
+		// Verify symlink was created from the POST response
 		var result map[string]interface{}
-		_ = suite.ReadJSON(statResp, &result)
-		_ = statResp.Body.Close()
+		if err := json.Unmarshal(body, &result); err != nil {
+			t.Fatalf("Failed to parse JSON: %v, body: %s", err, string(body))
+		}
 
 		inode, ok := result["inode"].(map[string]interface{})
-		require.True(t, ok, "Response should contain inode")
+		keys := make([]string, 0, len(result))
+		for k := range result {
+			keys = append(keys, k)
+		}
+		require.True(t, ok, "Response should contain inode, got keys: %v", keys)
 
-		// Mode should indicate symlink
+		// Mode should indicate symlink (0120000 = S_IFLNK)
 		mode := int(inode["mode"].(float64))
-		assert.NotZero(t, mode&0120000, "Should be a symlink") // S_IFLNK
+		assert.NotZero(t, mode&0120000, "Should be a symlink (mode=%o)", mode) // S_IFLNK
+
+		// Note: stat follows symlinks, so /home/linkdir would resolve to the target directory
 	})
 
 	t.Run("can create dangling symlink", func(t *testing.T) {
 		req := map[string]interface{}{
 			"target":    "/home/nonexistent.txt",
-			"link_path": "/home/dangling.txt",
+			"linkPath": "/home/dangling.txt",
 		}
 
 		resp, err := suite.Post("/fs/"+systemID+"/symlink", req)

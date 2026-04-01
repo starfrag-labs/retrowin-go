@@ -225,7 +225,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "uid", Type: field.TypeInt, Default: 0},
 		{Name: "gid", Type: field.TypeInt, Default: 0},
-		{Name: "username", Type: field.TypeString, Unique: true, Size: 32},
+		{Name: "username", Type: field.TypeString, Size: 32},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "system_id", Type: field.TypeString},
 	}

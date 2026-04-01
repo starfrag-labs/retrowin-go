@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -54,8 +55,12 @@ func TestSuite_Migration(t *testing.T) {
 	require.NoError(t, err, "Failed to start test suite")
 	t.Cleanup(func() { _ = suite.Stop(ctx) })
 
+	// Start server to run migrations
+	err = suite.StartServer(ctx)
+	require.NoError(t, err, "Failed to start server")
+
 	// Verify tables were created - using actual ent table names
-	tables := []string{"users", "inodes", "objects", "systems", "system_users", "system_groups"}
+	tables := []string{"users", "inodes", "objects", "systems", "user_systems", "system_groups", "user_groups"}
 	for _, table := range tables {
 		var exists bool
 		err := suite.GetDB().QueryRow(
@@ -205,7 +210,7 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	}
 
 	// Test /health endpoint - this MUST succeed for the test to pass
-	resp, err := http.Get("http://127.0.0.1:8080/health")
+	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/health", cfg.HTTP.Port))
 	require.NoError(t, err, "HTTP server must be reachable on /health endpoint")
 	defer func() { _ = resp.Body.Close() }()
 
