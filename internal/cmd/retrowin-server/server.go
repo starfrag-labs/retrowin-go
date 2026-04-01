@@ -29,7 +29,6 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	inoderepo "github.com/starfrag-lab/retrowin-go/internal/core/inode/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
-	memorystorage "github.com/starfrag-lab/retrowin-go/internal/core/object/memory"
 	objectrepo "github.com/starfrag-lab/retrowin-go/internal/core/object/repository"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
@@ -156,14 +155,7 @@ func ProvideAuthUserService(userSvc user.UserService) auth.UserService {
 
 // ProvideStorage provides the storage backend based on config.
 func ProvideStorage(cfg *config.Config) (object.Storage, error) {
-	switch cfg.Storage.Provider {
-	case "memory":
-		return memorystorage.New(&cfg.Storage)
-	case "s3":
-		return s3storage.New(&cfg.Storage)
-	default:
-		return s3storage.New(&cfg.Storage)
-	}
+	return s3storage.New(&cfg.Storage)
 }
 
 // ProvideHTTPMux provides the HTTP mux with all routes.

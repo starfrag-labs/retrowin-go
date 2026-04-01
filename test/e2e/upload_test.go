@@ -116,7 +116,7 @@ func TestUpload_Complete(t *testing.T) {
 	require.NoError(t, err, "Failed to setup full environment")
 	systemID := systemData["system"].(map[string]any)["id"].(string)
 
-	// Helper to initiate upload and get object ID
+	// Helper to initiate upload and upload to MinIO, returning object ID
 	initiateUpload := func(t *testing.T, path string) string {
 		req := map[string]any{
 			"path":        path,
@@ -135,6 +135,10 @@ func TestUpload_Complete(t *testing.T) {
 
 		session, ok := result["uploadSession"].(map[string]any)
 		require.True(t, ok, "Response should contain uploadSession")
+
+		uploadURL := session["uploadUrl"].(string)
+		suite.UploadToPresignedURL(t, uploadURL, []byte("test content"))
+
 		return session["objectId"].(string)
 	}
 
@@ -151,7 +155,6 @@ func TestUpload_Complete(t *testing.T) {
 		require.NoError(t, err, "Failed to complete upload")
 		defer func() { _ = completeResp.Body.Close() }()
 
-		// Memory storage accepts completion
 		require.Equal(t, http.StatusCreated, completeResp.StatusCode,
 			"Expected 201 Created, got %d", completeResp.StatusCode)
 	})
@@ -253,7 +256,7 @@ func TestUpload_FullFlow(t *testing.T) {
 	require.NoError(t, err, "Failed to setup full environment")
 	systemID := systemData["system"].(map[string]any)["id"].(string)
 
-	// Helper to initiate upload and get session info
+	// Helper to initiate upload and upload to MinIO, returning session info
 	initiateUpload := func(t *testing.T, path string) (objectID, uploadURL string) {
 		req := map[string]any{
 			"path":        path,
@@ -272,7 +275,14 @@ func TestUpload_FullFlow(t *testing.T) {
 
 		session, ok := result["uploadSession"].(map[string]any)
 		require.True(t, ok, "Response should contain uploadSession")
-		return session["objectId"].(string), session["uploadUrl"].(string)
+
+		objectID = session["objectId"].(string)
+		uploadURL = session["uploadUrl"].(string)
+
+		// Upload actual content to MinIO via presigned URL
+		suite.UploadToPresignedURL(t, uploadURL, []byte("test content"))
+
+		return objectID, uploadURL
 	}
 
 	t.Run("upload and download cycle", func(t *testing.T) {

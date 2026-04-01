@@ -1,4 +1,3 @@
-// Package e2e provides end-to-end tests using testcontainers
 package e2e
 
 import (
@@ -19,6 +18,9 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	valkeymodule "github.com/testcontainers/testcontainers-go/modules/valkey"
@@ -41,10 +43,12 @@ type Suite struct {
 	t               *testing.T
 	PgContainer     *postgres.PostgresContainer
 	ValkeyContainer *valkeymodule.ValkeyContainer
+	MinioContainer  testcontainers.Container
 	Config          *config.Config
 	EntClient       *ent.Client
 	DB              *sql.DB
 	ValkeyAddr      string
+	MinioAddr       string
 	ValkeyClient    valkey.Client
 	baseURL         string
 	httpClient      *http.Client
@@ -156,6 +160,41 @@ func (s *Suite) Start(ctx context.Context) error {
 	testPort := listener.Addr().(*net.TCPAddr).Port
 	_ = listener.Close()
 
+	// Start MinIO container
+	minioContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "minio/minio:latest",
+			ExposedPorts: []string{"9000/tcp"},
+			Env: map[string]string{
+				"MINIO_ROOT_USER":     "minioadmin",
+				"MINIO_ROOT_PASSWORD": "minioadmin",
+			},
+			Cmd: []string{"server", "/data"},
+			WaitingFor: wait.ForExposedPort().
+				WithStartupTimeout(30 * time.Second),
+		},
+		Started: true,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to start minio: %w", err)
+	}
+	s.MinioContainer = minioContainer
+
+	minioHost, err := minioContainer.Host(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get minio host: %w", err)
+	}
+	minioPort, err := minioContainer.MappedPort(ctx, "9000")
+	if err != nil {
+		return fmt.Errorf("failed to get minio port: %w", err)
+	}
+	s.MinioAddr = fmt.Sprintf("%s:%s", minioHost, minioPort.Port())
+
+	// Create test bucket in MinIO
+	if err := s.createMinioBucket(ctx); err != nil {
+		return fmt.Errorf("failed to create minio bucket: %w", err)
+	}
+
 	// Create test config with dynamically found port
 	s.Config = &config.Config{
 		App: config.AppConfig{
@@ -185,8 +224,12 @@ func (s *Suite) Start(ctx context.Context) error {
 			},
 		},
 		Storage: config.StorageConfig{
-			Provider: "memory",
-			Bucket:   "test-bucket",
+			Provider:  "s3",
+			Region:    "us-east-1",
+			Endpoint:  "http://" + s.MinioAddr,
+			AccessKey: "minioadmin",
+			SecretKey: "minioadmin",
+			Bucket:    "test-bucket",
 		},
 		Auth: config.AuthConfig{
 			Keycloak: config.KeycloakConfig{
@@ -284,6 +327,10 @@ func (s *Suite) Stop(ctx context.Context) error {
 
 	if s.ValkeyContainer != nil {
 		_ = testcontainers.TerminateContainer(s.ValkeyContainer)
+	}
+
+	if s.MinioContainer != nil {
+		_ = testcontainers.TerminateContainer(s.MinioContainer)
 	}
 
 	return nil
@@ -618,4 +665,40 @@ func (s *Suite) BuildURLWithQuery(path string, query url.Values) string {
 		return s.BaseURL() + path
 	}
 	return s.BaseURL() + path + "?" + query.Encode()
+}
+
+// createMinioBucket creates the test bucket in MinIO.
+func (s *Suite) createMinioBucket(ctx context.Context) error {
+	client, err := minio.New(s.MinioAddr, &minio.Options{
+		Creds:  credentials.NewStaticV4("minioadmin", "minioadmin", ""),
+		Secure: false,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create minio client: %w", err)
+	}
+
+	if err := client.MakeBucket(ctx, "test-bucket", minio.MakeBucketOptions{}); err != nil {
+		return fmt.Errorf("failed to create bucket: %w", err)
+	}
+
+	return nil
+}
+
+// UploadToPresignedURL uploads data to a presigned URL (for testing MinIO uploads).
+func (s *Suite) UploadToPresignedURL(t *testing.T, presignedURL string, data []byte) {
+	t.Logf("Uploading to presigned URL: %s", presignedURL)
+
+	req, err := http.NewRequest("PUT", presignedURL, strings.NewReader(string(data)))
+	require.NoError(t, err, "Failed to create upload request")
+	req.Header.Set("Content-Type", "text/plain")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	require.NoError(t, err, "Failed to upload to presigned URL")
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		t.Fatalf("Upload to presigned URL failed with status %d: %s\nURL: %s", resp.StatusCode, string(body), presignedURL)
+	}
 }

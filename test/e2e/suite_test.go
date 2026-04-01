@@ -175,7 +175,6 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	cfg.Database.Port = pgPort.Int()
 
 	// Disable services that require external dependencies for e2e testing
-	cfg.Storage.Provider = "memory"
 	cfg.Auth.Keycloak.BaseURL = "http://localhost:9999" // Invalid URL to prevent actual OIDC calls
 
 	// Write config to temp file as YAML
