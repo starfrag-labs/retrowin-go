@@ -17,9 +17,10 @@ import (
 
 // MigrateOptions holds options for migration apply.
 type MigrateOptions struct {
-	Mode     string // "auto" or "versioned"
-	Baseline string // Baseline version for existing databases (versioned mode only)
-	Clean    bool   // Drop all tables before applying
+	Mode       string // "auto" or "versioned"
+	Baseline   string // Baseline version for existing databases (versioned mode only)
+	Clean      bool   // Drop all tables before applying
+	AllowDirty bool   // Allow applying versioned migrations to a non-clean database
 }
 
 // ApplyMigrations applies database migrations using the configured mode.
@@ -38,7 +39,7 @@ func ApplyMigrations(cfg *config.Config, opts MigrateOptions) error {
 
 	switch mode {
 	case "versioned":
-		return applyVersionedMigrations(cfg, opts.Baseline)
+		return applyVersionedMigrations(cfg, opts)
 	case "auto", "":
 		return applyAutoMigrations(cfg)
 	default:
@@ -103,7 +104,7 @@ func applyAutoMigrations(cfg *config.Config) error {
 
 // applyVersionedMigrations uses atlasexec to apply versioned SQL migrations.
 // Requires the 'atlas' CLI binary to be available in PATH.
-func applyVersionedMigrations(cfg *config.Config, baseline string) error {
+func applyVersionedMigrations(cfg *config.Config, opts MigrateOptions) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -133,8 +134,11 @@ func applyVersionedMigrations(cfg *config.Config, baseline string) error {
 	params := &atlasexec.MigrateApplyParams{
 		URL: dbURL,
 	}
-	if baseline != "" {
-		params.BaselineVersion = baseline
+	if opts.Baseline != "" {
+		params.BaselineVersion = opts.Baseline
+	}
+	if opts.AllowDirty {
+		params.AllowDirty = true
 	}
 
 	res, err := client.MigrateApply(ctx, params)

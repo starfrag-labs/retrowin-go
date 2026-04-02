@@ -59,6 +59,7 @@ func newMigrateApplyCmd() *cobra.Command {
 	var mode string
 	var baseline string
 	var clean bool
+	var allowDirty bool
 
 	cmd := &cobra.Command{
 		Use:   "apply",
@@ -78,9 +79,10 @@ func newMigrateApplyCmd() *cobra.Command {
 
 			// CLI flags override config
 			opts := MigrateOptions{
-				Mode:     mode,
-				Baseline: baseline,
-				Clean:    clean,
+				Mode:       mode,
+				Baseline:   baseline,
+				Clean:      clean,
+				AllowDirty: allowDirty,
 			}
 			if opts.Mode == "" {
 				opts.Mode = "auto"
@@ -94,6 +96,7 @@ func newMigrateApplyCmd() *cobra.Command {
 	cmd.Flags().StringVar(&mode, "mode", "", "Migration mode: auto or versioned (overrides config)")
 	cmd.Flags().StringVar(&baseline, "baseline", "", "Baseline version for existing databases (versioned mode)")
 	cmd.Flags().BoolVar(&clean, "clean", false, "Drop all tables before applying migrations")
+	cmd.Flags().BoolVar(&allowDirty, "allow-dirty", false, "Allow applying versioned migrations to a non-clean database")
 
 	return cmd
 }

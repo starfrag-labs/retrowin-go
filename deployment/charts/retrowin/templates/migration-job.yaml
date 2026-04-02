@@ -46,6 +46,9 @@ spec:
             {{- if .Values.migration.clean }}
             - --clean
             {{- end }}
+            {{- if .Values.migration.allowDirty }}
+            - --allow-dirty
+            {{- end }}
           env:
             {{- if or .Values.secrets.database.password .Values.secrets.database.existingSecret }}
             - name: DATABASE_PASSWORD

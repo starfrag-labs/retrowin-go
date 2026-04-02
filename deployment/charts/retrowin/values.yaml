@@ -208,3 +208,4 @@ migration:
   mode: versioned        # "auto" (ent auto-migration) or "versioned" (atlas)
   baseline: ""           # Baseline version for existing databases (versioned mode only)
   clean: false           # Drop all tables before applying migrations
+  allowDirty: false      # Allow applying versioned migrations to a non-clean database
