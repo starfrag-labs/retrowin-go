@@ -54,7 +54,10 @@ LABEL org.opencontainers.image.title="Retrowin Server" \
       org.opencontainers.image.source="https://github.com/starfrag-lab/retrowin-go"
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata curl
+
+# Install atlas CLI for versioned migrations
+RUN curl -sSf https://atlasgo.sh | sh
 
 # Create non-root user
 RUN adduser -D -u 1001 retrowin
