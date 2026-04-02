@@ -9,6 +9,7 @@ GOSEC = $(LOCALBIN)/gosec
 GOSEC_VERSION ?= v2.22.3
 GORELEASER = $(LOCALBIN)/goreleaser
 GORELEASER_VERSION ?= v2.8.1
+ATLAS ?= atlas
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary
@@ -78,6 +79,7 @@ ogen: openapi-bundle ## Generate API code from OpenAPI spec
 
 .PHONY: mock
 mock: ## Generate mocks
+	@find ./internal -type d -name "mocks" -exec rm -rf {} + 2>/dev/null || true
 	mockery
 
 .PHONY: gen
@@ -86,7 +88,34 @@ gen: ent-gen ogen mock ## Generate all code (ent, ogen, mocks)
 # Testing
 .PHONY: test
 test: ## Run unit tests
-	go test -v $$(go list ./... | grep -v /mocks) --coverprofile cover.out
+	go test -v $$(go list ./... | grep -v -e /mocks -e /test/e2e) --coverprofile cover-unit.out
+
+.PHONY: test-e2e
+test-e2e: ## Run e2e tests
+	go test -v ./test/e2e/... -timeout 10m --coverprofile cover-e2e.out
+
+# Migrations
+MIGRATION_DIR ?= ent/migrate/migrations
+
+.PHONY: migrate-diff
+migrate-diff: ## Generate a new migration diff. Usage: make migrate-diff name=add_column
+	$(ATLAS) migrate diff $(name) \
+		--dir "file://$(MIGRATION_DIR)" \
+		--to "ent://ent/schema" \
+		--dev-url "docker://postgres/17/dev?search_path=public"
+
+.PHONY: migrate-apply
+migrate-apply: ## Apply pending migrations
+	go run ./cmd/retrowin-server migrate apply --config config.yaml
+
+.PHONY: migrate-status
+migrate-status: ## Show migration status
+	"$(ATLAS)" migrate status --dir "file://$(MIGRATION_DIR)"
+
+.PHONY: migrate-lint
+migrate-lint: ## Lint migration files for safety
+	"$(ATLAS)" migrate lint --dir "file://$(MIGRATION_DIR)" \
+		--dev-url "docker://postgres/17/dev?search_path=public"
 
 # Building
 .PHONY: build

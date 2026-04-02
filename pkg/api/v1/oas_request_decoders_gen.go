@@ -14,98 +14,79 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
+func (s *Server) decodeChmodRequest(r *http.Request) (
+	req *ChmodRequest,
+	rawBody []byte,
+	close func() error,
+	rerr error,
+) {
+	var closers []func() error
+	close = func() error {
+		var merr error
+		// Close in reverse order, to match defer behavior.
+		for i := len(closers) - 1; i >= 0; i-- {
+			c := closers[i]
+			merr = errors.Join(merr, c())
+		}
+		return merr
+	}
+	defer func() {
+		if rerr != nil {
+			rerr = errors.Join(rerr, close())
+		}
+	}()
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return req, rawBody, close, errors.Wrap(err, "parse media type")
+	}
+	switch {
+	case ct == "application/json":
+		if r.ContentLength == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+		buf, err := io.ReadAll(r.Body)
+		defer func() {
+			_ = r.Body.Close()
+		}()
+		if err != nil {
+			return req, rawBody, close, err
+		}
+
+		// Reset the body to allow for downstream reading.
+		r.Body = io.NopCloser(bytes.NewBuffer(buf))
+
+		if len(buf) == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+
+		rawBody = append(rawBody, buf...)
+		d := jx.DecodeBytes(buf)
+
+		var request ChmodRequest
+		if err := func() error {
+			if err := request.Decode(d); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != io.EOF {
+				return errors.New("unexpected trailing data")
+			}
+			return nil
+		}(); err != nil {
+			err = &ogenerrors.DecodeBodyError{
+				ContentType: ct,
+				Body:        buf,
+				Err:         err,
+			}
+			return req, rawBody, close, err
+		}
+		return &request, rawBody, close, nil
+	default:
+		return req, rawBody, close, validate.InvalidContentType(ct)
+	}
+}
+
 func (s *Server) decodeCompleteUploadRequest(r *http.Request) (
-	req OptCompleteUploadRequest,
-	rawBody []byte,
-	close func() error,
-	rerr error,
-) {
-	var closers []func() error
-	close = func() error {
-		var merr error
-		// Close in reverse order, to match defer behavior.
-		for i := len(closers) - 1; i >= 0; i-- {
-			c := closers[i]
-			merr = errors.Join(merr, c())
-		}
-		return merr
-	}
-	defer func() {
-		if rerr != nil {
-			rerr = errors.Join(rerr, close())
-		}
-	}()
-	if _, ok := r.Header["Content-Type"]; !ok && r.ContentLength == 0 {
-		return req, rawBody, close, nil
-	}
-	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if err != nil {
-		return req, rawBody, close, errors.Wrap(err, "parse media type")
-	}
-	switch {
-	case ct == "application/json":
-		if r.ContentLength == 0 {
-			return req, rawBody, close, nil
-		}
-		buf, err := io.ReadAll(r.Body)
-		defer func() {
-			_ = r.Body.Close()
-		}()
-		if err != nil {
-			return req, rawBody, close, err
-		}
-
-		// Reset the body to allow for downstream reading.
-		r.Body = io.NopCloser(bytes.NewBuffer(buf))
-
-		if len(buf) == 0 {
-			return req, rawBody, close, nil
-		}
-
-		rawBody = append(rawBody, buf...)
-		d := jx.DecodeBytes(buf)
-
-		var request OptCompleteUploadRequest
-		if err := func() error {
-			request.Reset()
-			if err := request.Decode(d); err != nil {
-				return err
-			}
-			if err := d.Skip(); err != io.EOF {
-				return errors.New("unexpected trailing data")
-			}
-			return nil
-		}(); err != nil {
-			err = &ogenerrors.DecodeBodyError{
-				ContentType: ct,
-				Body:        buf,
-				Err:         err,
-			}
-			return req, rawBody, close, err
-		}
-		if err := func() error {
-			if value, ok := request.Get(); ok {
-				if err := func() error {
-					if err := value.Validate(); err != nil {
-						return err
-					}
-					return nil
-				}(); err != nil {
-					return err
-				}
-			}
-			return nil
-		}(); err != nil {
-			return req, rawBody, close, errors.Wrap(err, "validate")
-		}
-		return request, rawBody, close, nil
-	default:
-		return req, rawBody, close, validate.InvalidContentType(ct)
-	}
-}
-
-func (s *Server) decodeCopyFileRequest(r *http.Request) (
-	req *CopyFileRequest,
+	req *CompleteUploadRequest,
 	rawBody []byte,
 	close func() error,
 	rerr error,
@@ -152,7 +133,7 @@ func (s *Server) decodeCopyFileRequest(r *http.Request) (
 		rawBody = append(rawBody, buf...)
 		d := jx.DecodeBytes(buf)
 
-		var request CopyFileRequest
+		var request CompleteUploadRequest
 		if err := func() error {
 			if err := request.Decode(d); err != nil {
 				return err
@@ -175,8 +156,8 @@ func (s *Server) decodeCopyFileRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeCreateFileRequest(r *http.Request) (
-	req *CreateFileRequest,
+func (s *Server) decodeCreateSymlinkRequest(r *http.Request) (
+	req *SymlinkRequest,
 	rawBody []byte,
 	close func() error,
 	rerr error,
@@ -223,7 +204,78 @@ func (s *Server) decodeCreateFileRequest(r *http.Request) (
 		rawBody = append(rawBody, buf...)
 		d := jx.DecodeBytes(buf)
 
-		var request CreateFileRequest
+		var request SymlinkRequest
+		if err := func() error {
+			if err := request.Decode(d); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != io.EOF {
+				return errors.New("unexpected trailing data")
+			}
+			return nil
+		}(); err != nil {
+			err = &ogenerrors.DecodeBodyError{
+				ContentType: ct,
+				Body:        buf,
+				Err:         err,
+			}
+			return req, rawBody, close, err
+		}
+		return &request, rawBody, close, nil
+	default:
+		return req, rawBody, close, validate.InvalidContentType(ct)
+	}
+}
+
+func (s *Server) decodeCreateSystemRequest(r *http.Request) (
+	req *CreateSystemRequest,
+	rawBody []byte,
+	close func() error,
+	rerr error,
+) {
+	var closers []func() error
+	close = func() error {
+		var merr error
+		// Close in reverse order, to match defer behavior.
+		for i := len(closers) - 1; i >= 0; i-- {
+			c := closers[i]
+			merr = errors.Join(merr, c())
+		}
+		return merr
+	}
+	defer func() {
+		if rerr != nil {
+			rerr = errors.Join(rerr, close())
+		}
+	}()
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return req, rawBody, close, errors.Wrap(err, "parse media type")
+	}
+	switch {
+	case ct == "application/json":
+		if r.ContentLength == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+		buf, err := io.ReadAll(r.Body)
+		defer func() {
+			_ = r.Body.Close()
+		}()
+		if err != nil {
+			return req, rawBody, close, err
+		}
+
+		// Reset the body to allow for downstream reading.
+		r.Body = io.NopCloser(bytes.NewBuffer(buf))
+
+		if len(buf) == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+
+		rawBody = append(rawBody, buf...)
+		d := jx.DecodeBytes(buf)
+
+		var request CreateSystemRequest
 		if err := func() error {
 			if err := request.Decode(d); err != nil {
 				return err
@@ -254,8 +306,8 @@ func (s *Server) decodeCreateFileRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeCreateUserRequest(r *http.Request) (
-	req *CreateUserRequest,
+func (s *Server) decodeCreateSystemGroupRequest(r *http.Request) (
+	req *CreateSystemGroupRequest,
 	rawBody []byte,
 	close func() error,
 	rerr error,
@@ -302,7 +354,7 @@ func (s *Server) decodeCreateUserRequest(r *http.Request) (
 		rawBody = append(rawBody, buf...)
 		d := jx.DecodeBytes(buf)
 
-		var request CreateUserRequest
+		var request CreateSystemGroupRequest
 		if err := func() error {
 			if err := request.Decode(d); err != nil {
 				return err
@@ -333,8 +385,8 @@ func (s *Server) decodeCreateUserRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeMoveFileRequest(r *http.Request) (
-	req *MoveFileRequest,
+func (s *Server) decodeCreateSystemUserRequest(r *http.Request) (
+	req *CreateSystemUserRequest,
 	rawBody []byte,
 	close func() error,
 	rerr error,
@@ -381,78 +433,7 @@ func (s *Server) decodeMoveFileRequest(r *http.Request) (
 		rawBody = append(rawBody, buf...)
 		d := jx.DecodeBytes(buf)
 
-		var request MoveFileRequest
-		if err := func() error {
-			if err := request.Decode(d); err != nil {
-				return err
-			}
-			if err := d.Skip(); err != io.EOF {
-				return errors.New("unexpected trailing data")
-			}
-			return nil
-		}(); err != nil {
-			err = &ogenerrors.DecodeBodyError{
-				ContentType: ct,
-				Body:        buf,
-				Err:         err,
-			}
-			return req, rawBody, close, err
-		}
-		return &request, rawBody, close, nil
-	default:
-		return req, rawBody, close, validate.InvalidContentType(ct)
-	}
-}
-
-func (s *Server) decodeUpdateFileRequest(r *http.Request) (
-	req *UpdateFileRequest,
-	rawBody []byte,
-	close func() error,
-	rerr error,
-) {
-	var closers []func() error
-	close = func() error {
-		var merr error
-		// Close in reverse order, to match defer behavior.
-		for i := len(closers) - 1; i >= 0; i-- {
-			c := closers[i]
-			merr = errors.Join(merr, c())
-		}
-		return merr
-	}
-	defer func() {
-		if rerr != nil {
-			rerr = errors.Join(rerr, close())
-		}
-	}()
-	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if err != nil {
-		return req, rawBody, close, errors.Wrap(err, "parse media type")
-	}
-	switch {
-	case ct == "application/json":
-		if r.ContentLength == 0 {
-			return req, rawBody, close, validate.ErrBodyRequired
-		}
-		buf, err := io.ReadAll(r.Body)
-		defer func() {
-			_ = r.Body.Close()
-		}()
-		if err != nil {
-			return req, rawBody, close, err
-		}
-
-		// Reset the body to allow for downstream reading.
-		r.Body = io.NopCloser(bytes.NewBuffer(buf))
-
-		if len(buf) == 0 {
-			return req, rawBody, close, validate.ErrBodyRequired
-		}
-
-		rawBody = append(rawBody, buf...)
-		d := jx.DecodeBytes(buf)
-
-		var request UpdateFileRequest
+		var request CreateSystemUserRequest
 		if err := func() error {
 			if err := request.Decode(d); err != nil {
 				return err
@@ -476,6 +457,227 @@ func (s *Server) decodeUpdateFileRequest(r *http.Request) (
 			return nil
 		}(); err != nil {
 			return req, rawBody, close, errors.Wrap(err, "validate")
+		}
+		return &request, rawBody, close, nil
+	default:
+		return req, rawBody, close, validate.InvalidContentType(ct)
+	}
+}
+
+func (s *Server) decodeHandleCallbackRequest(r *http.Request) (
+	req *CallbackRequest,
+	rawBody []byte,
+	close func() error,
+	rerr error,
+) {
+	var closers []func() error
+	close = func() error {
+		var merr error
+		// Close in reverse order, to match defer behavior.
+		for i := len(closers) - 1; i >= 0; i-- {
+			c := closers[i]
+			merr = errors.Join(merr, c())
+		}
+		return merr
+	}
+	defer func() {
+		if rerr != nil {
+			rerr = errors.Join(rerr, close())
+		}
+	}()
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return req, rawBody, close, errors.Wrap(err, "parse media type")
+	}
+	switch {
+	case ct == "application/json":
+		if r.ContentLength == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+		buf, err := io.ReadAll(r.Body)
+		defer func() {
+			_ = r.Body.Close()
+		}()
+		if err != nil {
+			return req, rawBody, close, err
+		}
+
+		// Reset the body to allow for downstream reading.
+		r.Body = io.NopCloser(bytes.NewBuffer(buf))
+
+		if len(buf) == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+
+		rawBody = append(rawBody, buf...)
+		d := jx.DecodeBytes(buf)
+
+		var request CallbackRequest
+		if err := func() error {
+			if err := request.Decode(d); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != io.EOF {
+				return errors.New("unexpected trailing data")
+			}
+			return nil
+		}(); err != nil {
+			err = &ogenerrors.DecodeBodyError{
+				ContentType: ct,
+				Body:        buf,
+				Err:         err,
+			}
+			return req, rawBody, close, err
+		}
+		return &request, rawBody, close, nil
+	default:
+		return req, rawBody, close, validate.InvalidContentType(ct)
+	}
+}
+
+func (s *Server) decodeInitiateUploadRequest(r *http.Request) (
+	req *InitiateUploadRequest,
+	rawBody []byte,
+	close func() error,
+	rerr error,
+) {
+	var closers []func() error
+	close = func() error {
+		var merr error
+		// Close in reverse order, to match defer behavior.
+		for i := len(closers) - 1; i >= 0; i-- {
+			c := closers[i]
+			merr = errors.Join(merr, c())
+		}
+		return merr
+	}
+	defer func() {
+		if rerr != nil {
+			rerr = errors.Join(rerr, close())
+		}
+	}()
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return req, rawBody, close, errors.Wrap(err, "parse media type")
+	}
+	switch {
+	case ct == "application/json":
+		if r.ContentLength == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+		buf, err := io.ReadAll(r.Body)
+		defer func() {
+			_ = r.Body.Close()
+		}()
+		if err != nil {
+			return req, rawBody, close, err
+		}
+
+		// Reset the body to allow for downstream reading.
+		r.Body = io.NopCloser(bytes.NewBuffer(buf))
+
+		if len(buf) == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+
+		rawBody = append(rawBody, buf...)
+		d := jx.DecodeBytes(buf)
+
+		var request InitiateUploadRequest
+		if err := func() error {
+			if err := request.Decode(d); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != io.EOF {
+				return errors.New("unexpected trailing data")
+			}
+			return nil
+		}(); err != nil {
+			err = &ogenerrors.DecodeBodyError{
+				ContentType: ct,
+				Body:        buf,
+				Err:         err,
+			}
+			return req, rawBody, close, err
+		}
+		if err := func() error {
+			if err := request.Validate(); err != nil {
+				return err
+			}
+			return nil
+		}(); err != nil {
+			return req, rawBody, close, errors.Wrap(err, "validate")
+		}
+		return &request, rawBody, close, nil
+	default:
+		return req, rawBody, close, validate.InvalidContentType(ct)
+	}
+}
+
+func (s *Server) decodeMkdirRequest(r *http.Request) (
+	req *MkdirRequest,
+	rawBody []byte,
+	close func() error,
+	rerr error,
+) {
+	var closers []func() error
+	close = func() error {
+		var merr error
+		// Close in reverse order, to match defer behavior.
+		for i := len(closers) - 1; i >= 0; i-- {
+			c := closers[i]
+			merr = errors.Join(merr, c())
+		}
+		return merr
+	}
+	defer func() {
+		if rerr != nil {
+			rerr = errors.Join(rerr, close())
+		}
+	}()
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return req, rawBody, close, errors.Wrap(err, "parse media type")
+	}
+	switch {
+	case ct == "application/json":
+		if r.ContentLength == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+		buf, err := io.ReadAll(r.Body)
+		defer func() {
+			_ = r.Body.Close()
+		}()
+		if err != nil {
+			return req, rawBody, close, err
+		}
+
+		// Reset the body to allow for downstream reading.
+		r.Body = io.NopCloser(bytes.NewBuffer(buf))
+
+		if len(buf) == 0 {
+			return req, rawBody, close, validate.ErrBodyRequired
+		}
+
+		rawBody = append(rawBody, buf...)
+		d := jx.DecodeBytes(buf)
+
+		var request MkdirRequest
+		if err := func() error {
+			if err := request.Decode(d); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != io.EOF {
+				return errors.New("unexpected trailing data")
+			}
+			return nil
+		}(); err != nil {
+			err = &ogenerrors.DecodeBodyError{
+				ContentType: ct,
+				Body:        buf,
+				Err:         err,
+			}
+			return req, rawBody, close, err
 		}
 		return &request, rawBody, close, nil
 	default:

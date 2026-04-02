@@ -1,0 +1,74 @@
+# Auth endpoints
+/auth/login:
+  get:
+    operationId: initiateLogin
+    summary: Initiate login
+    description: Start OIDC login flow and return authorization URL
+    tags:
+      - Auth
+    security: []
+    responses:
+      '200':
+        description: Login initiated
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/auth.yaml#/LoginResponse"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+
+/auth/callback:
+  post:
+    operationId: handleCallback
+    summary: Handle OAuth callback
+    description: Handle OAuth callback from Keycloak
+    tags:
+      - Auth
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/auth.yaml#/CallbackRequest"
+    responses:
+      '200':
+        description: Authentication successful
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/auth.yaml#/CallbackResponse"
+      '400':
+        description: Invalid request
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+
+/auth/logout:
+  post:
+    operationId: logout
+    summary: Logout
+    description: Logout and delete session (idempotent - always returns 204)
+    tags:
+      - Auth
+    security: []
+    responses:
+      '204':
+        description: Logout successful

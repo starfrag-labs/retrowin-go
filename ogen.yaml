@@ -13,6 +13,7 @@ generator:
       - "server/response/validation"
       - "ogen/otel"
       - "ogen/unimplemented"
+      - "debug/example_tests"
 
   convenient_errors: "auto"
   ignore_not_implemented: ["all"]

@@ -1,0 +1,333 @@
+package object
+
+import (
+	"context"
+	"io"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/starfrag-lab/retrowin-go/ent"
+	"github.com/starfrag-lab/retrowin-go/internal/errors"
+)
+
+// Provider represents the storage provider type.
+type Provider string
+
+const (
+	ProviderS3 Provider = "s3"
+)
+
+// Status represents the object upload status.
+type Status string
+
+const (
+	StatusPending Status = "pending"
+	StatusActive  Status = "active"
+)
+
+// Object represents a tracked object in external storage.
+type Object struct {
+	id         string
+	provider   Provider
+	bucket     string
+	systemID   string
+	storageKey string
+	status     Status
+	createdAt  time.Time
+	updatedAt  time.Time
+}
+
+// NewObject creates a new Object.
+func NewObject(
+	id string,
+	provider Provider,
+	bucket string,
+	systemID string,
+	storageKey string,
+	status Status,
+	createdAt time.Time,
+	updatedAt time.Time,
+) *Object {
+	return &Object{
+		id:         id,
+		provider:   provider,
+		bucket:     bucket,
+		systemID:   systemID,
+		storageKey: storageKey,
+		status:     status,
+		createdAt:  createdAt,
+		updatedAt:  updatedAt,
+	}
+}
+
+// Getters
+func (o *Object) ID() string           { return o.id }
+func (o *Object) Provider() Provider   { return o.provider }
+func (o *Object) Bucket() string       { return o.bucket }
+func (o *Object) SystemID() string     { return o.systemID }
+func (o *Object) StorageKey() string   { return o.storageKey }
+func (o *Object) Status() Status       { return o.status }
+func (o *Object) CreatedAt() time.Time { return o.createdAt }
+func (o *Object) UpdatedAt() time.Time { return o.updatedAt }
+
+// UploadSession contains information for client direct upload.
+type UploadSession struct {
+	ObjectID  string
+	UploadURL string
+	ExpiresAt time.Time
+}
+
+// ObjectService defines the interface for object operations.
+type ObjectService interface {
+	// Create streams data to storage and creates an Object DB record atomically.
+	// Deprecated: Use InitiateUpload + CompleteUpload for large files.
+	Create(ctx context.Context, cmd *CreateCommand) (*Object, error)
+
+	// InitiateUpload creates a pending object and returns upload URL.
+	InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand) (*UploadSession, error)
+
+	// CompleteUpload marks object as active after client confirms upload.
+	CompleteUpload(ctx context.Context, objectID string) (*Object, error)
+
+	GetByID(ctx context.Context, id string) (*Object, error)
+	GetByStorageKey(ctx context.Context, systemID string, provider Provider, bucket string, storageKey string) (*Object, error)
+
+	// Delete atomically removes from external storage and DB.
+	Delete(ctx context.Context, id string) error
+
+	Find(ctx context.Context, filter Filter) ([]*Object, error)
+	FindOne(ctx context.Context, filter Filter) (*Object, error)
+	GetDownloadURL(ctx context.Context, id string) (string, time.Time, error)
+
+	// GC: Find pending objects older than threshold.
+	FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error)
+}
+
+// CreateCommand for creating a new object (service layer).
+type CreateCommand struct {
+	Provider   Provider
+	Bucket     string
+	SystemID   string
+	StorageKey string
+	Reader     io.Reader
+	Size       int64
+}
+
+// InitiateUploadCommand for starting a presigned upload.
+type InitiateUploadCommand struct {
+	SystemID    string
+	ContentType string
+	Size        int64
+}
+
+// Filter for querying objects (service layer).
+type Filter = QueryFilter
+
+// Filter helpers
+func ByID(id string) Filter {
+	return Filter{ID: &id}
+}
+
+func BySystemID(systemID string) Filter {
+	return Filter{SystemID: &systemID}
+}
+
+func ByStatus(status Status) Filter {
+	s := string(status)
+	return Filter{Status: &s}
+}
+
+func BySystemIDAndStatus(systemID string, status Status) Filter {
+	s := string(status)
+	return Filter{SystemID: &systemID, Status: &s}
+}
+
+type service struct {
+	repo    ObjectRepository
+	storage Storage
+	client  *ent.Client
+}
+
+// NewService creates a new ObjectService.
+func NewService(repo ObjectRepository, storage Storage, client *ent.Client) ObjectService {
+	return &service{repo: repo, storage: storage, client: client}
+}
+
+func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Object, error) {
+	if cmd.SystemID == "" {
+		return nil, errors.BadRequest("system_id is required")
+	}
+	if cmd.StorageKey == "" {
+		return nil, errors.BadRequest("storage_key is required")
+	}
+
+	provider := cmd.Provider
+	if provider == "" {
+		provider = ProviderS3
+	}
+
+	// Stream upload to storage
+	if err := s.storage.PutObject(ctx, cmd.Bucket, cmd.StorageKey, cmd.Reader, cmd.Size); err != nil {
+		return nil, errors.WrapInternal(err, "failed to upload to storage")
+	}
+
+	// Create object record in DB
+	params := &CreateParams{
+		Provider:   provider,
+		Bucket:     cmd.Bucket,
+		SystemID:   cmd.SystemID,
+		StorageKey: cmd.StorageKey,
+	}
+	obj, err := s.repo.Create(ctx, s.client, params)
+	if err != nil {
+		// Attempt cleanup on DB failure
+		_ = s.storage.DeleteObject(ctx, cmd.Bucket, cmd.StorageKey)
+		return nil, errors.WrapInternal(err, "failed to create object record")
+	}
+
+	return obj, nil
+}
+
+// InitiateUpload creates a pending object and returns presigned upload URL.
+func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand) (*UploadSession, error) {
+	if cmd.SystemID == "" {
+		return nil, errors.BadRequest("system_id is required")
+	}
+
+	// Generate object ID and storage key
+	objectID := uuid.New().String()
+	storageKey := objectID // Use object ID as storage key
+
+	// Get default bucket from storage config (or use system default)
+	bucket := "" // Will use default bucket
+
+	// Create pending object in DB
+	params := &CreateParams{
+		Provider:   ProviderS3,
+		Bucket:     bucket,
+		SystemID:   cmd.SystemID,
+		StorageKey: storageKey,
+		Status:     StatusPending,
+	}
+	if _, err := s.repo.CreateWithID(ctx, s.client, objectID, params); err != nil {
+		return nil, errors.WrapInternal(err, "failed to create pending object")
+	}
+
+	// Generate presigned upload URL
+	uploadURL, err := s.storage.GetPresignedUploadURL(ctx, bucket, storageKey, cmd.ContentType, cmd.Size, DefaultUploadExpiry)
+	if err != nil {
+		// Cleanup on failure
+		_ = s.repo.Delete(ctx, s.client, objectID)
+		return nil, errors.WrapInternal(err, "failed to generate upload URL")
+	}
+
+	return &UploadSession{
+		ObjectID:  objectID,
+		UploadURL: uploadURL,
+		ExpiresAt: time.Now().Add(DefaultUploadExpiry),
+	}, nil
+}
+
+// CompleteUpload marks object as active after client confirms upload.
+func (s *service) CompleteUpload(ctx context.Context, objectID string) (*Object, error) {
+	obj, err := s.repo.GetByID(ctx, s.client, objectID)
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
+		return nil, errors.NotFound("object not found")
+	}
+	if obj.Status() != StatusPending {
+		return nil, errors.BadRequest("object is not in pending state")
+	}
+
+	// Verify object exists in storage
+	exists, err := s.storage.ObjectExists(ctx, obj.Bucket(), obj.StorageKey())
+	if err != nil {
+		return nil, errors.WrapInternal(err, "failed to verify object")
+	}
+	if !exists {
+		return nil, errors.BadRequest("object not found in storage")
+	}
+
+	// Update status to active
+	if err := s.repo.UpdateStatus(ctx, s.client, objectID, StatusActive); err != nil {
+		return nil, errors.WrapInternal(err, "failed to update object status")
+	}
+
+	return s.repo.GetByID(ctx, s.client, objectID)
+}
+
+func (s *service) GetByID(ctx context.Context, id string) (*Object, error) {
+	obj, err := s.repo.GetByID(ctx, s.client, id)
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
+		return nil, errors.NotFound("object not found")
+	}
+	return obj, nil
+}
+
+func (s *service) GetByStorageKey(ctx context.Context, systemID string, provider Provider, bucket string, storageKey string) (*Object, error) {
+	obj, err := s.repo.GetByStorageKey(ctx, s.client, systemID, string(provider), bucket, storageKey)
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
+		return nil, errors.NotFound("object not found")
+	}
+	return obj, nil
+}
+
+func (s *service) Delete(ctx context.Context, id string) error {
+	obj, err := s.repo.GetByID(ctx, s.client, id)
+	if err != nil {
+		return err
+	}
+	if obj == nil {
+		return errors.NotFound("object not found")
+	}
+
+	if err := s.storage.DeleteObject(ctx, obj.Bucket(), obj.StorageKey()); err != nil {
+		return errors.WrapInternal(err, "failed to delete from storage")
+	}
+
+	return s.repo.Delete(ctx, s.client, id)
+}
+
+func (s *service) Find(ctx context.Context, filter Filter) ([]*Object, error) {
+	return s.repo.Find(ctx, s.client, &filter)
+}
+
+func (s *service) FindOne(ctx context.Context, filter Filter) (*Object, error) {
+	obj, err := s.repo.FindOne(ctx, s.client, &filter)
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
+		return nil, errors.NotFound("object not found")
+	}
+	return obj, nil
+}
+
+func (s *service) GetDownloadURL(ctx context.Context, id string) (string, time.Time, error) {
+	obj, err := s.repo.GetByID(ctx, s.client, id)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	if obj == nil {
+		return "", time.Time{}, errors.NotFound("object not found")
+	}
+
+	downloadURL, err := s.storage.GetPresignedDownloadURL(ctx, obj.Bucket(), obj.StorageKey(), DefaultDownloadExpiry)
+	if err != nil {
+		return "", time.Time{}, errors.WrapInternal(err, "failed to generate download URL")
+	}
+	return downloadURL, time.Now().Add(DefaultDownloadExpiry), nil
+}
+
+// FindPendingOlderThan finds pending objects older than threshold for GC.
+func (s *service) FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error) {
+	return s.repo.FindPendingOlderThan(ctx, s.client, olderThan)
+}

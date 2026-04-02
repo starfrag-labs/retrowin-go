@@ -6,26 +6,23 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// File is the predicate function for file builders.
-type File func(*sql.Selector)
+// Inode is the predicate function for inode builders.
+type Inode func(*sql.Selector)
 
-// FileInfo is the predicate function for fileinfo builders.
-type FileInfo func(*sql.Selector)
+// Object is the predicate function for object builders.
+type Object func(*sql.Selector)
 
-// FileLink is the predicate function for filelink builders.
-type FileLink func(*sql.Selector)
+// System is the predicate function for system builders.
+type System func(*sql.Selector)
 
-// FilePath is the predicate function for filepath builders.
-type FilePath func(*sql.Selector)
-
-// FileRole is the predicate function for filerole builders.
-type FileRole func(*sql.Selector)
-
-// ServiceStatus is the predicate function for servicestatus builders.
-type ServiceStatus func(*sql.Selector)
-
-// TempFile is the predicate function for tempfile builders.
-type TempFile func(*sql.Selector)
+// SystemGroup is the predicate function for systemgroup builders.
+type SystemGroup func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// UserGroup is the predicate function for usergroup builders.
+type UserGroup func(*sql.Selector)
+
+// UserSystem is the predicate function for usersystem builders.
+type UserSystem func(*sql.Selector)

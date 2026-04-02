@@ -38,22 +38,22 @@ func (_m *UserServiceMock) EXPECT() *UserServiceMock_Expecter {
 }
 
 // FindOrCreate provides a mock function for the type UserServiceMock
-func (_mock *UserServiceMock) FindOrCreate(ctx context.Context, subject string, email string, name string, picture string) (int64, error) {
+func (_mock *UserServiceMock) FindOrCreate(ctx context.Context, subject string, email string, name string, picture string) (string, error) {
 	ret := _mock.Called(ctx, subject, email, name, picture)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindOrCreate")
 	}
 
-	var r0 int64
+	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (int64, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (string, error)); ok {
 		return returnFunc(ctx, subject, email, name, picture)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) int64); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) string); ok {
 		r0 = returnFunc(ctx, subject, email, name, picture)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Get(0).(string)
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
 		r1 = returnFunc(ctx, subject, email, name, picture)
@@ -111,12 +111,12 @@ func (_c *UserServiceMock_FindOrCreate_Call) Run(run func(ctx context.Context, s
 	return _c
 }
 
-func (_c *UserServiceMock_FindOrCreate_Call) Return(n int64, err error) *UserServiceMock_FindOrCreate_Call {
-	_c.Call.Return(n, err)
+func (_c *UserServiceMock_FindOrCreate_Call) Return(s string, err error) *UserServiceMock_FindOrCreate_Call {
+	_c.Call.Return(s, err)
 	return _c
 }
 
-func (_c *UserServiceMock_FindOrCreate_Call) RunAndReturn(run func(ctx context.Context, subject string, email string, name string, picture string) (int64, error)) *UserServiceMock_FindOrCreate_Call {
+func (_c *UserServiceMock_FindOrCreate_Call) RunAndReturn(run func(ctx context.Context, subject string, email string, name string, picture string) (string, error)) *UserServiceMock_FindOrCreate_Call {
 	_c.Call.Return(run)
 	return _c
 }

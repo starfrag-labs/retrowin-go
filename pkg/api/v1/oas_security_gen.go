@@ -35,24 +35,31 @@ func findAuthorization(h http.Header, prefix string) (string, bool) {
 
 // operationRolesSessionAuth is a private map storing roles per operation.
 var operationRolesSessionAuth = map[string][]string{
+	AddGroupMemberOperation:    []string{},
+	ChmodOperation:             []string{},
 	CompleteUploadOperation:    []string{},
-	CopyFileOperation:          []string{},
-	CreateFileOperation:        []string{},
-	CreateUserOperation:        []string{},
-	DeleteFileOperation:        []string{},
+	CreateSymlinkOperation:     []string{},
+	CreateSystemOperation:      []string{},
+	CreateSystemGroupOperation: []string{},
+	CreateSystemUserOperation:  []string{},
+	DeleteSystemGroupOperation: []string{},
+	DeleteSystemUserOperation:  []string{},
 	DeleteUserOperation:        []string{},
-	GetFileChildrenOperation:   []string{},
-	GetFileInfoOperation:       []string{},
-	GetHealthOperation:         []string{},
-	GetHomeContainerOperation:  []string{},
-	GetRootContainerOperation:  []string{},
-	GetServiceStatusOperation:  []string{},
-	GetStreamTokenOperation:    []string{},
-	GetTrashContainerOperation: []string{},
-	GetUploadTokenOperation:    []string{},
+	GetDownloadUrlOperation:    []string{},
+	GetRootDirectoryOperation:  []string{},
+	GetSystemOperation:         []string{},
+	GetSystemGroupOperation:    []string{},
+	GetSystemUserOperation:     []string{},
 	GetUserOperation:           []string{},
-	MoveFileOperation:          []string{},
-	UpdateFileOperation:        []string{},
+	InitiateUploadOperation:    []string{},
+	ListSystemGroupsOperation:  []string{},
+	ListSystemUsersOperation:   []string{},
+	ListSystemsOperation:       []string{},
+	MkdirOperation:             []string{},
+	ReadDirOperation:           []string{},
+	RemoveGroupMemberOperation: []string{},
+	StatPathOperation:          []string{},
+	UnlinkOperation:            []string{},
 }
 
 // GetRolesForSessionAuth returns the required roles for the given operation.
@@ -78,7 +85,7 @@ func GetRolesForSessionAuth(operation string) []string {
 
 func (s *Server) securitySessionAuth(ctx context.Context, operationName OperationName, req *http.Request) (context.Context, bool, error) {
 	var t SessionAuth
-	const parameterName = "retrowin_session"
+	const parameterName = "session_id"
 	var value string
 	switch cookie, err := req.Cookie(parameterName); {
 	case err == nil: // if NO error
@@ -112,7 +119,7 @@ func (s *Client) securitySessionAuth(ctx context.Context, operationName Operatio
 		return errors.Wrap(err, "security source \"SessionAuth\"")
 	}
 	req.AddCookie(&http.Cookie{
-		Name:  "retrowin_session",
+		Name:  "session_id",
 		Value: t.APIKey,
 	})
 	return nil

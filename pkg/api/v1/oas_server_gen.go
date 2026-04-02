@@ -8,114 +8,186 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
+	// AddGroupMember implements addGroupMember operation.
+	//
+	// Add a user to a group.
+	//
+	// POST /systems/{systemId}/groups/{gid}/members/{uid}
+	AddGroupMember(ctx context.Context, params AddGroupMemberParams) (AddGroupMemberRes, error)
+	// Chmod implements chmod operation.
+	//
+	// Change permissions of a file or directory.
+	//
+	// PATCH /fs/{systemId}/chmod
+	Chmod(ctx context.Context, req *ChmodRequest, params ChmodParams) (ChmodRes, error)
 	// CompleteUpload implements completeUpload operation.
 	//
-	// Mark file upload as complete and update metadata.
+	// Mark upload as complete and create inode.
 	//
-	// PATCH /file/upload/complete/{fileKey}
-	CompleteUpload(ctx context.Context, req OptCompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error)
-	// CopyFile implements copyFile operation.
+	// POST /fs/{systemId}/upload/complete
+	CompleteUpload(ctx context.Context, req *CompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error)
+	// CreateSymlink implements createSymlink operation.
 	//
-	// Copy a file to a different container.
+	// Create a symbolic link.
 	//
-	// POST /file/{fileKey}/copy
-	CopyFile(ctx context.Context, req *CopyFileRequest, params CopyFileParams) (CopyFileRes, error)
-	// CreateFile implements createFile operation.
+	// POST /fs/{systemId}/symlink
+	CreateSymlink(ctx context.Context, req *SymlinkRequest, params CreateSymlinkParams) (CreateSymlinkRes, error)
+	// CreateSystem implements createSystem operation.
 	//
-	// Create a new file or container in a parent container.
+	// Create a new system with root user and directories.
 	//
-	// POST /file
-	CreateFile(ctx context.Context, req *CreateFileRequest) (CreateFileRes, error)
-	// CreateUser implements createUser operation.
+	// POST /systems
+	CreateSystem(ctx context.Context, req *CreateSystemRequest) (CreateSystemRes, error)
+	// CreateSystemGroup implements createSystemGroup operation.
 	//
-	// Create a new user with the given UUID.
+	// Create a new group in a system.
 	//
-	// POST /user
-	CreateUser(ctx context.Context, req *CreateUserRequest) (CreateUserRes, error)
-	// DeleteFile implements deleteFile operation.
+	// POST /systems/{systemId}/groups
+	CreateSystemGroup(ctx context.Context, req *CreateSystemGroupRequest, params CreateSystemGroupParams) (CreateSystemGroupRes, error)
+	// CreateSystemUser implements createSystemUser operation.
 	//
-	// Move file to trash or permanently delete.
+	// Add a user to a system.
+	// UID assignment:
+	// - If uid is -1 or not provided: Auto-assigned starting from 1000
+	// - If uid is 0: Creates root user (superuser) - typically only for system initialization
+	// - If uid is 1-999: Reserved for system users (e.g., daemon accounts)
+	// - If uid is 1000+: Regular user with explicit UID
+	// A private group with the same GID as UID is automatically created.
 	//
-	// DELETE /file/{fileKey}
-	DeleteFile(ctx context.Context, params DeleteFileParams) (DeleteFileRes, error)
+	// POST /systems/{systemId}/users
+	CreateSystemUser(ctx context.Context, req *CreateSystemUserRequest, params CreateSystemUserParams) (CreateSystemUserRes, error)
+	// DeleteSystemGroup implements deleteSystemGroup operation.
+	//
+	// Delete a group from a system.
+	//
+	// DELETE /systems/{systemId}/groups/{gid}
+	DeleteSystemGroup(ctx context.Context, params DeleteSystemGroupParams) (DeleteSystemGroupRes, error)
+	// DeleteSystemUser implements deleteSystemUser operation.
+	//
+	// Remove a user from a system.
+	//
+	// DELETE /systems/{systemId}/users/{uid}
+	DeleteSystemUser(ctx context.Context, params DeleteSystemUserParams) (DeleteSystemUserRes, error)
 	// DeleteUser implements deleteUser operation.
 	//
-	// Delete the current user and all associated data.
+	// Delete the current user.
 	//
 	// DELETE /user
 	DeleteUser(ctx context.Context) (DeleteUserRes, error)
-	// GetFileChildren implements getFileChildren operation.
+	// GetDownloadUrl implements getDownloadUrl operation.
 	//
-	// Get all children of a container.
+	// Get presigned download URL for a file.
 	//
-	// GET /file/children/{fileKey}
-	GetFileChildren(ctx context.Context, params GetFileChildrenParams) (GetFileChildrenRes, error)
-	// GetFileInfo implements getFileInfo operation.
-	//
-	// Get detailed information about a file.
-	//
-	// GET /file/info/{fileKey}
-	GetFileInfo(ctx context.Context, params GetFileInfoParams) (GetFileInfoRes, error)
+	// GET /fs/{systemId}/download
+	GetDownloadUrl(ctx context.Context, params GetDownloadUrlParams) (GetDownloadUrlRes, error)
 	// GetHealth implements getHealth operation.
 	//
 	// Check if the service is healthy.
 	//
 	// GET /health
-	GetHealth(ctx context.Context) (*HealthStatus, error)
-	// GetHomeContainer implements getHomeContainer operation.
+	GetHealth(ctx context.Context) (GetHealthRes, error)
+	// GetRootDirectory implements getRootDirectory operation.
 	//
-	// Get the home container for the current user.
+	// Get the root directory inode for a system.
 	//
-	// GET /file/home
-	GetHomeContainer(ctx context.Context) (GetHomeContainerRes, error)
-	// GetRootContainer implements getRootContainer operation.
+	// GET /fs/{systemId}/root
+	GetRootDirectory(ctx context.Context, params GetRootDirectoryParams) (GetRootDirectoryRes, error)
+	// GetSystem implements getSystem operation.
 	//
-	// Get the root container for the current user.
+	// Get detailed information about a system.
 	//
-	// GET /file/root
-	GetRootContainer(ctx context.Context) (GetRootContainerRes, error)
-	// GetServiceStatus implements getServiceStatus operation.
+	// GET /systems/{systemId}
+	GetSystem(ctx context.Context, params GetSystemParams) (GetSystemRes, error)
+	// GetSystemGroup implements getSystemGroup operation.
 	//
-	// Get the service status for the current user.
+	// Get detailed information about a system group.
 	//
-	// GET /user/status
-	GetServiceStatus(ctx context.Context) (GetServiceStatusRes, error)
-	// GetStreamToken implements getStreamToken operation.
+	// GET /systems/{systemId}/groups/{gid}
+	GetSystemGroup(ctx context.Context, params GetSystemGroupParams) (GetSystemGroupRes, error)
+	// GetSystemUser implements getSystemUser operation.
 	//
-	// Get a presigned URL for downloading/streaming file content.
+	// Get detailed information about a system user.
 	//
-	// GET /file/stream/read-token/{fileKey}
-	GetStreamToken(ctx context.Context, params GetStreamTokenParams) (GetStreamTokenRes, error)
-	// GetTrashContainer implements getTrashContainer operation.
-	//
-	// Get the trash container for the current user.
-	//
-	// GET /file/trash
-	GetTrashContainer(ctx context.Context) (GetTrashContainerRes, error)
-	// GetUploadToken implements getUploadToken operation.
-	//
-	// Get a presigned URL and token for uploading file content.
-	//
-	// GET /file/upload/write-token/{fileKey}
-	GetUploadToken(ctx context.Context, params GetUploadTokenParams) (GetUploadTokenRes, error)
+	// GET /systems/{systemId}/users/{uid}
+	GetSystemUser(ctx context.Context, params GetSystemUserParams) (GetSystemUserRes, error)
 	// GetUser implements getUser operation.
 	//
-	// Get the current user information based on x-uuid header.
+	// Get the current user information.
 	//
 	// GET /user
 	GetUser(ctx context.Context) (GetUserRes, error)
-	// MoveFile implements moveFile operation.
+	// HandleCallback implements handleCallback operation.
 	//
-	// Move a file to a different container.
+	// Handle OAuth callback from Keycloak.
 	//
-	// POST /file/{fileKey}/move
-	MoveFile(ctx context.Context, req *MoveFileRequest, params MoveFileParams) (MoveFileRes, error)
-	// UpdateFile implements updateFile operation.
+	// POST /auth/callback
+	HandleCallback(ctx context.Context, req *CallbackRequest) (HandleCallbackRes, error)
+	// InitiateLogin implements initiateLogin operation.
 	//
-	// Update file name or other metadata.
+	// Start OIDC login flow and return authorization URL.
 	//
-	// PATCH /file/{fileKey}
-	UpdateFile(ctx context.Context, req *UpdateFileRequest, params UpdateFileParams) (UpdateFileRes, error)
+	// GET /auth/login
+	InitiateLogin(ctx context.Context) (InitiateLoginRes, error)
+	// InitiateUpload implements initiateUpload operation.
+	//
+	// Start an upload session and get presigned URL.
+	//
+	// POST /fs/{systemId}/upload/initiate
+	InitiateUpload(ctx context.Context, req *InitiateUploadRequest, params InitiateUploadParams) (InitiateUploadRes, error)
+	// ListSystemGroups implements listSystemGroups operation.
+	//
+	// Get all groups in a system.
+	//
+	// GET /systems/{systemId}/groups
+	ListSystemGroups(ctx context.Context, params ListSystemGroupsParams) (ListSystemGroupsRes, error)
+	// ListSystemUsers implements listSystemUsers operation.
+	//
+	// Get all users in a system.
+	//
+	// GET /systems/{systemId}/users
+	ListSystemUsers(ctx context.Context, params ListSystemUsersParams) (ListSystemUsersRes, error)
+	// ListSystems implements listSystems operation.
+	//
+	// Get a list of all systems.
+	//
+	// GET /systems
+	ListSystems(ctx context.Context) (ListSystemsRes, error)
+	// Logout implements logout operation.
+	//
+	// Logout and delete session (idempotent - always returns 204).
+	//
+	// POST /auth/logout
+	Logout(ctx context.Context) error
+	// Mkdir implements mkdir operation.
+	//
+	// Create a new directory at the specified path.
+	//
+	// POST /fs/{systemId}/mkdir
+	Mkdir(ctx context.Context, req *MkdirRequest, params MkdirParams) (MkdirRes, error)
+	// ReadDir implements readDir operation.
+	//
+	// List contents of a directory.
+	//
+	// GET /fs/{systemId}/readdir
+	ReadDir(ctx context.Context, params ReadDirParams) (ReadDirRes, error)
+	// RemoveGroupMember implements removeGroupMember operation.
+	//
+	// Remove a user from a group.
+	//
+	// DELETE /systems/{systemId}/groups/{gid}/members/{uid}
+	RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (RemoveGroupMemberRes, error)
+	// StatPath implements statPath operation.
+	//
+	// Get inode metadata for a given path.
+	//
+	// GET /fs/{systemId}/stat
+	StatPath(ctx context.Context, params StatPathParams) (StatPathRes, error)
+	// Unlink implements unlink operation.
+	//
+	// Delete a file or directory at the specified path.
+	//
+	// DELETE /fs/{systemId}/unlink
+	Unlink(ctx context.Context, params UnlinkParams) (UnlinkRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and

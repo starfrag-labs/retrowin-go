@@ -16,16 +16,52 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// Username holds the value of the "username" field.
+	Username string `json:"username,omitempty"`
 	// Provider holds the value of the "provider" field.
 	Provider string `json:"provider,omitempty"`
 	// ProviderID holds the value of the "provider_id" field.
-	ProviderID   string `json:"provider_id,omitempty"`
+	ProviderID string `json:"provider_id,omitempty"`
+	// JoinDate holds the value of the "join_date" field.
+	JoinDate time.Time `json:"join_date,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Systems holds the value of the systems edge.
+	Systems []*System `json:"systems,omitempty"`
+	// UserSystems holds the value of the user_systems edge.
+	UserSystems []*UserSystem `json:"user_systems,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// SystemsOrErr returns the Systems value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SystemsOrErr() ([]*System, error) {
+	if e.loadedTypes[0] {
+		return e.Systems, nil
+	}
+	return nil, &NotLoadedError{edge: "systems"}
+}
+
+// UserSystemsOrErr returns the UserSystems value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UserSystemsOrErr() ([]*UserSystem, error) {
+	if e.loadedTypes[1] {
+		return e.UserSystems, nil
+	}
+	return nil, &NotLoadedError{edge: "user_systems"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,11 +69,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID:
-			values[i] = new(sql.NullInt64)
-		case user.FieldProvider, user.FieldProviderID:
+		case user.FieldID, user.FieldUsername, user.FieldProvider, user.FieldProviderID:
 			values[i] = new(sql.NullString)
-		case user.FieldCreateTime, user.FieldUpdateTime:
+		case user.FieldCreateTime, user.FieldUpdateTime, user.FieldJoinDate:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -55,11 +89,11 @@ func (_m *User) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case user.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				_m.ID = value.String
 			}
-			_m.ID = int(value.Int64)
 		case user.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
@@ -71,6 +105,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				_m.UpdateTime = value.Time
+			}
+		case user.FieldUsername:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value.Valid {
+				_m.Username = value.String
 			}
 		case user.FieldProvider:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -84,6 +124,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ProviderID = value.String
 			}
+		case user.FieldJoinDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field join_date", values[i])
+			} else if value.Valid {
+				_m.JoinDate = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -95,6 +141,16 @@ func (_m *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QuerySystems queries the "systems" edge of the User entity.
+func (_m *User) QuerySystems() *SystemQuery {
+	return NewUserClient(_m.config).QuerySystems(_m)
+}
+
+// QueryUserSystems queries the "user_systems" edge of the User entity.
+func (_m *User) QueryUserSystems() *UserSystemQuery {
+	return NewUserClient(_m.config).QueryUserSystems(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -126,11 +182,17 @@ func (_m *User) String() string {
 	builder.WriteString("update_time=")
 	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
+	builder.WriteString("username=")
+	builder.WriteString(_m.Username)
+	builder.WriteString(", ")
 	builder.WriteString("provider=")
 	builder.WriteString(_m.Provider)
 	builder.WriteString(", ")
 	builder.WriteString("provider_id=")
 	builder.WriteString(_m.ProviderID)
+	builder.WriteString(", ")
+	builder.WriteString("join_date=")
+	builder.WriteString(_m.JoinDate.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

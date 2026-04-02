@@ -12,7 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/starfrag-lab/retrowin-go/ent/predicate"
+	"github.com/starfrag-lab/retrowin-go/ent/system"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -31,6 +33,20 @@ func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 // SetUpdateTime sets the "update_time" field.
 func (_u *UserUpdate) SetUpdateTime(v time.Time) *UserUpdate {
 	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
+// SetUsername sets the "username" field.
+func (_u *UserUpdate) SetUsername(v string) *UserUpdate {
+	_u.mutation.SetUsername(v)
+	return _u
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableUsername(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetUsername(*v)
+	}
 	return _u
 }
 
@@ -62,9 +78,95 @@ func (_u *UserUpdate) SetNillableProviderID(v *string) *UserUpdate {
 	return _u
 }
 
+// SetJoinDate sets the "join_date" field.
+func (_u *UserUpdate) SetJoinDate(v time.Time) *UserUpdate {
+	_u.mutation.SetJoinDate(v)
+	return _u
+}
+
+// SetNillableJoinDate sets the "join_date" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableJoinDate(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetJoinDate(*v)
+	}
+	return _u
+}
+
+// AddSystemIDs adds the "systems" edge to the System entity by IDs.
+func (_u *UserUpdate) AddSystemIDs(ids ...string) *UserUpdate {
+	_u.mutation.AddSystemIDs(ids...)
+	return _u
+}
+
+// AddSystems adds the "systems" edges to the System entity.
+func (_u *UserUpdate) AddSystems(v ...*System) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSystemIDs(ids...)
+}
+
+// AddUserSystemIDs adds the "user_systems" edge to the UserSystem entity by IDs.
+func (_u *UserUpdate) AddUserSystemIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddUserSystemIDs(ids...)
+	return _u
+}
+
+// AddUserSystems adds the "user_systems" edges to the UserSystem entity.
+func (_u *UserUpdate) AddUserSystems(v ...*UserSystem) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserSystemIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
+}
+
+// ClearSystems clears all "systems" edges to the System entity.
+func (_u *UserUpdate) ClearSystems() *UserUpdate {
+	_u.mutation.ClearSystems()
+	return _u
+}
+
+// RemoveSystemIDs removes the "systems" edge to System entities by IDs.
+func (_u *UserUpdate) RemoveSystemIDs(ids ...string) *UserUpdate {
+	_u.mutation.RemoveSystemIDs(ids...)
+	return _u
+}
+
+// RemoveSystems removes "systems" edges to System entities.
+func (_u *UserUpdate) RemoveSystems(v ...*System) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSystemIDs(ids...)
+}
+
+// ClearUserSystems clears all "user_systems" edges to the UserSystem entity.
+func (_u *UserUpdate) ClearUserSystems() *UserUpdate {
+	_u.mutation.ClearUserSystems()
+	return _u
+}
+
+// RemoveUserSystemIDs removes the "user_systems" edge to UserSystem entities by IDs.
+func (_u *UserUpdate) RemoveUserSystemIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveUserSystemIDs(ids...)
+	return _u
+}
+
+// RemoveUserSystems removes "user_systems" edges to UserSystem entities.
+func (_u *UserUpdate) RemoveUserSystems(v ...*UserSystem) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserSystemIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -103,8 +205,31 @@ func (_u *UserUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *UserUpdate) check() error {
+	if v, ok := _u.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Provider(); ok {
+		if err := user.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "User.provider": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ProviderID(); ok {
+		if err := user.ProviderIDValidator(v); err != nil {
+			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "User.provider_id": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -115,11 +240,119 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.Username(); ok {
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Provider(); ok {
 		_spec.SetField(user.FieldProvider, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ProviderID(); ok {
 		_spec.SetField(user.FieldProviderID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.JoinDate(); ok {
+		_spec.SetField(user.FieldJoinDate, field.TypeTime, value)
+	}
+	if _u.mutation.SystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.SystemsTable,
+			Columns: user.SystemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
+			},
+		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSystemsIDs(); len(nodes) > 0 && !_u.mutation.SystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.SystemsTable,
+			Columns: user.SystemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SystemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.SystemsTable,
+			Columns: user.SystemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UserSystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.UserSystemsTable,
+			Columns: []string{user.UserSystemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserSystemsIDs(); len(nodes) > 0 && !_u.mutation.UserSystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.UserSystemsTable,
+			Columns: []string{user.UserSystemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserSystemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.UserSystemsTable,
+			Columns: []string{user.UserSystemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -144,6 +377,20 @@ type UserUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (_u *UserUpdateOne) SetUpdateTime(v time.Time) *UserUpdateOne {
 	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
+// SetUsername sets the "username" field.
+func (_u *UserUpdateOne) SetUsername(v string) *UserUpdateOne {
+	_u.mutation.SetUsername(v)
+	return _u
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableUsername(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetUsername(*v)
+	}
 	return _u
 }
 
@@ -175,9 +422,95 @@ func (_u *UserUpdateOne) SetNillableProviderID(v *string) *UserUpdateOne {
 	return _u
 }
 
+// SetJoinDate sets the "join_date" field.
+func (_u *UserUpdateOne) SetJoinDate(v time.Time) *UserUpdateOne {
+	_u.mutation.SetJoinDate(v)
+	return _u
+}
+
+// SetNillableJoinDate sets the "join_date" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableJoinDate(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetJoinDate(*v)
+	}
+	return _u
+}
+
+// AddSystemIDs adds the "systems" edge to the System entity by IDs.
+func (_u *UserUpdateOne) AddSystemIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.AddSystemIDs(ids...)
+	return _u
+}
+
+// AddSystems adds the "systems" edges to the System entity.
+func (_u *UserUpdateOne) AddSystems(v ...*System) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSystemIDs(ids...)
+}
+
+// AddUserSystemIDs adds the "user_systems" edge to the UserSystem entity by IDs.
+func (_u *UserUpdateOne) AddUserSystemIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddUserSystemIDs(ids...)
+	return _u
+}
+
+// AddUserSystems adds the "user_systems" edges to the UserSystem entity.
+func (_u *UserUpdateOne) AddUserSystems(v ...*UserSystem) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserSystemIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
+}
+
+// ClearSystems clears all "systems" edges to the System entity.
+func (_u *UserUpdateOne) ClearSystems() *UserUpdateOne {
+	_u.mutation.ClearSystems()
+	return _u
+}
+
+// RemoveSystemIDs removes the "systems" edge to System entities by IDs.
+func (_u *UserUpdateOne) RemoveSystemIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.RemoveSystemIDs(ids...)
+	return _u
+}
+
+// RemoveSystems removes "systems" edges to System entities.
+func (_u *UserUpdateOne) RemoveSystems(v ...*System) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSystemIDs(ids...)
+}
+
+// ClearUserSystems clears all "user_systems" edges to the UserSystem entity.
+func (_u *UserUpdateOne) ClearUserSystems() *UserUpdateOne {
+	_u.mutation.ClearUserSystems()
+	return _u
+}
+
+// RemoveUserSystemIDs removes the "user_systems" edge to UserSystem entities by IDs.
+func (_u *UserUpdateOne) RemoveUserSystemIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveUserSystemIDs(ids...)
+	return _u
+}
+
+// RemoveUserSystems removes "user_systems" edges to UserSystem entities.
+func (_u *UserUpdateOne) RemoveUserSystems(v ...*UserSystem) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserSystemIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -229,8 +562,31 @@ func (_u *UserUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *UserUpdateOne) check() error {
+	if v, ok := _u.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Provider(); ok {
+		if err := user.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "User.provider": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ProviderID(); ok {
+		if err := user.ProviderIDValidator(v); err != nil {
+			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "User.provider_id": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -258,11 +614,119 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.Username(); ok {
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Provider(); ok {
 		_spec.SetField(user.FieldProvider, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ProviderID(); ok {
 		_spec.SetField(user.FieldProviderID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.JoinDate(); ok {
+		_spec.SetField(user.FieldJoinDate, field.TypeTime, value)
+	}
+	if _u.mutation.SystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.SystemsTable,
+			Columns: user.SystemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
+			},
+		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSystemsIDs(); len(nodes) > 0 && !_u.mutation.SystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.SystemsTable,
+			Columns: user.SystemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SystemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.SystemsTable,
+			Columns: user.SystemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(system.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &UserSystemCreate{config: _u.config, mutation: newUserSystemMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UserSystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.UserSystemsTable,
+			Columns: []string{user.UserSystemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserSystemsIDs(); len(nodes) > 0 && !_u.mutation.UserSystemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.UserSystemsTable,
+			Columns: []string{user.UserSystemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserSystemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.UserSystemsTable,
+			Columns: []string{user.UserSystemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usersystem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: _u.config}
 	_spec.Assign = _node.assignValues

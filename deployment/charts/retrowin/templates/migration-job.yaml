@@ -37,6 +37,15 @@ spec:
             - apply
             - --config
             - /app/config/config.yaml
+            - --mode
+            - {{ .Values.migration.mode | default "versioned" | quote }}
+            {{- if .Values.migration.baseline }}
+            - --baseline
+            - {{ .Values.migration.baseline | quote }}
+            {{- end }}
+            {{- if .Values.migration.clean }}
+            - --clean
+            {{- end }}
           env:
             {{- if or .Values.secrets.database.password .Values.secrets.database.existingSecret }}
             - name: DATABASE_PASSWORD

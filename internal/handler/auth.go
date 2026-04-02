@@ -1,125 +1,70 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
+	"context"
+	"net/url"
+
+	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/middleware"
 )
 
-// AuthHandler handles authentication HTTP requests.
-type AuthHandler struct {
-	authSvc    auth.Service
-	sessionSvc auth.SessionService
-	secure     bool
-}
-
-// AuthHandlerConfig holds configuration for the auth handler.
-type AuthHandlerConfig struct {
-	AuthService    auth.Service
-	SessionService auth.SessionService
-	Secure         bool
-}
-
-// NewAuthHandler creates a new auth handler.
-func NewAuthHandler(cfg *AuthHandlerConfig) *AuthHandler {
-	return &AuthHandler{
-		authSvc:    cfg.AuthService,
-		sessionSvc: cfg.SessionService,
-		secure:     cfg.Secure,
-	}
-}
-
-// Login initiates the OIDC login flow.
-// GET /auth/login
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	resp, err := h.authSvc.InitiateLogin(r.Context())
+// InitiateLogin implements GET /auth/login.
+func (h *Handler) InitiateLogin(ctx context.Context) (apiv1.InitiateLoginRes, error) {
+	resp, err := h.authSvc.InitiateLogin(ctx)
 	if err != nil {
-		writeAuthError(w, errors.Internal(err.Error()))
-		return
+		return nil, err
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(resp)
+	authURL, err := url.Parse(resp.AuthorizationURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &apiv1.LoginResponse{
+		AuthorizationUrl: *authURL,
+		State:            resp.State,
+	}, nil
 }
 
-// Callback handles the OIDC callback.
-// GET /auth/callback
-func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-	state := r.URL.Query().Get("state")
-
-	if code == "" || state == "" {
-		writeAuthError(w, errors.BadRequest("missing code or state"))
-		return
+// HandleCallback implements POST /auth/callback.
+func (h *Handler) HandleCallback(ctx context.Context, req *apiv1.CallbackRequest) (apiv1.HandleCallbackRes, error) {
+	callbackReq := &auth.CallbackRequest{
+		Code:  req.Code,
+		State: req.State,
 	}
 
-	req := &auth.CallbackRequest{
-		Code:  code,
-		State: state,
-	}
-
-	resp, err := h.authSvc.HandleCallback(r.Context(), req)
+	resp, err := h.authSvc.HandleCallback(ctx, callbackReq)
 	if err != nil {
-		writeAuthError(w, errors.Unauthorized(err.Error()))
-		return
+		if errors.IsUnauthorized(err) || errors.IsNotFound(err) {
+			return &apiv1.HandleCallbackUnauthorized{}, nil
+		}
+		return &apiv1.HandleCallbackBadRequest{}, nil
 	}
 
-	// Set session cookie
-	middleware.SetSessionCookie(w, resp.SessionID, h.secure)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(resp)
+	return &apiv1.CallbackResponse{
+		SessionId: resp.SessionID,
+		UserId:    resp.UserID,
+		ExpiresAt: apiv1.OptTimestamp{Value: apiv1.Timestamp(resp.ExpiresAt), Set: true},
+	}, nil
 }
 
-// Logout handles user logout.
-// POST /auth/logout
-func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(middleware.SessionCookieName)
-	if err != nil {
-		w.WriteHeader(http.StatusNoContent)
-		return
+// Logout implements POST /auth/logout.
+func (h *Handler) Logout(ctx context.Context) error {
+	sessionID := middleware.GetSessionID(ctx)
+	if sessionID == "" {
+		// No session - return success (idempotent logout)
+		return nil
 	}
 
-	// Delete session from storage
-	_ = h.sessionSvc.Delete(r.Context(), auth.SessionID(cookie.Value))
-
-	// Clear session cookie
-	middleware.ClearSessionCookie(w, h.secure)
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// GetMe returns the current user info.
-// GET /auth/me
-func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(middleware.SessionCookieName)
+	err := h.authSvc.Logout(ctx, sessionID)
 	if err != nil {
-		writeAuthError(w, errors.Unauthorized("not authenticated"))
-		return
+		// Log error but still return success (idempotent logout)
+		// The session might have already been deleted or expired
+		return nil
 	}
 
-	sess, err := h.sessionSvc.Validate(r.Context(), auth.SessionID(cookie.Value))
-	if err != nil {
-		writeAuthError(w, errors.Unauthorized("invalid or expired session"))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"userId":    sess.UserID(),
-		"expiresAt": sess.ExpiresAt(),
-	})
-}
-
-func writeAuthError(w http.ResponseWriter, err *errors.Error) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(err.StatusCode)
-	_ = json.NewEncoder(w).Encode(map[string]string{
-		"code":    err.Code,
-		"message": err.Message,
-	})
+	return nil
 }

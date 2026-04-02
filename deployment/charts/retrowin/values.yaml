@@ -151,6 +151,7 @@ config:
       secure: true
       stateTTL: 300     # 5 minutes
       redisKey: retrowin
+      cookieName: session_id
 
   # CORS settings
   cors:
@@ -204,3 +205,6 @@ extraEnvFrom: []
 # Migration job settings (ArgoCD PreSync hook)
 migration:
   enabled: true
+  mode: versioned        # "auto" (ent auto-migration) or "versioned" (atlas)
+  baseline: ""           # Baseline version for existing databases (versioned mode only)
+  clean: false           # Drop all tables before applying migrations

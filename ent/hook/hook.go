@@ -9,88 +9,52 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
-// The FileFunc type is an adapter to allow the use of ordinary
-// function as File mutator.
-type FileFunc func(context.Context, *ent.FileMutation) (ent.Value, error)
+// The InodeFunc type is an adapter to allow the use of ordinary
+// function as Inode mutator.
+type InodeFunc func(context.Context, *ent.InodeMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileMutation); ok {
+func (f InodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InodeMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InodeMutation", m)
 }
 
-// The FileInfoFunc type is an adapter to allow the use of ordinary
-// function as FileInfo mutator.
-type FileInfoFunc func(context.Context, *ent.FileInfoMutation) (ent.Value, error)
+// The ObjectFunc type is an adapter to allow the use of ordinary
+// function as Object mutator.
+type ObjectFunc func(context.Context, *ent.ObjectMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FileInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileInfoMutation); ok {
+func (f ObjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ObjectMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileInfoMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ObjectMutation", m)
 }
 
-// The FileLinkFunc type is an adapter to allow the use of ordinary
-// function as FileLink mutator.
-type FileLinkFunc func(context.Context, *ent.FileLinkMutation) (ent.Value, error)
+// The SystemFunc type is an adapter to allow the use of ordinary
+// function as System mutator.
+type SystemFunc func(context.Context, *ent.SystemMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FileLinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileLinkMutation); ok {
+func (f SystemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileLinkMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemMutation", m)
 }
 
-// The FilePathFunc type is an adapter to allow the use of ordinary
-// function as FilePath mutator.
-type FilePathFunc func(context.Context, *ent.FilePathMutation) (ent.Value, error)
+// The SystemGroupFunc type is an adapter to allow the use of ordinary
+// function as SystemGroup mutator.
+type SystemGroupFunc func(context.Context, *ent.SystemGroupMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f FilePathFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FilePathMutation); ok {
+func (f SystemGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemGroupMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FilePathMutation", m)
-}
-
-// The FileRoleFunc type is an adapter to allow the use of ordinary
-// function as FileRole mutator.
-type FileRoleFunc func(context.Context, *ent.FileRoleMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FileRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FileRoleMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileRoleMutation", m)
-}
-
-// The ServiceStatusFunc type is an adapter to allow the use of ordinary
-// function as ServiceStatus mutator.
-type ServiceStatusFunc func(context.Context, *ent.ServiceStatusMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ServiceStatusFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ServiceStatusMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ServiceStatusMutation", m)
-}
-
-// The TempFileFunc type is an adapter to allow the use of ordinary
-// function as TempFile mutator.
-type TempFileFunc func(context.Context, *ent.TempFileMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TempFileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.TempFileMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TempFileMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemGroupMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -103,6 +67,30 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserGroupFunc type is an adapter to allow the use of ordinary
+// function as UserGroup mutator.
+type UserGroupFunc func(context.Context, *ent.UserGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserGroupMutation", m)
+}
+
+// The UserSystemFunc type is an adapter to allow the use of ordinary
+// function as UserSystem mutator.
+type UserSystemFunc func(context.Context, *ent.UserSystemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserSystemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserSystemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserSystemMutation", m)
 }
 
 // Condition is a hook condition function.

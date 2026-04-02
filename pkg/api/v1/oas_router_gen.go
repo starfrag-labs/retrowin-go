@@ -11,22 +11,31 @@ import (
 )
 
 var (
-	rn6AllowedHeaders = map[string]string{
-		"POST": "Content-Type",
-	}
-	rn2AllowedHeaders = map[string]string{
-		"PATCH": "Content-Type",
-	}
-	rn4AllowedHeaders = map[string]string{
-		"PATCH": "Content-Type",
-	}
-	rn5AllowedHeaders = map[string]string{
-		"POST": "Content-Type",
-	}
 	rn24AllowedHeaders = map[string]string{
 		"POST": "Content-Type",
 	}
-	rn8AllowedHeaders = map[string]string{
+	rn10AllowedHeaders = map[string]string{
+		"PATCH": "Content-Type",
+	}
+	rn31AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn13AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn12AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn28AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn14AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn15AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn17AllowedHeaders = map[string]string{
 		"POST": "Content-Type",
 	}
 )
@@ -61,7 +70,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.notFound(w, r)
 		return
 	}
-	args := [1]string{}
+	args := [3]string{}
 
 	// Static code generated router with unwrapped path search.
 	switch {
@@ -82,28 +91,128 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 			switch elem[0] {
-			case 'f': // Prefix: "file"
+			case 'a': // Prefix: "auth/"
 
-				if l := len("file"); len(elem) >= l && elem[0:l] == "file" {
+				if l := len("auth/"); len(elem) >= l && elem[0:l] == "auth/" {
 					elem = elem[l:]
 				} else {
 					break
 				}
 
 				if len(elem) == 0 {
-					switch r.Method {
-					case "POST":
-						s.handleCreateFileRequest([0]string{}, elemIsEscaped, w, r)
-					default:
-						s.notAllowed(w, r, notAllowedParams{
-							allowedMethods: "POST",
-							allowedHeaders: rn6AllowedHeaders,
-							acceptPost:     "application/json",
-							acceptPatch:    "",
-						})
+					break
+				}
+				switch elem[0] {
+				case 'c': // Prefix: "callback"
+
+					if l := len("callback"); len(elem) >= l && elem[0:l] == "callback" {
+						elem = elem[l:]
+					} else {
+						break
 					}
 
-					return
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "POST":
+							s.handleHandleCallbackRequest([0]string{}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, notAllowedParams{
+								allowedMethods: "POST",
+								allowedHeaders: rn24AllowedHeaders,
+								acceptPost:     "application/json",
+								acceptPatch:    "",
+							})
+						}
+
+						return
+					}
+
+				case 'l': // Prefix: "log"
+
+					if l := len("log"); len(elem) >= l && elem[0:l] == "log" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						break
+					}
+					switch elem[0] {
+					case 'i': // Prefix: "in"
+
+						if l := len("in"); len(elem) >= l && elem[0:l] == "in" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "GET":
+								s.handleInitiateLoginRequest([0]string{}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, notAllowedParams{
+									allowedMethods: "GET",
+									allowedHeaders: nil,
+									acceptPost:     "",
+									acceptPatch:    "",
+								})
+							}
+
+							return
+						}
+
+					case 'o': // Prefix: "out"
+
+						if l := len("out"); len(elem) >= l && elem[0:l] == "out" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "POST":
+								s.handleLogoutRequest([0]string{}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, notAllowedParams{
+									allowedMethods: "POST",
+									allowedHeaders: nil,
+									acceptPost:     "",
+									acceptPatch:    "",
+								})
+							}
+
+							return
+						}
+
+					}
+
+				}
+
+			case 'f': // Prefix: "fs/"
+
+				if l := len("fs/"); len(elem) >= l && elem[0:l] == "fs/" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				// Param: "systemId"
+				// Match until "/"
+				idx := strings.IndexByte(elem, '/')
+				if idx < 0 {
+					idx = len(elem)
+				}
+				args[0] = elem[:idx]
+				elem = elem[idx:]
+
+				if len(elem) == 0 {
+					break
 				}
 				switch elem[0] {
 				case '/': // Prefix: "/"
@@ -118,28 +227,46 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 					switch elem[0] {
-					case 'c': // Prefix: "children/"
-						origElem := elem
-						if l := len("children/"); len(elem) >= l && elem[0:l] == "children/" {
+					case 'c': // Prefix: "chmod"
+
+						if l := len("chmod"); len(elem) >= l && elem[0:l] == "chmod" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
-						// Param: "fileKey"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "PATCH":
+								s.handleChmodRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, notAllowedParams{
+									allowedMethods: "PATCH",
+									allowedHeaders: rn10AllowedHeaders,
+									acceptPost:     "",
+									acceptPatch:    "application/json",
+								})
+							}
+
+							return
+						}
+
+					case 'd': // Prefix: "download"
+
+						if l := len("download"); len(elem) >= l && elem[0:l] == "download" {
+							elem = elem[l:]
+						} else {
 							break
 						}
-						args[0] = elem
-						elem = ""
 
 						if len(elem) == 0 {
 							// Leaf node.
 							switch r.Method {
 							case "GET":
-								s.handleGetFileChildrenRequest([1]string{
+								s.handleGetDownloadUrlRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							default:
@@ -154,10 +281,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							return
 						}
 
-						elem = origElem
-					case 'h': // Prefix: "home"
-						origElem := elem
-						if l := len("home"); len(elem) >= l && elem[0:l] == "home" {
+					case 'm': // Prefix: "mkdir"
+
+						if l := len("mkdir"); len(elem) >= l && elem[0:l] == "mkdir" {
 							elem = elem[l:]
 						} else {
 							break
@@ -166,50 +292,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						if len(elem) == 0 {
 							// Leaf node.
 							switch r.Method {
-							case "GET":
-								s.handleGetHomeContainerRequest([0]string{}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, notAllowedParams{
-									allowedMethods: "GET",
-									allowedHeaders: nil,
-									acceptPost:     "",
-									acceptPatch:    "",
-								})
-							}
-
-							return
-						}
-
-						elem = origElem
-					case 'i': // Prefix: "info/"
-						origElem := elem
-						if l := len("info/"); len(elem) >= l && elem[0:l] == "info/" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						// Param: "fileKey"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
-							break
-						}
-						args[0] = elem
-						elem = ""
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "GET":
-								s.handleGetFileInfoRequest([1]string{
+							case "POST":
+								s.handleMkdirRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							default:
 								s.notAllowed(w, r, notAllowedParams{
-									allowedMethods: "GET",
-									allowedHeaders: nil,
-									acceptPost:     "",
+									allowedMethods: "POST",
+									allowedHeaders: rn31AllowedHeaders,
+									acceptPost:     "application/json",
 									acceptPatch:    "",
 								})
 							}
@@ -217,99 +308,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							return
 						}
 
-						elem = origElem
-					case 'r': // Prefix: "root"
-						origElem := elem
-						if l := len("root"); len(elem) >= l && elem[0:l] == "root" {
-							elem = elem[l:]
-						} else {
-							break
-						}
+					case 'r': // Prefix: "r"
 
-						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "GET":
-								s.handleGetRootContainerRequest([0]string{}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, notAllowedParams{
-									allowedMethods: "GET",
-									allowedHeaders: nil,
-									acceptPost:     "",
-									acceptPatch:    "",
-								})
-							}
-
-							return
-						}
-
-						elem = origElem
-					case 's': // Prefix: "stream/read-token/"
-						origElem := elem
-						if l := len("stream/read-token/"); len(elem) >= l && elem[0:l] == "stream/read-token/" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						// Param: "fileKey"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
-							break
-						}
-						args[0] = elem
-						elem = ""
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "GET":
-								s.handleGetStreamTokenRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, notAllowedParams{
-									allowedMethods: "GET",
-									allowedHeaders: nil,
-									acceptPost:     "",
-									acceptPatch:    "",
-								})
-							}
-
-							return
-						}
-
-						elem = origElem
-					case 't': // Prefix: "trash"
-						origElem := elem
-						if l := len("trash"); len(elem) >= l && elem[0:l] == "trash" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "GET":
-								s.handleGetTrashContainerRequest([0]string{}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, notAllowedParams{
-									allowedMethods: "GET",
-									allowedHeaders: nil,
-									acceptPost:     "",
-									acceptPatch:    "",
-								})
-							}
-
-							return
-						}
-
-						elem = origElem
-					case 'u': // Prefix: "upload/"
-						origElem := elem
-						if l := len("upload/"); len(elem) >= l && elem[0:l] == "upload/" {
+						if l := len("r"); len(elem) >= l && elem[0:l] == "r" {
 							elem = elem[l:]
 						} else {
 							break
@@ -319,64 +320,46 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							break
 						}
 						switch elem[0] {
-						case 'c': // Prefix: "complete/"
+						case 'e': // Prefix: "eaddir"
 
-							if l := len("complete/"); len(elem) >= l && elem[0:l] == "complete/" {
+							if l := len("eaddir"); len(elem) >= l && elem[0:l] == "eaddir" {
 								elem = elem[l:]
 							} else {
 								break
 							}
 
-							// Param: "fileKey"
-							// Leaf parameter, slashes are prohibited
-							idx := strings.IndexByte(elem, '/')
-							if idx >= 0 {
-								break
-							}
-							args[0] = elem
-							elem = ""
-
 							if len(elem) == 0 {
 								// Leaf node.
 								switch r.Method {
-								case "PATCH":
-									s.handleCompleteUploadRequest([1]string{
+								case "GET":
+									s.handleReadDirRequest([1]string{
 										args[0],
 									}, elemIsEscaped, w, r)
 								default:
 									s.notAllowed(w, r, notAllowedParams{
-										allowedMethods: "PATCH",
-										allowedHeaders: rn2AllowedHeaders,
+										allowedMethods: "GET",
+										allowedHeaders: nil,
 										acceptPost:     "",
-										acceptPatch:    "application/json",
+										acceptPatch:    "",
 									})
 								}
 
 								return
 							}
 
-						case 'w': // Prefix: "write-token/"
+						case 'o': // Prefix: "oot"
 
-							if l := len("write-token/"); len(elem) >= l && elem[0:l] == "write-token/" {
+							if l := len("oot"); len(elem) >= l && elem[0:l] == "oot" {
 								elem = elem[l:]
 							} else {
 								break
 							}
 
-							// Param: "fileKey"
-							// Leaf parameter, slashes are prohibited
-							idx := strings.IndexByte(elem, '/')
-							if idx >= 0 {
-								break
-							}
-							args[0] = elem
-							elem = ""
-
 							if len(elem) == 0 {
 								// Leaf node.
 								switch r.Method {
 								case "GET":
-									s.handleGetUploadTokenRequest([1]string{
+									s.handleGetRootDirectoryRequest([1]string{
 										args[0],
 									}, elemIsEscaped, w, r)
 								default:
@@ -393,42 +376,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 						}
 
-						elem = origElem
-					}
-					// Param: "fileKey"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
+					case 's': // Prefix: "s"
 
-					if len(elem) == 0 {
-						switch r.Method {
-						case "DELETE":
-							s.handleDeleteFileRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "PATCH":
-							s.handleUpdateFileRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, notAllowedParams{
-								allowedMethods: "DELETE,PATCH",
-								allowedHeaders: rn4AllowedHeaders,
-								acceptPost:     "",
-								acceptPatch:    "application/json",
-							})
-						}
-
-						return
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/"
-
-						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+						if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
 							elem = elem[l:]
 						} else {
 							break
@@ -438,9 +388,36 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							break
 						}
 						switch elem[0] {
-						case 'c': // Prefix: "copy"
+						case 't': // Prefix: "tat"
 
-							if l := len("copy"); len(elem) >= l && elem[0:l] == "copy" {
+							if l := len("tat"); len(elem) >= l && elem[0:l] == "tat" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch r.Method {
+								case "GET":
+									s.handleStatPathRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, notAllowedParams{
+										allowedMethods: "GET",
+										allowedHeaders: nil,
+										acceptPost:     "",
+										acceptPatch:    "",
+									})
+								}
+
+								return
+							}
+
+						case 'y': // Prefix: "ymlink"
+
+							if l := len("ymlink"); len(elem) >= l && elem[0:l] == "ymlink" {
 								elem = elem[l:]
 							} else {
 								break
@@ -450,13 +427,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 								// Leaf node.
 								switch r.Method {
 								case "POST":
-									s.handleCopyFileRequest([1]string{
+									s.handleCreateSymlinkRequest([1]string{
 										args[0],
 									}, elemIsEscaped, w, r)
 								default:
 									s.notAllowed(w, r, notAllowedParams{
 										allowedMethods: "POST",
-										allowedHeaders: rn5AllowedHeaders,
+										allowedHeaders: rn13AllowedHeaders,
 										acceptPost:     "application/json",
 										acceptPatch:    "",
 									})
@@ -465,9 +442,23 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 								return
 							}
 
-						case 'm': // Prefix: "move"
+						}
 
-							if l := len("move"); len(elem) >= l && elem[0:l] == "move" {
+					case 'u': // Prefix: "u"
+
+						if l := len("u"); len(elem) >= l && elem[0:l] == "u" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							break
+						}
+						switch elem[0] {
+						case 'n': // Prefix: "nlink"
+
+							if l := len("nlink"); len(elem) >= l && elem[0:l] == "nlink" {
 								elem = elem[l:]
 							} else {
 								break
@@ -476,20 +467,88 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							if len(elem) == 0 {
 								// Leaf node.
 								switch r.Method {
-								case "POST":
-									s.handleMoveFileRequest([1]string{
+								case "DELETE":
+									s.handleUnlinkRequest([1]string{
 										args[0],
 									}, elemIsEscaped, w, r)
 								default:
 									s.notAllowed(w, r, notAllowedParams{
-										allowedMethods: "POST",
-										allowedHeaders: rn24AllowedHeaders,
-										acceptPost:     "application/json",
+										allowedMethods: "DELETE",
+										allowedHeaders: nil,
+										acceptPost:     "",
 										acceptPatch:    "",
 									})
 								}
 
 								return
+							}
+
+						case 'p': // Prefix: "pload/"
+
+							if l := len("pload/"); len(elem) >= l && elem[0:l] == "pload/" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								break
+							}
+							switch elem[0] {
+							case 'c': // Prefix: "complete"
+
+								if l := len("complete"); len(elem) >= l && elem[0:l] == "complete" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch r.Method {
+									case "POST":
+										s.handleCompleteUploadRequest([1]string{
+											args[0],
+										}, elemIsEscaped, w, r)
+									default:
+										s.notAllowed(w, r, notAllowedParams{
+											allowedMethods: "POST",
+											allowedHeaders: rn12AllowedHeaders,
+											acceptPost:     "application/json",
+											acceptPatch:    "",
+										})
+									}
+
+									return
+								}
+
+							case 'i': // Prefix: "initiate"
+
+								if l := len("initiate"); len(elem) >= l && elem[0:l] == "initiate" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch r.Method {
+									case "POST":
+										s.handleInitiateUploadRequest([1]string{
+											args[0],
+										}, elemIsEscaped, w, r)
+									default:
+										s.notAllowed(w, r, notAllowedParams{
+											allowedMethods: "POST",
+											allowedHeaders: rn28AllowedHeaders,
+											acceptPost:     "application/json",
+											acceptPatch:    "",
+										})
+									}
+
+									return
+								}
+
 							}
 
 						}
@@ -523,9 +582,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-			case 'u': // Prefix: "user"
+			case 's': // Prefix: "systems"
 
-				if l := len("user"); len(elem) >= l && elem[0:l] == "user" {
+				if l := len("systems"); len(elem) >= l && elem[0:l] == "systems" {
 					elem = elem[l:]
 				} else {
 					break
@@ -533,16 +592,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 				if len(elem) == 0 {
 					switch r.Method {
-					case "DELETE":
-						s.handleDeleteUserRequest([0]string{}, elemIsEscaped, w, r)
 					case "GET":
-						s.handleGetUserRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleListSystemsRequest([0]string{}, elemIsEscaped, w, r)
 					case "POST":
-						s.handleCreateUserRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleCreateSystemRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, notAllowedParams{
-							allowedMethods: "DELETE,GET,POST",
-							allowedHeaders: rn8AllowedHeaders,
+							allowedMethods: "GET,POST",
+							allowedHeaders: rn14AllowedHeaders,
 							acceptPost:     "application/json",
 							acceptPatch:    "",
 						})
@@ -551,19 +608,29 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				switch elem[0] {
-				case '/': // Prefix: "/status"
+				case '/': // Prefix: "/"
 
-					if l := len("/status"); len(elem) >= l && elem[0:l] == "/status" {
+					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
+					// Param: "systemId"
+					// Match until "/"
+					idx := strings.IndexByte(elem, '/')
+					if idx < 0 {
+						idx = len(elem)
+					}
+					args[0] = elem[:idx]
+					elem = elem[idx:]
+
 					if len(elem) == 0 {
-						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleGetServiceStatusRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleGetSystemRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, notAllowedParams{
 								allowedMethods: "GET",
@@ -575,7 +642,243 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 						return
 					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
 
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							break
+						}
+						switch elem[0] {
+						case 'g': // Prefix: "groups"
+
+							if l := len("groups"); len(elem) >= l && elem[0:l] == "groups" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								switch r.Method {
+								case "GET":
+									s.handleListSystemGroupsRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "POST":
+									s.handleCreateSystemGroupRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, notAllowedParams{
+										allowedMethods: "GET,POST",
+										allowedHeaders: rn15AllowedHeaders,
+										acceptPost:     "application/json",
+										acceptPatch:    "",
+									})
+								}
+
+								return
+							}
+							switch elem[0] {
+							case '/': // Prefix: "/"
+
+								if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								// Param: "gid"
+								// Match until "/"
+								idx := strings.IndexByte(elem, '/')
+								if idx < 0 {
+									idx = len(elem)
+								}
+								args[1] = elem[:idx]
+								elem = elem[idx:]
+
+								if len(elem) == 0 {
+									switch r.Method {
+									case "DELETE":
+										s.handleDeleteSystemGroupRequest([2]string{
+											args[0],
+											args[1],
+										}, elemIsEscaped, w, r)
+									case "GET":
+										s.handleGetSystemGroupRequest([2]string{
+											args[0],
+											args[1],
+										}, elemIsEscaped, w, r)
+									default:
+										s.notAllowed(w, r, notAllowedParams{
+											allowedMethods: "DELETE,GET",
+											allowedHeaders: nil,
+											acceptPost:     "",
+											acceptPatch:    "",
+										})
+									}
+
+									return
+								}
+								switch elem[0] {
+								case '/': // Prefix: "/members/"
+
+									if l := len("/members/"); len(elem) >= l && elem[0:l] == "/members/" {
+										elem = elem[l:]
+									} else {
+										break
+									}
+
+									// Param: "uid"
+									// Leaf parameter, slashes are prohibited
+									idx := strings.IndexByte(elem, '/')
+									if idx >= 0 {
+										break
+									}
+									args[2] = elem
+									elem = ""
+
+									if len(elem) == 0 {
+										// Leaf node.
+										switch r.Method {
+										case "DELETE":
+											s.handleRemoveGroupMemberRequest([3]string{
+												args[0],
+												args[1],
+												args[2],
+											}, elemIsEscaped, w, r)
+										case "POST":
+											s.handleAddGroupMemberRequest([3]string{
+												args[0],
+												args[1],
+												args[2],
+											}, elemIsEscaped, w, r)
+										default:
+											s.notAllowed(w, r, notAllowedParams{
+												allowedMethods: "DELETE,POST",
+												allowedHeaders: nil,
+												acceptPost:     "",
+												acceptPatch:    "",
+											})
+										}
+
+										return
+									}
+
+								}
+
+							}
+
+						case 'u': // Prefix: "users"
+
+							if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								switch r.Method {
+								case "GET":
+									s.handleListSystemUsersRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "POST":
+									s.handleCreateSystemUserRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, notAllowedParams{
+										allowedMethods: "GET,POST",
+										allowedHeaders: rn17AllowedHeaders,
+										acceptPost:     "application/json",
+										acceptPatch:    "",
+									})
+								}
+
+								return
+							}
+							switch elem[0] {
+							case '/': // Prefix: "/"
+
+								if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								// Param: "uid"
+								// Leaf parameter, slashes are prohibited
+								idx := strings.IndexByte(elem, '/')
+								if idx >= 0 {
+									break
+								}
+								args[1] = elem
+								elem = ""
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch r.Method {
+									case "DELETE":
+										s.handleDeleteSystemUserRequest([2]string{
+											args[0],
+											args[1],
+										}, elemIsEscaped, w, r)
+									case "GET":
+										s.handleGetSystemUserRequest([2]string{
+											args[0],
+											args[1],
+										}, elemIsEscaped, w, r)
+									default:
+										s.notAllowed(w, r, notAllowedParams{
+											allowedMethods: "DELETE,GET",
+											allowedHeaders: nil,
+											acceptPost:     "",
+											acceptPatch:    "",
+										})
+									}
+
+									return
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
+			case 'u': // Prefix: "user"
+
+				if l := len("user"); len(elem) >= l && elem[0:l] == "user" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					// Leaf node.
+					switch r.Method {
+					case "DELETE":
+						s.handleDeleteUserRequest([0]string{}, elemIsEscaped, w, r)
+					case "GET":
+						s.handleGetUserRequest([0]string{}, elemIsEscaped, w, r)
+					default:
+						s.notAllowed(w, r, notAllowedParams{
+							allowedMethods: "DELETE,GET",
+							allowedHeaders: nil,
+							acceptPost:     "",
+							acceptPatch:    "",
+						})
+					}
+
+					return
 				}
 
 			}
@@ -593,7 +896,7 @@ type Route struct {
 	operationGroup string
 	pathPattern    string
 	count          int
-	args           [1]string
+	args           [3]string
 }
 
 // Name returns ogen operation name.
@@ -678,28 +981,128 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				break
 			}
 			switch elem[0] {
-			case 'f': // Prefix: "file"
+			case 'a': // Prefix: "auth/"
 
-				if l := len("file"); len(elem) >= l && elem[0:l] == "file" {
+				if l := len("auth/"); len(elem) >= l && elem[0:l] == "auth/" {
 					elem = elem[l:]
 				} else {
 					break
 				}
 
 				if len(elem) == 0 {
-					switch method {
-					case "POST":
-						r.name = CreateFileOperation
-						r.summary = "Create a new file or container"
-						r.operationID = "createFile"
-						r.operationGroup = ""
-						r.pathPattern = "/file"
-						r.args = args
-						r.count = 0
-						return r, true
-					default:
-						return
+					break
+				}
+				switch elem[0] {
+				case 'c': // Prefix: "callback"
+
+					if l := len("callback"); len(elem) >= l && elem[0:l] == "callback" {
+						elem = elem[l:]
+					} else {
+						break
 					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch method {
+						case "POST":
+							r.name = HandleCallbackOperation
+							r.summary = "Handle OAuth callback"
+							r.operationID = "handleCallback"
+							r.operationGroup = ""
+							r.pathPattern = "/auth/callback"
+							r.args = args
+							r.count = 0
+							return r, true
+						default:
+							return
+						}
+					}
+
+				case 'l': // Prefix: "log"
+
+					if l := len("log"); len(elem) >= l && elem[0:l] == "log" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						break
+					}
+					switch elem[0] {
+					case 'i': // Prefix: "in"
+
+						if l := len("in"); len(elem) >= l && elem[0:l] == "in" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "GET":
+								r.name = InitiateLoginOperation
+								r.summary = "Initiate login"
+								r.operationID = "initiateLogin"
+								r.operationGroup = ""
+								r.pathPattern = "/auth/login"
+								r.args = args
+								r.count = 0
+								return r, true
+							default:
+								return
+							}
+						}
+
+					case 'o': // Prefix: "out"
+
+						if l := len("out"); len(elem) >= l && elem[0:l] == "out" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "POST":
+								r.name = LogoutOperation
+								r.summary = "Logout"
+								r.operationID = "logout"
+								r.operationGroup = ""
+								r.pathPattern = "/auth/logout"
+								r.args = args
+								r.count = 0
+								return r, true
+							default:
+								return
+							}
+						}
+
+					}
+
+				}
+
+			case 'f': // Prefix: "fs/"
+
+				if l := len("fs/"); len(elem) >= l && elem[0:l] == "fs/" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				// Param: "systemId"
+				// Match until "/"
+				idx := strings.IndexByte(elem, '/')
+				if idx < 0 {
+					idx = len(elem)
+				}
+				args[0] = elem[:idx]
+				elem = elem[idx:]
+
+				if len(elem) == 0 {
+					break
 				}
 				switch elem[0] {
 				case '/': // Prefix: "/"
@@ -714,32 +1117,23 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						break
 					}
 					switch elem[0] {
-					case 'c': // Prefix: "children/"
-						origElem := elem
-						if l := len("children/"); len(elem) >= l && elem[0:l] == "children/" {
+					case 'c': // Prefix: "chmod"
+
+						if l := len("chmod"); len(elem) >= l && elem[0:l] == "chmod" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
-						// Param: "fileKey"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
-							break
-						}
-						args[0] = elem
-						elem = ""
-
 						if len(elem) == 0 {
 							// Leaf node.
 							switch method {
-							case "GET":
-								r.name = GetFileChildrenOperation
-								r.summary = "Get file children"
-								r.operationID = "getFileChildren"
+							case "PATCH":
+								r.name = ChmodOperation
+								r.summary = "Change file permissions"
+								r.operationID = "chmod"
 								r.operationGroup = ""
-								r.pathPattern = "/file/children/{fileKey}"
+								r.pathPattern = "/fs/{systemId}/chmod"
 								r.args = args
 								r.count = 1
 								return r, true
@@ -748,10 +1142,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							}
 						}
 
-						elem = origElem
-					case 'h': // Prefix: "home"
-						origElem := elem
-						if l := len("home"); len(elem) >= l && elem[0:l] == "home" {
+					case 'd': // Prefix: "download"
+
+						if l := len("download"); len(elem) >= l && elem[0:l] == "download" {
 							elem = elem[l:]
 						} else {
 							break
@@ -761,46 +1154,11 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							// Leaf node.
 							switch method {
 							case "GET":
-								r.name = GetHomeContainerOperation
-								r.summary = "Get home container"
-								r.operationID = "getHomeContainer"
+								r.name = GetDownloadUrlOperation
+								r.summary = "Get download URL"
+								r.operationID = "getDownloadUrl"
 								r.operationGroup = ""
-								r.pathPattern = "/file/home"
-								r.args = args
-								r.count = 0
-								return r, true
-							default:
-								return
-							}
-						}
-
-						elem = origElem
-					case 'i': // Prefix: "info/"
-						origElem := elem
-						if l := len("info/"); len(elem) >= l && elem[0:l] == "info/" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						// Param: "fileKey"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
-							break
-						}
-						args[0] = elem
-						elem = ""
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch method {
-							case "GET":
-								r.name = GetFileInfoOperation
-								r.summary = "Get file information"
-								r.operationID = "getFileInfo"
-								r.operationGroup = ""
-								r.pathPattern = "/file/info/{fileKey}"
+								r.pathPattern = "/fs/{systemId}/download"
 								r.args = args
 								r.count = 1
 								return r, true
@@ -809,10 +1167,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							}
 						}
 
-						elem = origElem
-					case 'r': // Prefix: "root"
-						origElem := elem
-						if l := len("root"); len(elem) >= l && elem[0:l] == "root" {
+					case 'm': // Prefix: "mkdir"
+
+						if l := len("mkdir"); len(elem) >= l && elem[0:l] == "mkdir" {
 							elem = elem[l:]
 						} else {
 							break
@@ -821,47 +1178,12 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						if len(elem) == 0 {
 							// Leaf node.
 							switch method {
-							case "GET":
-								r.name = GetRootContainerOperation
-								r.summary = "Get root container"
-								r.operationID = "getRootContainer"
+							case "POST":
+								r.name = MkdirOperation
+								r.summary = "Create directory"
+								r.operationID = "mkdir"
 								r.operationGroup = ""
-								r.pathPattern = "/file/root"
-								r.args = args
-								r.count = 0
-								return r, true
-							default:
-								return
-							}
-						}
-
-						elem = origElem
-					case 's': // Prefix: "stream/read-token/"
-						origElem := elem
-						if l := len("stream/read-token/"); len(elem) >= l && elem[0:l] == "stream/read-token/" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						// Param: "fileKey"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
-							break
-						}
-						args[0] = elem
-						elem = ""
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch method {
-							case "GET":
-								r.name = GetStreamTokenOperation
-								r.summary = "Get stream read token"
-								r.operationID = "getStreamToken"
-								r.operationGroup = ""
-								r.pathPattern = "/file/stream/read-token/{fileKey}"
+								r.pathPattern = "/fs/{systemId}/mkdir"
 								r.args = args
 								r.count = 1
 								return r, true
@@ -870,36 +1192,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							}
 						}
 
-						elem = origElem
-					case 't': // Prefix: "trash"
-						origElem := elem
-						if l := len("trash"); len(elem) >= l && elem[0:l] == "trash" {
-							elem = elem[l:]
-						} else {
-							break
-						}
+					case 'r': // Prefix: "r"
 
-						if len(elem) == 0 {
-							// Leaf node.
-							switch method {
-							case "GET":
-								r.name = GetTrashContainerOperation
-								r.summary = "Get trash container"
-								r.operationID = "getTrashContainer"
-								r.operationGroup = ""
-								r.pathPattern = "/file/trash"
-								r.args = args
-								r.count = 0
-								return r, true
-							default:
-								return
-							}
-						}
-
-						elem = origElem
-					case 'u': // Prefix: "upload/"
-						origElem := elem
-						if l := len("upload/"); len(elem) >= l && elem[0:l] == "upload/" {
+						if l := len("r"); len(elem) >= l && elem[0:l] == "r" {
 							elem = elem[l:]
 						} else {
 							break
@@ -909,66 +1204,48 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							break
 						}
 						switch elem[0] {
-						case 'c': // Prefix: "complete/"
+						case 'e': // Prefix: "eaddir"
 
-							if l := len("complete/"); len(elem) >= l && elem[0:l] == "complete/" {
+							if l := len("eaddir"); len(elem) >= l && elem[0:l] == "eaddir" {
 								elem = elem[l:]
 							} else {
 								break
 							}
-
-							// Param: "fileKey"
-							// Leaf parameter, slashes are prohibited
-							idx := strings.IndexByte(elem, '/')
-							if idx >= 0 {
-								break
-							}
-							args[0] = elem
-							elem = ""
-
-							if len(elem) == 0 {
-								// Leaf node.
-								switch method {
-								case "PATCH":
-									r.name = CompleteUploadOperation
-									r.summary = "Complete file upload"
-									r.operationID = "completeUpload"
-									r.operationGroup = ""
-									r.pathPattern = "/file/upload/complete/{fileKey}"
-									r.args = args
-									r.count = 1
-									return r, true
-								default:
-									return
-								}
-							}
-
-						case 'w': // Prefix: "write-token/"
-
-							if l := len("write-token/"); len(elem) >= l && elem[0:l] == "write-token/" {
-								elem = elem[l:]
-							} else {
-								break
-							}
-
-							// Param: "fileKey"
-							// Leaf parameter, slashes are prohibited
-							idx := strings.IndexByte(elem, '/')
-							if idx >= 0 {
-								break
-							}
-							args[0] = elem
-							elem = ""
 
 							if len(elem) == 0 {
 								// Leaf node.
 								switch method {
 								case "GET":
-									r.name = GetUploadTokenOperation
-									r.summary = "Get upload write token"
-									r.operationID = "getUploadToken"
+									r.name = ReadDirOperation
+									r.summary = "Read directory contents"
+									r.operationID = "readDir"
 									r.operationGroup = ""
-									r.pathPattern = "/file/upload/write-token/{fileKey}"
+									r.pathPattern = "/fs/{systemId}/readdir"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+
+						case 'o': // Prefix: "oot"
+
+							if l := len("oot"); len(elem) >= l && elem[0:l] == "oot" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch method {
+								case "GET":
+									r.name = GetRootDirectoryOperation
+									r.summary = "Get root directory"
+									r.operationID = "getRootDirectory"
+									r.operationGroup = ""
+									r.pathPattern = "/fs/{systemId}/root"
 									r.args = args
 									r.count = 1
 									return r, true
@@ -979,45 +1256,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 						}
 
-						elem = origElem
-					}
-					// Param: "fileKey"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
+					case 's': // Prefix: "s"
 
-					if len(elem) == 0 {
-						switch method {
-						case "DELETE":
-							r.name = DeleteFileOperation
-							r.summary = "Delete file"
-							r.operationID = "deleteFile"
-							r.operationGroup = ""
-							r.pathPattern = "/file/{fileKey}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "PATCH":
-							r.name = UpdateFileOperation
-							r.summary = "Update file metadata"
-							r.operationID = "updateFile"
-							r.operationGroup = ""
-							r.pathPattern = "/file/{fileKey}"
-							r.args = args
-							r.count = 1
-							return r, true
-						default:
-							return
-						}
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/"
-
-						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+						if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
 							elem = elem[l:]
 						} else {
 							break
@@ -1027,9 +1268,34 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							break
 						}
 						switch elem[0] {
-						case 'c': // Prefix: "copy"
+						case 't': // Prefix: "tat"
 
-							if l := len("copy"); len(elem) >= l && elem[0:l] == "copy" {
+							if l := len("tat"); len(elem) >= l && elem[0:l] == "tat" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch method {
+								case "GET":
+									r.name = StatPathOperation
+									r.summary = "Get inode by path"
+									r.operationID = "statPath"
+									r.operationGroup = ""
+									r.pathPattern = "/fs/{systemId}/stat"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+
+						case 'y': // Prefix: "ymlink"
+
+							if l := len("ymlink"); len(elem) >= l && elem[0:l] == "ymlink" {
 								elem = elem[l:]
 							} else {
 								break
@@ -1039,11 +1305,11 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								// Leaf node.
 								switch method {
 								case "POST":
-									r.name = CopyFileOperation
-									r.summary = "Copy file to another container"
-									r.operationID = "copyFile"
+									r.name = CreateSymlinkOperation
+									r.summary = "Create symbolic link"
+									r.operationID = "createSymlink"
 									r.operationGroup = ""
-									r.pathPattern = "/file/{fileKey}/copy"
+									r.pathPattern = "/fs/{systemId}/symlink"
 									r.args = args
 									r.count = 1
 									return r, true
@@ -1052,9 +1318,23 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								}
 							}
 
-						case 'm': // Prefix: "move"
+						}
 
-							if l := len("move"); len(elem) >= l && elem[0:l] == "move" {
+					case 'u': // Prefix: "u"
+
+						if l := len("u"); len(elem) >= l && elem[0:l] == "u" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							break
+						}
+						switch elem[0] {
+						case 'n': // Prefix: "nlink"
+
+							if l := len("nlink"); len(elem) >= l && elem[0:l] == "nlink" {
 								elem = elem[l:]
 							} else {
 								break
@@ -1063,18 +1343,82 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							if len(elem) == 0 {
 								// Leaf node.
 								switch method {
-								case "POST":
-									r.name = MoveFileOperation
-									r.summary = "Move file to another container"
-									r.operationID = "moveFile"
+								case "DELETE":
+									r.name = UnlinkOperation
+									r.summary = "Delete file or directory"
+									r.operationID = "unlink"
 									r.operationGroup = ""
-									r.pathPattern = "/file/{fileKey}/move"
+									r.pathPattern = "/fs/{systemId}/unlink"
 									r.args = args
 									r.count = 1
 									return r, true
 								default:
 									return
 								}
+							}
+
+						case 'p': // Prefix: "pload/"
+
+							if l := len("pload/"); len(elem) >= l && elem[0:l] == "pload/" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								break
+							}
+							switch elem[0] {
+							case 'c': // Prefix: "complete"
+
+								if l := len("complete"); len(elem) >= l && elem[0:l] == "complete" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch method {
+									case "POST":
+										r.name = CompleteUploadOperation
+										r.summary = "Complete file upload"
+										r.operationID = "completeUpload"
+										r.operationGroup = ""
+										r.pathPattern = "/fs/{systemId}/upload/complete"
+										r.args = args
+										r.count = 1
+										return r, true
+									default:
+										return
+									}
+								}
+
+							case 'i': // Prefix: "initiate"
+
+								if l := len("initiate"); len(elem) >= l && elem[0:l] == "initiate" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch method {
+									case "POST":
+										r.name = InitiateUploadOperation
+										r.summary = "Initiate file upload"
+										r.operationID = "initiateUpload"
+										r.operationGroup = ""
+										r.pathPattern = "/fs/{systemId}/upload/initiate"
+										r.args = args
+										r.count = 1
+										return r, true
+									default:
+										return
+									}
+								}
+
 							}
 
 						}
@@ -1108,6 +1452,290 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					}
 				}
 
+			case 's': // Prefix: "systems"
+
+				if l := len("systems"); len(elem) >= l && elem[0:l] == "systems" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					switch method {
+					case "GET":
+						r.name = ListSystemsOperation
+						r.summary = "List all systems"
+						r.operationID = "listSystems"
+						r.operationGroup = ""
+						r.pathPattern = "/systems"
+						r.args = args
+						r.count = 0
+						return r, true
+					case "POST":
+						r.name = CreateSystemOperation
+						r.summary = "Create a new system"
+						r.operationID = "createSystem"
+						r.operationGroup = ""
+						r.pathPattern = "/systems"
+						r.args = args
+						r.count = 0
+						return r, true
+					default:
+						return
+					}
+				}
+				switch elem[0] {
+				case '/': // Prefix: "/"
+
+					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					// Param: "systemId"
+					// Match until "/"
+					idx := strings.IndexByte(elem, '/')
+					if idx < 0 {
+						idx = len(elem)
+					}
+					args[0] = elem[:idx]
+					elem = elem[idx:]
+
+					if len(elem) == 0 {
+						switch method {
+						case "GET":
+							r.name = GetSystemOperation
+							r.summary = "Get system by ID"
+							r.operationID = "getSystem"
+							r.operationGroup = ""
+							r.pathPattern = "/systems/{systemId}"
+							r.args = args
+							r.count = 1
+							return r, true
+						default:
+							return
+						}
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							break
+						}
+						switch elem[0] {
+						case 'g': // Prefix: "groups"
+
+							if l := len("groups"); len(elem) >= l && elem[0:l] == "groups" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								switch method {
+								case "GET":
+									r.name = ListSystemGroupsOperation
+									r.summary = "List groups in system"
+									r.operationID = "listSystemGroups"
+									r.operationGroup = ""
+									r.pathPattern = "/systems/{systemId}/groups"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "POST":
+									r.name = CreateSystemGroupOperation
+									r.summary = "Create a group"
+									r.operationID = "createSystemGroup"
+									r.operationGroup = ""
+									r.pathPattern = "/systems/{systemId}/groups"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+							switch elem[0] {
+							case '/': // Prefix: "/"
+
+								if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								// Param: "gid"
+								// Match until "/"
+								idx := strings.IndexByte(elem, '/')
+								if idx < 0 {
+									idx = len(elem)
+								}
+								args[1] = elem[:idx]
+								elem = elem[idx:]
+
+								if len(elem) == 0 {
+									switch method {
+									case "DELETE":
+										r.name = DeleteSystemGroupOperation
+										r.summary = "Delete a group"
+										r.operationID = "deleteSystemGroup"
+										r.operationGroup = ""
+										r.pathPattern = "/systems/{systemId}/groups/{gid}"
+										r.args = args
+										r.count = 2
+										return r, true
+									case "GET":
+										r.name = GetSystemGroupOperation
+										r.summary = "Get system group by GID"
+										r.operationID = "getSystemGroup"
+										r.operationGroup = ""
+										r.pathPattern = "/systems/{systemId}/groups/{gid}"
+										r.args = args
+										r.count = 2
+										return r, true
+									default:
+										return
+									}
+								}
+								switch elem[0] {
+								case '/': // Prefix: "/members/"
+
+									if l := len("/members/"); len(elem) >= l && elem[0:l] == "/members/" {
+										elem = elem[l:]
+									} else {
+										break
+									}
+
+									// Param: "uid"
+									// Leaf parameter, slashes are prohibited
+									idx := strings.IndexByte(elem, '/')
+									if idx >= 0 {
+										break
+									}
+									args[2] = elem
+									elem = ""
+
+									if len(elem) == 0 {
+										// Leaf node.
+										switch method {
+										case "DELETE":
+											r.name = RemoveGroupMemberOperation
+											r.summary = "Remove user from group"
+											r.operationID = "removeGroupMember"
+											r.operationGroup = ""
+											r.pathPattern = "/systems/{systemId}/groups/{gid}/members/{uid}"
+											r.args = args
+											r.count = 3
+											return r, true
+										case "POST":
+											r.name = AddGroupMemberOperation
+											r.summary = "Add user to group"
+											r.operationID = "addGroupMember"
+											r.operationGroup = ""
+											r.pathPattern = "/systems/{systemId}/groups/{gid}/members/{uid}"
+											r.args = args
+											r.count = 3
+											return r, true
+										default:
+											return
+										}
+									}
+
+								}
+
+							}
+
+						case 'u': // Prefix: "users"
+
+							if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								switch method {
+								case "GET":
+									r.name = ListSystemUsersOperation
+									r.summary = "List users in system"
+									r.operationID = "listSystemUsers"
+									r.operationGroup = ""
+									r.pathPattern = "/systems/{systemId}/users"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "POST":
+									r.name = CreateSystemUserOperation
+									r.summary = "Add user to system"
+									r.operationID = "createSystemUser"
+									r.operationGroup = ""
+									r.pathPattern = "/systems/{systemId}/users"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+							switch elem[0] {
+							case '/': // Prefix: "/"
+
+								if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								// Param: "uid"
+								// Leaf parameter, slashes are prohibited
+								idx := strings.IndexByte(elem, '/')
+								if idx >= 0 {
+									break
+								}
+								args[1] = elem
+								elem = ""
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch method {
+									case "DELETE":
+										r.name = DeleteSystemUserOperation
+										r.summary = "Remove user from system"
+										r.operationID = "deleteSystemUser"
+										r.operationGroup = ""
+										r.pathPattern = "/systems/{systemId}/users/{uid}"
+										r.args = args
+										r.count = 2
+										return r, true
+									case "GET":
+										r.name = GetSystemUserOperation
+										r.summary = "Get system user by UID"
+										r.operationID = "getSystemUser"
+										r.operationGroup = ""
+										r.pathPattern = "/systems/{systemId}/users/{uid}"
+										r.args = args
+										r.count = 2
+										return r, true
+									default:
+										return
+									}
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
 			case 'u': // Prefix: "user"
 
 				if l := len("user"); len(elem) >= l && elem[0:l] == "user" {
@@ -1117,6 +1745,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				}
 
 				if len(elem) == 0 {
+					// Leaf node.
 					switch method {
 					case "DELETE":
 						r.name = DeleteUserOperation
@@ -1136,45 +1765,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.args = args
 						r.count = 0
 						return r, true
-					case "POST":
-						r.name = CreateUserOperation
-						r.summary = "Create a new user"
-						r.operationID = "createUser"
-						r.operationGroup = ""
-						r.pathPattern = "/user"
-						r.args = args
-						r.count = 0
-						return r, true
 					default:
 						return
 					}
-				}
-				switch elem[0] {
-				case '/': // Prefix: "/status"
-
-					if l := len("/status"); len(elem) >= l && elem[0:l] == "/status" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch method {
-						case "GET":
-							r.name = GetServiceStatusOperation
-							r.summary = "Get service status"
-							r.operationID = "getServiceStatus"
-							r.operationGroup = ""
-							r.pathPattern = "/user/status"
-							r.args = args
-							r.count = 0
-							return r, true
-						default:
-							return
-						}
-					}
-
 				}
 
 			}

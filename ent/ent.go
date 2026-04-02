@@ -12,14 +12,13 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/starfrag-lab/retrowin-go/ent/file"
-	"github.com/starfrag-lab/retrowin-go/ent/fileinfo"
-	"github.com/starfrag-lab/retrowin-go/ent/filelink"
-	"github.com/starfrag-lab/retrowin-go/ent/filepath"
-	"github.com/starfrag-lab/retrowin-go/ent/filerole"
-	"github.com/starfrag-lab/retrowin-go/ent/servicestatus"
-	"github.com/starfrag-lab/retrowin-go/ent/tempfile"
+	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
+	"github.com/starfrag-lab/retrowin-go/ent/system"
+	"github.com/starfrag-lab/retrowin-go/ent/systemgroup"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usergroup"
+	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -80,14 +79,13 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			file.Table:          file.ValidColumn,
-			fileinfo.Table:      fileinfo.ValidColumn,
-			filelink.Table:      filelink.ValidColumn,
-			filepath.Table:      filepath.ValidColumn,
-			filerole.Table:      filerole.ValidColumn,
-			servicestatus.Table: servicestatus.ValidColumn,
-			tempfile.Table:      tempfile.ValidColumn,
-			user.Table:          user.ValidColumn,
+			inode.Table:       inode.ValidColumn,
+			object.Table:      object.ValidColumn,
+			system.Table:      system.ValidColumn,
+			systemgroup.Table: systemgroup.ValidColumn,
+			user.Table:        user.ValidColumn,
+			usergroup.Table:   usergroup.ValidColumn,
+			usersystem.Table:  usersystem.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

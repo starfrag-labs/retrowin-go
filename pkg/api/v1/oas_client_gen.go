@@ -28,114 +28,186 @@ func trimTrailingSlashes(u *url.URL) {
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
+	// AddGroupMember invokes addGroupMember operation.
+	//
+	// Add a user to a group.
+	//
+	// POST /systems/{systemId}/groups/{gid}/members/{uid}
+	AddGroupMember(ctx context.Context, params AddGroupMemberParams) (AddGroupMemberRes, error)
+	// Chmod invokes chmod operation.
+	//
+	// Change permissions of a file or directory.
+	//
+	// PATCH /fs/{systemId}/chmod
+	Chmod(ctx context.Context, request *ChmodRequest, params ChmodParams) (ChmodRes, error)
 	// CompleteUpload invokes completeUpload operation.
 	//
-	// Mark file upload as complete and update metadata.
+	// Mark upload as complete and create inode.
 	//
-	// PATCH /file/upload/complete/{fileKey}
-	CompleteUpload(ctx context.Context, request OptCompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error)
-	// CopyFile invokes copyFile operation.
+	// POST /fs/{systemId}/upload/complete
+	CompleteUpload(ctx context.Context, request *CompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error)
+	// CreateSymlink invokes createSymlink operation.
 	//
-	// Copy a file to a different container.
+	// Create a symbolic link.
 	//
-	// POST /file/{fileKey}/copy
-	CopyFile(ctx context.Context, request *CopyFileRequest, params CopyFileParams) (CopyFileRes, error)
-	// CreateFile invokes createFile operation.
+	// POST /fs/{systemId}/symlink
+	CreateSymlink(ctx context.Context, request *SymlinkRequest, params CreateSymlinkParams) (CreateSymlinkRes, error)
+	// CreateSystem invokes createSystem operation.
 	//
-	// Create a new file or container in a parent container.
+	// Create a new system with root user and directories.
 	//
-	// POST /file
-	CreateFile(ctx context.Context, request *CreateFileRequest) (CreateFileRes, error)
-	// CreateUser invokes createUser operation.
+	// POST /systems
+	CreateSystem(ctx context.Context, request *CreateSystemRequest) (CreateSystemRes, error)
+	// CreateSystemGroup invokes createSystemGroup operation.
 	//
-	// Create a new user with the given UUID.
+	// Create a new group in a system.
 	//
-	// POST /user
-	CreateUser(ctx context.Context, request *CreateUserRequest) (CreateUserRes, error)
-	// DeleteFile invokes deleteFile operation.
+	// POST /systems/{systemId}/groups
+	CreateSystemGroup(ctx context.Context, request *CreateSystemGroupRequest, params CreateSystemGroupParams) (CreateSystemGroupRes, error)
+	// CreateSystemUser invokes createSystemUser operation.
 	//
-	// Move file to trash or permanently delete.
+	// Add a user to a system.
+	// UID assignment:
+	// - If uid is -1 or not provided: Auto-assigned starting from 1000
+	// - If uid is 0: Creates root user (superuser) - typically only for system initialization
+	// - If uid is 1-999: Reserved for system users (e.g., daemon accounts)
+	// - If uid is 1000+: Regular user with explicit UID
+	// A private group with the same GID as UID is automatically created.
 	//
-	// DELETE /file/{fileKey}
-	DeleteFile(ctx context.Context, params DeleteFileParams) (DeleteFileRes, error)
+	// POST /systems/{systemId}/users
+	CreateSystemUser(ctx context.Context, request *CreateSystemUserRequest, params CreateSystemUserParams) (CreateSystemUserRes, error)
+	// DeleteSystemGroup invokes deleteSystemGroup operation.
+	//
+	// Delete a group from a system.
+	//
+	// DELETE /systems/{systemId}/groups/{gid}
+	DeleteSystemGroup(ctx context.Context, params DeleteSystemGroupParams) (DeleteSystemGroupRes, error)
+	// DeleteSystemUser invokes deleteSystemUser operation.
+	//
+	// Remove a user from a system.
+	//
+	// DELETE /systems/{systemId}/users/{uid}
+	DeleteSystemUser(ctx context.Context, params DeleteSystemUserParams) (DeleteSystemUserRes, error)
 	// DeleteUser invokes deleteUser operation.
 	//
-	// Delete the current user and all associated data.
+	// Delete the current user.
 	//
 	// DELETE /user
 	DeleteUser(ctx context.Context) (DeleteUserRes, error)
-	// GetFileChildren invokes getFileChildren operation.
+	// GetDownloadUrl invokes getDownloadUrl operation.
 	//
-	// Get all children of a container.
+	// Get presigned download URL for a file.
 	//
-	// GET /file/children/{fileKey}
-	GetFileChildren(ctx context.Context, params GetFileChildrenParams) (GetFileChildrenRes, error)
-	// GetFileInfo invokes getFileInfo operation.
-	//
-	// Get detailed information about a file.
-	//
-	// GET /file/info/{fileKey}
-	GetFileInfo(ctx context.Context, params GetFileInfoParams) (GetFileInfoRes, error)
+	// GET /fs/{systemId}/download
+	GetDownloadUrl(ctx context.Context, params GetDownloadUrlParams) (GetDownloadUrlRes, error)
 	// GetHealth invokes getHealth operation.
 	//
 	// Check if the service is healthy.
 	//
 	// GET /health
-	GetHealth(ctx context.Context) (*HealthStatus, error)
-	// GetHomeContainer invokes getHomeContainer operation.
+	GetHealth(ctx context.Context) (GetHealthRes, error)
+	// GetRootDirectory invokes getRootDirectory operation.
 	//
-	// Get the home container for the current user.
+	// Get the root directory inode for a system.
 	//
-	// GET /file/home
-	GetHomeContainer(ctx context.Context) (GetHomeContainerRes, error)
-	// GetRootContainer invokes getRootContainer operation.
+	// GET /fs/{systemId}/root
+	GetRootDirectory(ctx context.Context, params GetRootDirectoryParams) (GetRootDirectoryRes, error)
+	// GetSystem invokes getSystem operation.
 	//
-	// Get the root container for the current user.
+	// Get detailed information about a system.
 	//
-	// GET /file/root
-	GetRootContainer(ctx context.Context) (GetRootContainerRes, error)
-	// GetServiceStatus invokes getServiceStatus operation.
+	// GET /systems/{systemId}
+	GetSystem(ctx context.Context, params GetSystemParams) (GetSystemRes, error)
+	// GetSystemGroup invokes getSystemGroup operation.
 	//
-	// Get the service status for the current user.
+	// Get detailed information about a system group.
 	//
-	// GET /user/status
-	GetServiceStatus(ctx context.Context) (GetServiceStatusRes, error)
-	// GetStreamToken invokes getStreamToken operation.
+	// GET /systems/{systemId}/groups/{gid}
+	GetSystemGroup(ctx context.Context, params GetSystemGroupParams) (GetSystemGroupRes, error)
+	// GetSystemUser invokes getSystemUser operation.
 	//
-	// Get a presigned URL for downloading/streaming file content.
+	// Get detailed information about a system user.
 	//
-	// GET /file/stream/read-token/{fileKey}
-	GetStreamToken(ctx context.Context, params GetStreamTokenParams) (GetStreamTokenRes, error)
-	// GetTrashContainer invokes getTrashContainer operation.
-	//
-	// Get the trash container for the current user.
-	//
-	// GET /file/trash
-	GetTrashContainer(ctx context.Context) (GetTrashContainerRes, error)
-	// GetUploadToken invokes getUploadToken operation.
-	//
-	// Get a presigned URL and token for uploading file content.
-	//
-	// GET /file/upload/write-token/{fileKey}
-	GetUploadToken(ctx context.Context, params GetUploadTokenParams) (GetUploadTokenRes, error)
+	// GET /systems/{systemId}/users/{uid}
+	GetSystemUser(ctx context.Context, params GetSystemUserParams) (GetSystemUserRes, error)
 	// GetUser invokes getUser operation.
 	//
-	// Get the current user information based on x-uuid header.
+	// Get the current user information.
 	//
 	// GET /user
 	GetUser(ctx context.Context) (GetUserRes, error)
-	// MoveFile invokes moveFile operation.
+	// HandleCallback invokes handleCallback operation.
 	//
-	// Move a file to a different container.
+	// Handle OAuth callback from Keycloak.
 	//
-	// POST /file/{fileKey}/move
-	MoveFile(ctx context.Context, request *MoveFileRequest, params MoveFileParams) (MoveFileRes, error)
-	// UpdateFile invokes updateFile operation.
+	// POST /auth/callback
+	HandleCallback(ctx context.Context, request *CallbackRequest) (HandleCallbackRes, error)
+	// InitiateLogin invokes initiateLogin operation.
 	//
-	// Update file name or other metadata.
+	// Start OIDC login flow and return authorization URL.
 	//
-	// PATCH /file/{fileKey}
-	UpdateFile(ctx context.Context, request *UpdateFileRequest, params UpdateFileParams) (UpdateFileRes, error)
+	// GET /auth/login
+	InitiateLogin(ctx context.Context) (InitiateLoginRes, error)
+	// InitiateUpload invokes initiateUpload operation.
+	//
+	// Start an upload session and get presigned URL.
+	//
+	// POST /fs/{systemId}/upload/initiate
+	InitiateUpload(ctx context.Context, request *InitiateUploadRequest, params InitiateUploadParams) (InitiateUploadRes, error)
+	// ListSystemGroups invokes listSystemGroups operation.
+	//
+	// Get all groups in a system.
+	//
+	// GET /systems/{systemId}/groups
+	ListSystemGroups(ctx context.Context, params ListSystemGroupsParams) (ListSystemGroupsRes, error)
+	// ListSystemUsers invokes listSystemUsers operation.
+	//
+	// Get all users in a system.
+	//
+	// GET /systems/{systemId}/users
+	ListSystemUsers(ctx context.Context, params ListSystemUsersParams) (ListSystemUsersRes, error)
+	// ListSystems invokes listSystems operation.
+	//
+	// Get a list of all systems.
+	//
+	// GET /systems
+	ListSystems(ctx context.Context) (ListSystemsRes, error)
+	// Logout invokes logout operation.
+	//
+	// Logout and delete session (idempotent - always returns 204).
+	//
+	// POST /auth/logout
+	Logout(ctx context.Context) error
+	// Mkdir invokes mkdir operation.
+	//
+	// Create a new directory at the specified path.
+	//
+	// POST /fs/{systemId}/mkdir
+	Mkdir(ctx context.Context, request *MkdirRequest, params MkdirParams) (MkdirRes, error)
+	// ReadDir invokes readDir operation.
+	//
+	// List contents of a directory.
+	//
+	// GET /fs/{systemId}/readdir
+	ReadDir(ctx context.Context, params ReadDirParams) (ReadDirRes, error)
+	// RemoveGroupMember invokes removeGroupMember operation.
+	//
+	// Remove a user from a group.
+	//
+	// DELETE /systems/{systemId}/groups/{gid}/members/{uid}
+	RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (RemoveGroupMemberRes, error)
+	// StatPath invokes statPath operation.
+	//
+	// Get inode metadata for a given path.
+	//
+	// GET /fs/{systemId}/stat
+	StatPath(ctx context.Context, params StatPathParams) (StatPathRes, error)
+	// Unlink invokes unlink operation.
+	//
+	// Delete a file or directory at the specified path.
+	//
+	// DELETE /fs/{systemId}/unlink
+	Unlink(ctx context.Context, params UnlinkParams) (UnlinkRes, error)
 }
 
 // Client implements OAS client.
@@ -179,37 +251,313 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
+// AddGroupMember invokes addGroupMember operation.
+//
+// Add a user to a group.
+//
+// POST /systems/{systemId}/groups/{gid}/members/{uid}
+func (c *Client) AddGroupMember(ctx context.Context, params AddGroupMemberParams) (AddGroupMemberRes, error) {
+	res, err := c.sendAddGroupMember(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendAddGroupMember(ctx context.Context, params AddGroupMemberParams) (res AddGroupMemberRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("addGroupMember"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/groups/{gid}/members/{uid}"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, AddGroupMemberOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [6]string
+	pathParts[0] = "/systems/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/groups/"
+	{
+		// Encode "gid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "gid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.Gid))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[3] = encoded
+	}
+	pathParts[4] = "/members/"
+	{
+		// Encode "uid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "uid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.UID))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[5] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, AddGroupMemberOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeAddGroupMemberResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// Chmod invokes chmod operation.
+//
+// Change permissions of a file or directory.
+//
+// PATCH /fs/{systemId}/chmod
+func (c *Client) Chmod(ctx context.Context, request *ChmodRequest, params ChmodParams) (ChmodRes, error) {
+	res, err := c.sendChmod(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendChmod(ctx context.Context, request *ChmodRequest, params ChmodParams) (res ChmodRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("chmod"),
+		semconv.HTTPRequestMethodKey.String("PATCH"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/chmod"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, ChmodOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/chmod"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "PATCH", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeChmodRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, ChmodOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeChmodResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
 // CompleteUpload invokes completeUpload operation.
 //
-// Mark file upload as complete and update metadata.
+// Mark upload as complete and create inode.
 //
-// PATCH /file/upload/complete/{fileKey}
-func (c *Client) CompleteUpload(ctx context.Context, request OptCompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error) {
+// POST /fs/{systemId}/upload/complete
+func (c *Client) CompleteUpload(ctx context.Context, request *CompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error) {
 	res, err := c.sendCompleteUpload(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendCompleteUpload(ctx context.Context, request OptCompleteUploadRequest, params CompleteUploadParams) (res CompleteUploadRes, err error) {
-	// Validate request before sending.
-	if err := func() error {
-		if value, ok := request.Get(); ok {
-			if err := func() error {
-				if err := value.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return res, errors.Wrap(err, "validate")
-	}
+func (c *Client) sendCompleteUpload(ctx context.Context, request *CompleteUploadRequest, params CompleteUploadParams) (res CompleteUploadRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("completeUpload"),
-		semconv.HTTPRequestMethodKey.String("PATCH"),
-		semconv.URLTemplateKey.String("/file/upload/complete/{fileKey}"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/upload/complete"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -242,17 +590,17 @@ func (c *Client) sendCompleteUpload(ctx context.Context, request OptCompleteUplo
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/file/upload/complete/"
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
 	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -262,10 +610,11 @@ func (c *Client) sendCompleteUpload(ctx context.Context, request OptCompleteUplo
 		}
 		pathParts[1] = encoded
 	}
+	pathParts[2] = "/upload/complete"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "PATCH", u)
+	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -323,21 +672,21 @@ func (c *Client) sendCompleteUpload(ctx context.Context, request OptCompleteUplo
 	return result, nil
 }
 
-// CopyFile invokes copyFile operation.
+// CreateSymlink invokes createSymlink operation.
 //
-// Copy a file to a different container.
+// Create a symbolic link.
 //
-// POST /file/{fileKey}/copy
-func (c *Client) CopyFile(ctx context.Context, request *CopyFileRequest, params CopyFileParams) (CopyFileRes, error) {
-	res, err := c.sendCopyFile(ctx, request, params)
+// POST /fs/{systemId}/symlink
+func (c *Client) CreateSymlink(ctx context.Context, request *SymlinkRequest, params CreateSymlinkParams) (CreateSymlinkRes, error) {
+	res, err := c.sendCreateSymlink(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, params CopyFileParams) (res CopyFileRes, err error) {
+func (c *Client) sendCreateSymlink(ctx context.Context, request *SymlinkRequest, params CreateSymlinkParams) (res CreateSymlinkRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("copyFile"),
+		otelogen.OperationID("createSymlink"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/file/{fileKey}/copy"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/symlink"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -353,7 +702,7 @@ func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, par
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, CopyFileOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, CreateSymlinkOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -371,16 +720,16 @@ func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, par
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/file/"
+	pathParts[0] = "/fs/"
 	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -390,7 +739,7 @@ func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, par
 		}
 		pathParts[1] = encoded
 	}
-	pathParts[2] = "/copy"
+	pathParts[2] = "/symlink"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -398,7 +747,7 @@ func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, par
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeCopyFileRequest(request, r); err != nil {
+	if err := encodeCreateSymlinkRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -407,7 +756,7 @@ func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, par
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, CopyFileOperation, r); {
+			switch err := c.securitySessionAuth(ctx, CreateSymlinkOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -444,7 +793,7 @@ func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, par
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeCopyFileResponse(resp)
+	result, err := decodeCreateSymlinkResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -452,17 +801,17 @@ func (c *Client) sendCopyFile(ctx context.Context, request *CopyFileRequest, par
 	return result, nil
 }
 
-// CreateFile invokes createFile operation.
+// CreateSystem invokes createSystem operation.
 //
-// Create a new file or container in a parent container.
+// Create a new system with root user and directories.
 //
-// POST /file
-func (c *Client) CreateFile(ctx context.Context, request *CreateFileRequest) (CreateFileRes, error) {
-	res, err := c.sendCreateFile(ctx, request)
+// POST /systems
+func (c *Client) CreateSystem(ctx context.Context, request *CreateSystemRequest) (CreateSystemRes, error) {
+	res, err := c.sendCreateSystem(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest) (res CreateFileRes, err error) {
+func (c *Client) sendCreateSystem(ctx context.Context, request *CreateSystemRequest) (res CreateSystemRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if err := request.Validate(); err != nil {
@@ -473,9 +822,9 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 		return res, errors.Wrap(err, "validate")
 	}
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createFile"),
+		otelogen.OperationID("createSystem"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/file"),
+		semconv.URLTemplateKey.String("/systems"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -491,7 +840,7 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, CreateFileOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, CreateSystemOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -509,7 +858,7 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/file"
+	pathParts[0] = "/systems"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -517,7 +866,7 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeCreateFileRequest(request, r); err != nil {
+	if err := encodeCreateSystemRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -526,7 +875,7 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, CreateFileOperation, r); {
+			switch err := c.securitySessionAuth(ctx, CreateSystemOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -563,7 +912,7 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeCreateFileResponse(resp)
+	result, err := decodeCreateSystemResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -571,17 +920,17 @@ func (c *Client) sendCreateFile(ctx context.Context, request *CreateFileRequest)
 	return result, nil
 }
 
-// CreateUser invokes createUser operation.
+// CreateSystemGroup invokes createSystemGroup operation.
 //
-// Create a new user with the given UUID.
+// Create a new group in a system.
 //
-// POST /user
-func (c *Client) CreateUser(ctx context.Context, request *CreateUserRequest) (CreateUserRes, error) {
-	res, err := c.sendCreateUser(ctx, request)
+// POST /systems/{systemId}/groups
+func (c *Client) CreateSystemGroup(ctx context.Context, request *CreateSystemGroupRequest, params CreateSystemGroupParams) (CreateSystemGroupRes, error) {
+	res, err := c.sendCreateSystemGroup(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest) (res CreateUserRes, err error) {
+func (c *Client) sendCreateSystemGroup(ctx context.Context, request *CreateSystemGroupRequest, params CreateSystemGroupParams) (res CreateSystemGroupRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if err := request.Validate(); err != nil {
@@ -592,9 +941,9 @@ func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest)
 		return res, errors.Wrap(err, "validate")
 	}
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createUser"),
+		otelogen.OperationID("createSystemGroup"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/user"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/groups"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -610,7 +959,7 @@ func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest)
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, CreateUserOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, CreateSystemGroupOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -627,8 +976,27 @@ func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest)
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [1]string
-	pathParts[0] = "/user"
+	var pathParts [3]string
+	pathParts[0] = "/systems/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/groups"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -636,7 +1004,7 @@ func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeCreateUserRequest(request, r); err != nil {
+	if err := encodeCreateSystemGroupRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -645,7 +1013,7 @@ func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest)
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, CreateUserOperation, r); {
+			switch err := c.securitySessionAuth(ctx, CreateSystemGroupOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -682,7 +1050,7 @@ func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest)
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeCreateUserResponse(resp)
+	result, err := decodeCreateSystemGroupResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -690,21 +1058,165 @@ func (c *Client) sendCreateUser(ctx context.Context, request *CreateUserRequest)
 	return result, nil
 }
 
-// DeleteFile invokes deleteFile operation.
+// CreateSystemUser invokes createSystemUser operation.
 //
-// Move file to trash or permanently delete.
+// Add a user to a system.
+// UID assignment:
+// - If uid is -1 or not provided: Auto-assigned starting from 1000
+// - If uid is 0: Creates root user (superuser) - typically only for system initialization
+// - If uid is 1-999: Reserved for system users (e.g., daemon accounts)
+// - If uid is 1000+: Regular user with explicit UID
+// A private group with the same GID as UID is automatically created.
 //
-// DELETE /file/{fileKey}
-func (c *Client) DeleteFile(ctx context.Context, params DeleteFileParams) (DeleteFileRes, error) {
-	res, err := c.sendDeleteFile(ctx, params)
+// POST /systems/{systemId}/users
+func (c *Client) CreateSystemUser(ctx context.Context, request *CreateSystemUserRequest, params CreateSystemUserParams) (CreateSystemUserRes, error) {
+	res, err := c.sendCreateSystemUser(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (res DeleteFileRes, err error) {
+func (c *Client) sendCreateSystemUser(ctx context.Context, request *CreateSystemUserRequest, params CreateSystemUserParams) (res CreateSystemUserRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if err := request.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("deleteFile"),
+		otelogen.OperationID("createSystemUser"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/users"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, CreateSystemUserOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/systems/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/users"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeCreateSystemUserRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, CreateSystemUserOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeCreateSystemUserResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// DeleteSystemGroup invokes deleteSystemGroup operation.
+//
+// Delete a group from a system.
+//
+// DELETE /systems/{systemId}/groups/{gid}
+func (c *Client) DeleteSystemGroup(ctx context.Context, params DeleteSystemGroupParams) (DeleteSystemGroupRes, error) {
+	res, err := c.sendDeleteSystemGroup(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendDeleteSystemGroup(ctx context.Context, params DeleteSystemGroupParams) (res DeleteSystemGroupRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("deleteSystemGroup"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.URLTemplateKey.String("/file/{fileKey}"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/groups/{gid}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -720,7 +1232,7 @@ func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (r
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, DeleteFileOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, DeleteSystemGroupOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -737,17 +1249,17 @@ func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (r
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/file/"
+	var pathParts [4]string
+	pathParts[0] = "/systems/"
 	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -757,28 +1269,26 @@ func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (r
 		}
 		pathParts[1] = encoded
 	}
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeQueryParams"
-	q := uri.NewQueryEncoder()
+	pathParts[2] = "/groups/"
 	{
-		// Encode "permanent" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "permanent",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
+		// Encode "gid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "gid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.Gid))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
 		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Permanent.Get(); ok {
-				return e.EncodeValue(conv.BoolToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
 		}
+		pathParts[3] = encoded
 	}
-	u.RawQuery = q.Values().Encode()
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "DELETE", u)
@@ -791,7 +1301,7 @@ func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (r
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, DeleteFileOperation, r); {
+			switch err := c.securitySessionAuth(ctx, DeleteSystemGroupOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -828,7 +1338,151 @@ func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (r
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeDeleteFileResponse(resp)
+	result, err := decodeDeleteSystemGroupResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// DeleteSystemUser invokes deleteSystemUser operation.
+//
+// Remove a user from a system.
+//
+// DELETE /systems/{systemId}/users/{uid}
+func (c *Client) DeleteSystemUser(ctx context.Context, params DeleteSystemUserParams) (DeleteSystemUserRes, error) {
+	res, err := c.sendDeleteSystemUser(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendDeleteSystemUser(ctx context.Context, params DeleteSystemUserParams) (res DeleteSystemUserRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("deleteSystemUser"),
+		semconv.HTTPRequestMethodKey.String("DELETE"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/users/{uid}"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, DeleteSystemUserOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [4]string
+	pathParts[0] = "/systems/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/users/"
+	{
+		// Encode "uid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "uid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.UID))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[3] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "DELETE", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, DeleteSystemUserOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeDeleteSystemUserResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -838,7 +1492,7 @@ func (c *Client) sendDeleteFile(ctx context.Context, params DeleteFileParams) (r
 
 // DeleteUser invokes deleteUser operation.
 //
-// Delete the current user and all associated data.
+// Delete the current user.
 //
 // DELETE /user
 func (c *Client) DeleteUser(ctx context.Context) (DeleteUserRes, error) {
@@ -943,21 +1597,21 @@ func (c *Client) sendDeleteUser(ctx context.Context) (res DeleteUserRes, err err
 	return result, nil
 }
 
-// GetFileChildren invokes getFileChildren operation.
+// GetDownloadUrl invokes getDownloadUrl operation.
 //
-// Get all children of a container.
+// Get presigned download URL for a file.
 //
-// GET /file/children/{fileKey}
-func (c *Client) GetFileChildren(ctx context.Context, params GetFileChildrenParams) (GetFileChildrenRes, error) {
-	res, err := c.sendGetFileChildren(ctx, params)
+// GET /fs/{systemId}/download
+func (c *Client) GetDownloadUrl(ctx context.Context, params GetDownloadUrlParams) (GetDownloadUrlRes, error) {
+	res, err := c.sendGetDownloadUrl(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendGetFileChildren(ctx context.Context, params GetFileChildrenParams) (res GetFileChildrenRes, err error) {
+func (c *Client) sendGetDownloadUrl(ctx context.Context, params GetDownloadUrlParams) (res GetDownloadUrlRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getFileChildren"),
+		otelogen.OperationID("getDownloadUrl"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/file/children/{fileKey}"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/download"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -973,7 +1627,7 @@ func (c *Client) sendGetFileChildren(ctx context.Context, params GetFileChildren
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetFileChildrenOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, GetDownloadUrlOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -990,17 +1644,17 @@ func (c *Client) sendGetFileChildren(ctx context.Context, params GetFileChildren
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/file/children/"
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
 	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -1010,7 +1664,26 @@ func (c *Client) sendGetFileChildren(ctx context.Context, params GetFileChildren
 		}
 		pathParts[1] = encoded
 	}
+	pathParts[2] = "/download"
 	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "path" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "path",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.Path))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -1023,7 +1696,7 @@ func (c *Client) sendGetFileChildren(ctx context.Context, params GetFileChildren
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetFileChildrenOperation, r); {
+			switch err := c.securitySessionAuth(ctx, GetDownloadUrlOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1060,132 +1733,7 @@ func (c *Client) sendGetFileChildren(ctx context.Context, params GetFileChildren
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeGetFileChildrenResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// GetFileInfo invokes getFileInfo operation.
-//
-// Get detailed information about a file.
-//
-// GET /file/info/{fileKey}
-func (c *Client) GetFileInfo(ctx context.Context, params GetFileInfoParams) (GetFileInfoRes, error) {
-	res, err := c.sendGetFileInfo(ctx, params)
-	return res, err
-}
-
-func (c *Client) sendGetFileInfo(ctx context.Context, params GetFileInfoParams) (res GetFileInfoRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getFileInfo"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/file/info/{fileKey}"),
-	}
-	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetFileInfoOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/file/info/"
-	{
-		// Encode "fileKey" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		pathParts[1] = encoded
-	}
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetFileInfoOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"SessionAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	body := resp.Body
-	defer body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeGetFileInfoResponse(resp)
+	result, err := decodeGetDownloadUrlResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1198,12 +1746,12 @@ func (c *Client) sendGetFileInfo(ctx context.Context, params GetFileInfoParams) 
 // Check if the service is healthy.
 //
 // GET /health
-func (c *Client) GetHealth(ctx context.Context) (*HealthStatus, error) {
+func (c *Client) GetHealth(ctx context.Context) (GetHealthRes, error) {
 	res, err := c.sendGetHealth(ctx)
 	return res, err
 }
 
-func (c *Client) sendGetHealth(ctx context.Context) (res *HealthStatus, err error) {
+func (c *Client) sendGetHealth(ctx context.Context) (res GetHealthRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getHealth"),
 		semconv.HTTPRequestMethodKey.String("GET"),
@@ -1250,39 +1798,6 @@ func (c *Client) sendGetHealth(ctx context.Context) (res *HealthStatus, err erro
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetHealthOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"SessionAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -1300,21 +1815,21 @@ func (c *Client) sendGetHealth(ctx context.Context) (res *HealthStatus, err erro
 	return result, nil
 }
 
-// GetHomeContainer invokes getHomeContainer operation.
+// GetRootDirectory invokes getRootDirectory operation.
 //
-// Get the home container for the current user.
+// Get the root directory inode for a system.
 //
-// GET /file/home
-func (c *Client) GetHomeContainer(ctx context.Context) (GetHomeContainerRes, error) {
-	res, err := c.sendGetHomeContainer(ctx)
+// GET /fs/{systemId}/root
+func (c *Client) GetRootDirectory(ctx context.Context, params GetRootDirectoryParams) (GetRootDirectoryRes, error) {
+	res, err := c.sendGetRootDirectory(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendGetHomeContainer(ctx context.Context) (res GetHomeContainerRes, err error) {
+func (c *Client) sendGetRootDirectory(ctx context.Context, params GetRootDirectoryParams) (res GetRootDirectoryRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getHomeContainer"),
+		otelogen.OperationID("getRootDirectory"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/file/home"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/root"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -1330,7 +1845,7 @@ func (c *Client) sendGetHomeContainer(ctx context.Context) (res GetHomeContainer
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetHomeContainerOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, GetRootDirectoryOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1347,8 +1862,27 @@ func (c *Client) sendGetHomeContainer(ctx context.Context) (res GetHomeContainer
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [1]string
-	pathParts[0] = "/file/home"
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/root"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -1362,7 +1896,7 @@ func (c *Client) sendGetHomeContainer(ctx context.Context) (res GetHomeContainer
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetHomeContainerOperation, r); {
+			switch err := c.securitySessionAuth(ctx, GetRootDirectoryOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1399,7 +1933,7 @@ func (c *Client) sendGetHomeContainer(ctx context.Context) (res GetHomeContainer
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeGetHomeContainerResponse(resp)
+	result, err := decodeGetRootDirectoryResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1407,21 +1941,21 @@ func (c *Client) sendGetHomeContainer(ctx context.Context) (res GetHomeContainer
 	return result, nil
 }
 
-// GetRootContainer invokes getRootContainer operation.
+// GetSystem invokes getSystem operation.
 //
-// Get the root container for the current user.
+// Get detailed information about a system.
 //
-// GET /file/root
-func (c *Client) GetRootContainer(ctx context.Context) (GetRootContainerRes, error) {
-	res, err := c.sendGetRootContainer(ctx)
+// GET /systems/{systemId}
+func (c *Client) GetSystem(ctx context.Context, params GetSystemParams) (GetSystemRes, error) {
+	res, err := c.sendGetSystem(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendGetRootContainer(ctx context.Context) (res GetRootContainerRes, err error) {
+func (c *Client) sendGetSystem(ctx context.Context, params GetSystemParams) (res GetSystemRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getRootContainer"),
+		otelogen.OperationID("getSystem"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/file/root"),
+		semconv.URLTemplateKey.String("/systems/{systemId}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -1437,221 +1971,7 @@ func (c *Client) sendGetRootContainer(ctx context.Context) (res GetRootContainer
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetRootContainerOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [1]string
-	pathParts[0] = "/file/root"
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetRootContainerOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"SessionAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	body := resp.Body
-	defer body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeGetRootContainerResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// GetServiceStatus invokes getServiceStatus operation.
-//
-// Get the service status for the current user.
-//
-// GET /user/status
-func (c *Client) GetServiceStatus(ctx context.Context) (GetServiceStatusRes, error) {
-	res, err := c.sendGetServiceStatus(ctx)
-	return res, err
-}
-
-func (c *Client) sendGetServiceStatus(ctx context.Context) (res GetServiceStatusRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getServiceStatus"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/user/status"),
-	}
-	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetServiceStatusOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [1]string
-	pathParts[0] = "/user/status"
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetServiceStatusOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"SessionAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	body := resp.Body
-	defer body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeGetServiceStatusResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// GetStreamToken invokes getStreamToken operation.
-//
-// Get a presigned URL for downloading/streaming file content.
-//
-// GET /file/stream/read-token/{fileKey}
-func (c *Client) GetStreamToken(ctx context.Context, params GetStreamTokenParams) (GetStreamTokenRes, error) {
-	res, err := c.sendGetStreamToken(ctx, params)
-	return res, err
-}
-
-func (c *Client) sendGetStreamToken(ctx context.Context, params GetStreamTokenParams) (res GetStreamTokenRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getStreamToken"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/file/stream/read-token/{fileKey}"),
-	}
-	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetStreamTokenOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, GetSystemOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1669,16 +1989,16 @@ func (c *Client) sendGetStreamToken(ctx context.Context, params GetStreamTokenPa
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/file/stream/read-token/"
+	pathParts[0] = "/systems/"
 	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -1701,7 +2021,7 @@ func (c *Client) sendGetStreamToken(ctx context.Context, params GetStreamTokenPa
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetStreamTokenOperation, r); {
+			switch err := c.securitySessionAuth(ctx, GetSystemOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1738,7 +2058,7 @@ func (c *Client) sendGetStreamToken(ctx context.Context, params GetStreamTokenPa
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeGetStreamTokenResponse(resp)
+	result, err := decodeGetSystemResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1746,21 +2066,21 @@ func (c *Client) sendGetStreamToken(ctx context.Context, params GetStreamTokenPa
 	return result, nil
 }
 
-// GetTrashContainer invokes getTrashContainer operation.
+// GetSystemGroup invokes getSystemGroup operation.
 //
-// Get the trash container for the current user.
+// Get detailed information about a system group.
 //
-// GET /file/trash
-func (c *Client) GetTrashContainer(ctx context.Context) (GetTrashContainerRes, error) {
-	res, err := c.sendGetTrashContainer(ctx)
+// GET /systems/{systemId}/groups/{gid}
+func (c *Client) GetSystemGroup(ctx context.Context, params GetSystemGroupParams) (GetSystemGroupRes, error) {
+	res, err := c.sendGetSystemGroup(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendGetTrashContainer(ctx context.Context) (res GetTrashContainerRes, err error) {
+func (c *Client) sendGetSystemGroup(ctx context.Context, params GetSystemGroupParams) (res GetSystemGroupRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getTrashContainer"),
+		otelogen.OperationID("getSystemGroup"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/file/trash"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/groups/{gid}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -1776,7 +2096,7 @@ func (c *Client) sendGetTrashContainer(ctx context.Context) (res GetTrashContain
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetTrashContainerOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, GetSystemGroupOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1793,124 +2113,17 @@ func (c *Client) sendGetTrashContainer(ctx context.Context) (res GetTrashContain
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [1]string
-	pathParts[0] = "/file/trash"
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-
+	var pathParts [4]string
+	pathParts[0] = "/systems/"
 	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetTrashContainerOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"SessionAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	body := resp.Body
-	defer body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeGetTrashContainerResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// GetUploadToken invokes getUploadToken operation.
-//
-// Get a presigned URL and token for uploading file content.
-//
-// GET /file/upload/write-token/{fileKey}
-func (c *Client) GetUploadToken(ctx context.Context, params GetUploadTokenParams) (GetUploadTokenRes, error) {
-	res, err := c.sendGetUploadToken(ctx, params)
-	return res, err
-}
-
-func (c *Client) sendGetUploadToken(ctx context.Context, params GetUploadTokenParams) (res GetUploadTokenRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getUploadToken"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/file/upload/write-token/{fileKey}"),
-	}
-	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetUploadTokenOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/file/upload/write-token/"
-	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -1920,6 +2133,25 @@ func (c *Client) sendGetUploadToken(ctx context.Context, params GetUploadTokenPa
 		}
 		pathParts[1] = encoded
 	}
+	pathParts[2] = "/groups/"
+	{
+		// Encode "gid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "gid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.Gid))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[3] = encoded
+	}
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -1933,7 +2165,7 @@ func (c *Client) sendGetUploadToken(ctx context.Context, params GetUploadTokenPa
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, GetUploadTokenOperation, r); {
+			switch err := c.securitySessionAuth(ctx, GetSystemGroupOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1970,7 +2202,151 @@ func (c *Client) sendGetUploadToken(ctx context.Context, params GetUploadTokenPa
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeGetUploadTokenResponse(resp)
+	result, err := decodeGetSystemGroupResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// GetSystemUser invokes getSystemUser operation.
+//
+// Get detailed information about a system user.
+//
+// GET /systems/{systemId}/users/{uid}
+func (c *Client) GetSystemUser(ctx context.Context, params GetSystemUserParams) (GetSystemUserRes, error) {
+	res, err := c.sendGetSystemUser(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendGetSystemUser(ctx context.Context, params GetSystemUserParams) (res GetSystemUserRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("getSystemUser"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/users/{uid}"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, GetSystemUserOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [4]string
+	pathParts[0] = "/systems/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/users/"
+	{
+		// Encode "uid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "uid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.UID))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[3] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, GetSystemUserOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeGetSystemUserResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1980,7 +2356,7 @@ func (c *Client) sendGetUploadToken(ctx context.Context, params GetUploadTokenPa
 
 // GetUser invokes getUser operation.
 //
-// Get the current user information based on x-uuid header.
+// Get the current user information.
 //
 // GET /user
 func (c *Client) GetUser(ctx context.Context) (GetUserRes, error) {
@@ -2085,21 +2461,21 @@ func (c *Client) sendGetUser(ctx context.Context) (res GetUserRes, err error) {
 	return result, nil
 }
 
-// MoveFile invokes moveFile operation.
+// HandleCallback invokes handleCallback operation.
 //
-// Move a file to a different container.
+// Handle OAuth callback from Keycloak.
 //
-// POST /file/{fileKey}/move
-func (c *Client) MoveFile(ctx context.Context, request *MoveFileRequest, params MoveFileParams) (MoveFileRes, error) {
-	res, err := c.sendMoveFile(ctx, request, params)
+// POST /auth/callback
+func (c *Client) HandleCallback(ctx context.Context, request *CallbackRequest) (HandleCallbackRes, error) {
+	res, err := c.sendHandleCallback(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, params MoveFileParams) (res MoveFileRes, err error) {
+func (c *Client) sendHandleCallback(ctx context.Context, request *CallbackRequest) (res HandleCallbackRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("moveFile"),
+		otelogen.OperationID("handleCallback"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/file/{fileKey}/move"),
+		semconv.URLTemplateKey.String("/auth/callback"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -2115,7 +2491,167 @@ func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, par
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, MoveFileOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, HandleCallbackOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/auth/callback"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeHandleCallbackRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeHandleCallbackResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// InitiateLogin invokes initiateLogin operation.
+//
+// Start OIDC login flow and return authorization URL.
+//
+// GET /auth/login
+func (c *Client) InitiateLogin(ctx context.Context) (InitiateLoginRes, error) {
+	res, err := c.sendInitiateLogin(ctx)
+	return res, err
+}
+
+func (c *Client) sendInitiateLogin(ctx context.Context) (res InitiateLoginRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("initiateLogin"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/auth/login"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, InitiateLoginOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/auth/login"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeInitiateLoginResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// InitiateUpload invokes initiateUpload operation.
+//
+// Start an upload session and get presigned URL.
+//
+// POST /fs/{systemId}/upload/initiate
+func (c *Client) InitiateUpload(ctx context.Context, request *InitiateUploadRequest, params InitiateUploadParams) (InitiateUploadRes, error) {
+	res, err := c.sendInitiateUpload(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendInitiateUpload(ctx context.Context, request *InitiateUploadRequest, params InitiateUploadParams) (res InitiateUploadRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if err := request.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("initiateUpload"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/upload/initiate"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, InitiateUploadOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2133,16 +2669,16 @@ func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, par
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/file/"
+	pathParts[0] = "/fs/"
 	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -2152,7 +2688,7 @@ func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, par
 		}
 		pathParts[1] = encoded
 	}
-	pathParts[2] = "/move"
+	pathParts[2] = "/upload/initiate"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -2160,7 +2696,7 @@ func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, par
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeMoveFileRequest(request, r); err != nil {
+	if err := encodeInitiateUploadRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -2169,7 +2705,7 @@ func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, par
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, MoveFileOperation, r); {
+			switch err := c.securitySessionAuth(ctx, InitiateUploadOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2206,7 +2742,7 @@ func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, par
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeMoveFileResponse(resp)
+	result, err := decodeInitiateUploadResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2214,30 +2750,21 @@ func (c *Client) sendMoveFile(ctx context.Context, request *MoveFileRequest, par
 	return result, nil
 }
 
-// UpdateFile invokes updateFile operation.
+// ListSystemGroups invokes listSystemGroups operation.
 //
-// Update file name or other metadata.
+// Get all groups in a system.
 //
-// PATCH /file/{fileKey}
-func (c *Client) UpdateFile(ctx context.Context, request *UpdateFileRequest, params UpdateFileParams) (UpdateFileRes, error) {
-	res, err := c.sendUpdateFile(ctx, request, params)
+// GET /systems/{systemId}/groups
+func (c *Client) ListSystemGroups(ctx context.Context, params ListSystemGroupsParams) (ListSystemGroupsRes, error) {
+	res, err := c.sendListSystemGroups(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendUpdateFile(ctx context.Context, request *UpdateFileRequest, params UpdateFileParams) (res UpdateFileRes, err error) {
-	// Validate request before sending.
-	if err := func() error {
-		if err := request.Validate(); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		return res, errors.Wrap(err, "validate")
-	}
+func (c *Client) sendListSystemGroups(ctx context.Context, params ListSystemGroupsParams) (res ListSystemGroupsRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("updateFile"),
-		semconv.HTTPRequestMethodKey.String("PATCH"),
-		semconv.URLTemplateKey.String("/file/{fileKey}"),
+		otelogen.OperationID("listSystemGroups"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/groups"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -2253,7 +2780,7 @@ func (c *Client) sendUpdateFile(ctx context.Context, request *UpdateFileRequest,
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UpdateFileOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, ListSystemGroupsOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2270,17 +2797,17 @@ func (c *Client) sendUpdateFile(ctx context.Context, request *UpdateFileRequest,
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/file/"
+	var pathParts [3]string
+	pathParts[0] = "/systems/"
 	{
-		// Encode "fileKey" parameter.
+		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "fileKey",
+			Param:   "systemId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.FileKey))
+			return e.EncodeValue(conv.StringToString(params.SystemId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -2290,15 +2817,13 @@ func (c *Client) sendUpdateFile(ctx context.Context, request *UpdateFileRequest,
 		}
 		pathParts[1] = encoded
 	}
+	pathParts[2] = "/groups"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "PATCH", u)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-	if err := encodeUpdateFileRequest(request, r); err != nil {
-		return res, errors.Wrap(err, "encode request")
 	}
 
 	{
@@ -2306,7 +2831,7 @@ func (c *Client) sendUpdateFile(ctx context.Context, request *UpdateFileRequest,
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, UpdateFileOperation, r); {
+			switch err := c.securitySessionAuth(ctx, ListSystemGroupsOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2343,7 +2868,1038 @@ func (c *Client) sendUpdateFile(ctx context.Context, request *UpdateFileRequest,
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUpdateFileResponse(resp)
+	result, err := decodeListSystemGroupsResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// ListSystemUsers invokes listSystemUsers operation.
+//
+// Get all users in a system.
+//
+// GET /systems/{systemId}/users
+func (c *Client) ListSystemUsers(ctx context.Context, params ListSystemUsersParams) (ListSystemUsersRes, error) {
+	res, err := c.sendListSystemUsers(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendListSystemUsers(ctx context.Context, params ListSystemUsersParams) (res ListSystemUsersRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("listSystemUsers"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/users"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, ListSystemUsersOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/systems/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/users"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, ListSystemUsersOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeListSystemUsersResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// ListSystems invokes listSystems operation.
+//
+// Get a list of all systems.
+//
+// GET /systems
+func (c *Client) ListSystems(ctx context.Context) (ListSystemsRes, error) {
+	res, err := c.sendListSystems(ctx)
+	return res, err
+}
+
+func (c *Client) sendListSystems(ctx context.Context) (res ListSystemsRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("listSystems"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/systems"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, ListSystemsOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/systems"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, ListSystemsOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeListSystemsResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// Logout invokes logout operation.
+//
+// Logout and delete session (idempotent - always returns 204).
+//
+// POST /auth/logout
+func (c *Client) Logout(ctx context.Context) error {
+	_, err := c.sendLogout(ctx)
+	return err
+}
+
+func (c *Client) sendLogout(ctx context.Context) (res *LogoutNoContent, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("logout"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/auth/logout"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, LogoutOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/auth/logout"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeLogoutResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// Mkdir invokes mkdir operation.
+//
+// Create a new directory at the specified path.
+//
+// POST /fs/{systemId}/mkdir
+func (c *Client) Mkdir(ctx context.Context, request *MkdirRequest, params MkdirParams) (MkdirRes, error) {
+	res, err := c.sendMkdir(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendMkdir(ctx context.Context, request *MkdirRequest, params MkdirParams) (res MkdirRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("mkdir"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/mkdir"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, MkdirOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/mkdir"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeMkdirRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, MkdirOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeMkdirResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// ReadDir invokes readDir operation.
+//
+// List contents of a directory.
+//
+// GET /fs/{systemId}/readdir
+func (c *Client) ReadDir(ctx context.Context, params ReadDirParams) (ReadDirRes, error) {
+	res, err := c.sendReadDir(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendReadDir(ctx context.Context, params ReadDirParams) (res ReadDirRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("readDir"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/readdir"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, ReadDirOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/readdir"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "path" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "path",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.Path))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, ReadDirOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeReadDirResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// RemoveGroupMember invokes removeGroupMember operation.
+//
+// Remove a user from a group.
+//
+// DELETE /systems/{systemId}/groups/{gid}/members/{uid}
+func (c *Client) RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (RemoveGroupMemberRes, error) {
+	res, err := c.sendRemoveGroupMember(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendRemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (res RemoveGroupMemberRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("removeGroupMember"),
+		semconv.HTTPRequestMethodKey.String("DELETE"),
+		semconv.URLTemplateKey.String("/systems/{systemId}/groups/{gid}/members/{uid}"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, RemoveGroupMemberOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [6]string
+	pathParts[0] = "/systems/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/groups/"
+	{
+		// Encode "gid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "gid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.Gid))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[3] = encoded
+	}
+	pathParts[4] = "/members/"
+	{
+		// Encode "uid" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "uid",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int32ToString(params.UID))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[5] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "DELETE", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, RemoveGroupMemberOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeRemoveGroupMemberResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// StatPath invokes statPath operation.
+//
+// Get inode metadata for a given path.
+//
+// GET /fs/{systemId}/stat
+func (c *Client) StatPath(ctx context.Context, params StatPathParams) (StatPathRes, error) {
+	res, err := c.sendStatPath(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendStatPath(ctx context.Context, params StatPathParams) (res StatPathRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("statPath"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/stat"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, StatPathOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/stat"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "path" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "path",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.Path))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, StatPathOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeStatPathResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// Unlink invokes unlink operation.
+//
+// Delete a file or directory at the specified path.
+//
+// DELETE /fs/{systemId}/unlink
+func (c *Client) Unlink(ctx context.Context, params UnlinkParams) (UnlinkRes, error) {
+	res, err := c.sendUnlink(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendUnlink(ctx context.Context, params UnlinkParams) (res UnlinkRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("unlink"),
+		semconv.HTTPRequestMethodKey.String("DELETE"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/unlink"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, UnlinkOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/unlink"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "path" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "path",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.Path))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "DELETE", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, UnlinkOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeUnlinkResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

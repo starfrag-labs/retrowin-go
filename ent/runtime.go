@@ -5,135 +5,98 @@ package ent
 import (
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/ent/file"
-	"github.com/starfrag-lab/retrowin-go/ent/fileinfo"
-	"github.com/starfrag-lab/retrowin-go/ent/filelink"
-	"github.com/starfrag-lab/retrowin-go/ent/filerole"
+	"github.com/starfrag-lab/retrowin-go/ent/inode"
+	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/schema"
-	"github.com/starfrag-lab/retrowin-go/ent/servicestatus"
-	"github.com/starfrag-lab/retrowin-go/ent/tempfile"
+	"github.com/starfrag-lab/retrowin-go/ent/system"
+	"github.com/starfrag-lab/retrowin-go/ent/systemgroup"
 	"github.com/starfrag-lab/retrowin-go/ent/user"
+	"github.com/starfrag-lab/retrowin-go/ent/usersystem"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	fileMixin := schema.File{}.Mixin()
-	fileMixinFields0 := fileMixin[0].Fields()
-	_ = fileMixinFields0
-	fileFields := schema.File{}.Fields()
-	_ = fileFields
-	// fileDescCreateTime is the schema descriptor for create_time field.
-	fileDescCreateTime := fileMixinFields0[0].Descriptor()
-	// file.DefaultCreateTime holds the default value on creation for the create_time field.
-	file.DefaultCreateTime = fileDescCreateTime.Default.(func() time.Time)
-	// fileDescUpdateTime is the schema descriptor for update_time field.
-	fileDescUpdateTime := fileMixinFields0[1].Descriptor()
-	// file.DefaultUpdateTime holds the default value on creation for the update_time field.
-	file.DefaultUpdateTime = fileDescUpdateTime.Default.(func() time.Time)
-	// file.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	file.UpdateDefaultUpdateTime = fileDescUpdateTime.UpdateDefault.(func() time.Time)
-	// fileDescFileName is the schema descriptor for file_name field.
-	fileDescFileName := fileFields[2].Descriptor()
-	// file.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
-	file.FileNameValidator = fileDescFileName.Validators[0].(func(string) error)
-	// fileDescByteSize is the schema descriptor for byte_size field.
-	fileDescByteSize := fileFields[5].Descriptor()
-	// file.DefaultByteSize holds the default value on creation for the byte_size field.
-	file.DefaultByteSize = fileDescByteSize.Default.(int64)
-	// fileDescIsSystem is the schema descriptor for is_system field.
-	fileDescIsSystem := fileFields[6].Descriptor()
-	// file.DefaultIsSystem holds the default value on creation for the is_system field.
-	file.DefaultIsSystem = fileDescIsSystem.Default.(bool)
-	// fileDescSystemType is the schema descriptor for system_type field.
-	fileDescSystemType := fileFields[7].Descriptor()
-	// file.SystemTypeValidator is a validator for the "system_type" field. It is called by the builders before save.
-	file.SystemTypeValidator = fileDescSystemType.Validators[0].(func(string) error)
-	fileinfoFields := schema.FileInfo{}.Fields()
-	_ = fileinfoFields
-	// fileinfoDescCreateDate is the schema descriptor for create_date field.
-	fileinfoDescCreateDate := fileinfoFields[1].Descriptor()
-	// fileinfo.DefaultCreateDate holds the default value on creation for the create_date field.
-	fileinfo.DefaultCreateDate = fileinfoDescCreateDate.Default.(func() time.Time)
-	// fileinfoDescUpdateDate is the schema descriptor for update_date field.
-	fileinfoDescUpdateDate := fileinfoFields[2].Descriptor()
-	// fileinfo.DefaultUpdateDate holds the default value on creation for the update_date field.
-	fileinfo.DefaultUpdateDate = fileinfoDescUpdateDate.Default.(func() time.Time)
-	// fileinfo.UpdateDefaultUpdateDate holds the default value on update for the update_date field.
-	fileinfo.UpdateDefaultUpdateDate = fileinfoDescUpdateDate.UpdateDefault.(func() time.Time)
-	// fileinfoDescByteSize is the schema descriptor for byte_size field.
-	fileinfoDescByteSize := fileinfoFields[3].Descriptor()
-	// fileinfo.DefaultByteSize holds the default value on creation for the byte_size field.
-	fileinfo.DefaultByteSize = fileinfoDescByteSize.Default.(int64)
-	filelinkMixin := schema.FileLink{}.Mixin()
-	filelinkMixinFields0 := filelinkMixin[0].Fields()
-	_ = filelinkMixinFields0
-	filelinkFields := schema.FileLink{}.Fields()
-	_ = filelinkFields
-	// filelinkDescCreateTime is the schema descriptor for create_time field.
-	filelinkDescCreateTime := filelinkMixinFields0[0].Descriptor()
-	// filelink.DefaultCreateTime holds the default value on creation for the create_time field.
-	filelink.DefaultCreateTime = filelinkDescCreateTime.Default.(func() time.Time)
-	// filelinkDescUpdateTime is the schema descriptor for update_time field.
-	filelinkDescUpdateTime := filelinkMixinFields0[1].Descriptor()
-	// filelink.DefaultUpdateTime holds the default value on creation for the update_time field.
-	filelink.DefaultUpdateTime = filelinkDescUpdateTime.Default.(func() time.Time)
-	// filelink.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	filelink.UpdateDefaultUpdateTime = filelinkDescUpdateTime.UpdateDefault.(func() time.Time)
-	fileroleMixin := schema.FileRole{}.Mixin()
-	fileroleMixinFields0 := fileroleMixin[0].Fields()
-	_ = fileroleMixinFields0
-	fileroleFields := schema.FileRole{}.Fields()
-	_ = fileroleFields
-	// fileroleDescCreateTime is the schema descriptor for create_time field.
-	fileroleDescCreateTime := fileroleMixinFields0[0].Descriptor()
-	// filerole.DefaultCreateTime holds the default value on creation for the create_time field.
-	filerole.DefaultCreateTime = fileroleDescCreateTime.Default.(func() time.Time)
-	// fileroleDescUpdateTime is the schema descriptor for update_time field.
-	fileroleDescUpdateTime := fileroleMixinFields0[1].Descriptor()
-	// filerole.DefaultUpdateTime holds the default value on creation for the update_time field.
-	filerole.DefaultUpdateTime = fileroleDescUpdateTime.Default.(func() time.Time)
-	// filerole.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	filerole.UpdateDefaultUpdateTime = fileroleDescUpdateTime.UpdateDefault.(func() time.Time)
-	// fileroleDescRoles is the schema descriptor for roles field.
-	fileroleDescRoles := fileroleFields[2].Descriptor()
-	// filerole.DefaultRoles holds the default value on creation for the roles field.
-	filerole.DefaultRoles = fileroleDescRoles.Default.([]string)
-	servicestatusFields := schema.ServiceStatus{}.Fields()
-	_ = servicestatusFields
-	// servicestatusDescAvailable is the schema descriptor for available field.
-	servicestatusDescAvailable := servicestatusFields[1].Descriptor()
-	// servicestatus.DefaultAvailable holds the default value on creation for the available field.
-	servicestatus.DefaultAvailable = servicestatusDescAvailable.Default.(bool)
-	// servicestatusDescJoinDate is the schema descriptor for join_date field.
-	servicestatusDescJoinDate := servicestatusFields[2].Descriptor()
-	// servicestatus.DefaultJoinDate holds the default value on creation for the join_date field.
-	servicestatus.DefaultJoinDate = servicestatusDescJoinDate.Default.(func() time.Time)
-	// servicestatusDescUpdateDate is the schema descriptor for update_date field.
-	servicestatusDescUpdateDate := servicestatusFields[3].Descriptor()
-	// servicestatus.DefaultUpdateDate holds the default value on creation for the update_date field.
-	servicestatus.DefaultUpdateDate = servicestatusDescUpdateDate.Default.(func() time.Time)
-	// servicestatus.UpdateDefaultUpdateDate holds the default value on update for the update_date field.
-	servicestatus.UpdateDefaultUpdateDate = servicestatusDescUpdateDate.UpdateDefault.(func() time.Time)
-	tempfileFields := schema.TempFile{}.Fields()
-	_ = tempfileFields
-	// tempfileDescFileName is the schema descriptor for file_name field.
-	tempfileDescFileName := tempfileFields[2].Descriptor()
-	// tempfile.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
-	tempfile.FileNameValidator = tempfileDescFileName.Validators[0].(func(string) error)
-	// tempfileDescByteSize is the schema descriptor for byte_size field.
-	tempfileDescByteSize := tempfileFields[3].Descriptor()
-	// tempfile.DefaultByteSize holds the default value on creation for the byte_size field.
-	tempfile.DefaultByteSize = tempfileDescByteSize.Default.(int64)
-	// tempfileDescCreateDate is the schema descriptor for create_date field.
-	tempfileDescCreateDate := tempfileFields[4].Descriptor()
-	// tempfile.DefaultCreateDate holds the default value on creation for the create_date field.
-	tempfile.DefaultCreateDate = tempfileDescCreateDate.Default.(func() time.Time)
-	// tempfileDescExpiresAt is the schema descriptor for expires_at field.
-	tempfileDescExpiresAt := tempfileFields[6].Descriptor()
-	// tempfile.DefaultExpiresAt holds the default value on creation for the expires_at field.
-	tempfile.DefaultExpiresAt = tempfileDescExpiresAt.Default.(func() time.Time)
+	inodeMixin := schema.Inode{}.Mixin()
+	inodeMixinFields0 := inodeMixin[0].Fields()
+	_ = inodeMixinFields0
+	inodeFields := schema.Inode{}.Fields()
+	_ = inodeFields
+	// inodeDescCreateTime is the schema descriptor for create_time field.
+	inodeDescCreateTime := inodeMixinFields0[0].Descriptor()
+	// inode.DefaultCreateTime holds the default value on creation for the create_time field.
+	inode.DefaultCreateTime = inodeDescCreateTime.Default.(func() time.Time)
+	// inodeDescUpdateTime is the schema descriptor for update_time field.
+	inodeDescUpdateTime := inodeMixinFields0[1].Descriptor()
+	// inode.DefaultUpdateTime holds the default value on creation for the update_time field.
+	inode.DefaultUpdateTime = inodeDescUpdateTime.Default.(func() time.Time)
+	// inode.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	inode.UpdateDefaultUpdateTime = inodeDescUpdateTime.UpdateDefault.(func() time.Time)
+	// inodeDescUID is the schema descriptor for uid field.
+	inodeDescUID := inodeFields[3].Descriptor()
+	// inode.DefaultUID holds the default value on creation for the uid field.
+	inode.DefaultUID = inodeDescUID.Default.(int)
+	// inodeDescGid is the schema descriptor for gid field.
+	inodeDescGid := inodeFields[4].Descriptor()
+	// inode.DefaultGid holds the default value on creation for the gid field.
+	inode.DefaultGid = inodeDescGid.Default.(int)
+	// inodeDescSize is the schema descriptor for size field.
+	inodeDescSize := inodeFields[5].Descriptor()
+	// inode.DefaultSize holds the default value on creation for the size field.
+	inode.DefaultSize = inodeDescSize.Default.(int64)
+	// inodeDescLinkCount is the schema descriptor for link_count field.
+	inodeDescLinkCount := inodeFields[6].Descriptor()
+	// inode.DefaultLinkCount holds the default value on creation for the link_count field.
+	inode.DefaultLinkCount = inodeDescLinkCount.Default.(int)
+	objectMixin := schema.Object{}.Mixin()
+	objectMixinFields0 := objectMixin[0].Fields()
+	_ = objectMixinFields0
+	objectFields := schema.Object{}.Fields()
+	_ = objectFields
+	// objectDescCreateTime is the schema descriptor for create_time field.
+	objectDescCreateTime := objectMixinFields0[0].Descriptor()
+	// object.DefaultCreateTime holds the default value on creation for the create_time field.
+	object.DefaultCreateTime = objectDescCreateTime.Default.(func() time.Time)
+	// objectDescUpdateTime is the schema descriptor for update_time field.
+	objectDescUpdateTime := objectMixinFields0[1].Descriptor()
+	// object.DefaultUpdateTime holds the default value on creation for the update_time field.
+	object.DefaultUpdateTime = objectDescUpdateTime.Default.(func() time.Time)
+	// object.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	object.UpdateDefaultUpdateTime = objectDescUpdateTime.UpdateDefault.(func() time.Time)
+	systemMixin := schema.System{}.Mixin()
+	systemMixinFields0 := systemMixin[0].Fields()
+	_ = systemMixinFields0
+	systemFields := schema.System{}.Fields()
+	_ = systemFields
+	// systemDescCreateTime is the schema descriptor for create_time field.
+	systemDescCreateTime := systemMixinFields0[0].Descriptor()
+	// system.DefaultCreateTime holds the default value on creation for the create_time field.
+	system.DefaultCreateTime = systemDescCreateTime.Default.(func() time.Time)
+	// systemDescUpdateTime is the schema descriptor for update_time field.
+	systemDescUpdateTime := systemMixinFields0[1].Descriptor()
+	// system.DefaultUpdateTime holds the default value on creation for the update_time field.
+	system.DefaultUpdateTime = systemDescUpdateTime.Default.(func() time.Time)
+	// system.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	system.UpdateDefaultUpdateTime = systemDescUpdateTime.UpdateDefault.(func() time.Time)
+	// systemDescName is the schema descriptor for name field.
+	systemDescName := systemFields[1].Descriptor()
+	// system.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	system.NameValidator = systemDescName.Validators[0].(func(string) error)
+	// systemDescDescription is the schema descriptor for description field.
+	systemDescDescription := systemFields[2].Descriptor()
+	// system.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	system.DescriptionValidator = systemDescDescription.Validators[0].(func(string) error)
+	systemgroupFields := schema.SystemGroup{}.Fields()
+	_ = systemgroupFields
+	// systemgroupDescName is the schema descriptor for name field.
+	systemgroupDescName := systemgroupFields[1].Descriptor()
+	// systemgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	systemgroup.NameValidator = systemgroupDescName.Validators[0].(func(string) error)
+	// systemgroupDescGid is the schema descriptor for gid field.
+	systemgroupDescGid := systemgroupFields[2].Descriptor()
+	// systemgroup.DefaultGid holds the default value on creation for the gid field.
+	systemgroup.DefaultGid = systemgroupDescGid.Default.(int)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -149,4 +112,34 @@ func init() {
 	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
 	// user.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	user.UpdateDefaultUpdateTime = userDescUpdateTime.UpdateDefault.(func() time.Time)
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userFields[1].Descriptor()
+	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
+	// userDescProvider is the schema descriptor for provider field.
+	userDescProvider := userFields[2].Descriptor()
+	// user.ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
+	user.ProviderValidator = userDescProvider.Validators[0].(func(string) error)
+	// userDescProviderID is the schema descriptor for provider_id field.
+	userDescProviderID := userFields[3].Descriptor()
+	// user.ProviderIDValidator is a validator for the "provider_id" field. It is called by the builders before save.
+	user.ProviderIDValidator = userDescProviderID.Validators[0].(func(string) error)
+	// userDescJoinDate is the schema descriptor for join_date field.
+	userDescJoinDate := userFields[4].Descriptor()
+	// user.DefaultJoinDate holds the default value on creation for the join_date field.
+	user.DefaultJoinDate = userDescJoinDate.Default.(func() time.Time)
+	usersystemFields := schema.UserSystem{}.Fields()
+	_ = usersystemFields
+	// usersystemDescUID is the schema descriptor for uid field.
+	usersystemDescUID := usersystemFields[2].Descriptor()
+	// usersystem.DefaultUID holds the default value on creation for the uid field.
+	usersystem.DefaultUID = usersystemDescUID.Default.(int)
+	// usersystemDescGid is the schema descriptor for gid field.
+	usersystemDescGid := usersystemFields[3].Descriptor()
+	// usersystem.DefaultGid holds the default value on creation for the gid field.
+	usersystem.DefaultGid = usersystemDescGid.Default.(int)
+	// usersystemDescUsername is the schema descriptor for username field.
+	usersystemDescUsername := usersystemFields[4].Descriptor()
+	// usersystem.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	usersystem.UsernameValidator = usersystemDescUsername.Validators[0].(func(string) error)
 }

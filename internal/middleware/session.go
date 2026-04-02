@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
+	"github.com/starfrag-lab/retrowin-go/internal/session"
+	"github.com/starfrag-lab/retrowin-go/internal/utils"
 )
 
 const (
@@ -15,13 +15,13 @@ const (
 
 // SessionAuth holds session authentication configuration.
 type SessionAuth struct {
-	sessionSvc auth.SessionService
+	sessionSvc session.SessionService
 	secure     bool
 }
 
 // SessionAuthConfig holds session authentication configuration.
 type SessionAuthConfig struct {
-	SessionService auth.SessionService
+	SessionService session.SessionService
 	Secure         bool
 }
 
@@ -42,7 +42,7 @@ func (a *SessionAuth) RequireSession(next http.Handler) http.Handler {
 			return
 		}
 
-		sess, err := a.sessionSvc.Validate(r.Context(), auth.SessionID(cookie.Value))
+		sess, err := a.sessionSvc.Validate(r.Context(), session.SessionID(cookie.Value))
 		if err != nil {
 			WriteError(w, errors.Unauthorized("invalid or expired session"))
 			return
@@ -50,7 +50,7 @@ func (a *SessionAuth) RequireSession(next http.Handler) http.Handler {
 
 		// Add session info to context
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, UserIDKey, sess.UserID())
+		ctx = utils.ContextWithUserID(ctx, sess.UserID())
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
