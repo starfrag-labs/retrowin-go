@@ -56,12 +56,14 @@ func newMigrateCmd() *cobra.Command {
 // newMigrateApplyCmd creates the migrate apply subcommand
 func newMigrateApplyCmd() *cobra.Command {
 	var cfgFile string
+	var mode string
+	var baseline string
+	var clean bool
 
 	cmd := &cobra.Command{
 		Use:   "apply",
 		Short: "Apply database migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Load config
 			var cfg *config.Config
 			var err error
 
@@ -74,11 +76,24 @@ func newMigrateApplyCmd() *cobra.Command {
 				return err
 			}
 
-			return ApplyMigrations(cfg)
+			// CLI flags override config
+			opts := MigrateOptions{
+				Mode:     mode,
+				Baseline: baseline,
+				Clean:    clean,
+			}
+			if opts.Mode == "" {
+				opts.Mode = "auto"
+			}
+
+			return ApplyMigrations(cfg, opts)
 		},
 	}
 
 	cmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file path")
+	cmd.Flags().StringVar(&mode, "mode", "", "Migration mode: auto or versioned (overrides config)")
+	cmd.Flags().StringVar(&baseline, "baseline", "", "Baseline version for existing databases (versioned mode)")
+	cmd.Flags().BoolVar(&clean, "clean", false, "Drop all tables before applying migrations")
 
 	return cmd
 }
