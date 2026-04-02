@@ -58,8 +58,12 @@ spec:
             - name: config
               mountPath: /app/config
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: config
           configMap:
             name: {{ include "retrowin.fullname" . }}
+        - name: tmp
+          emptyDir: {}
 {{- end }}
