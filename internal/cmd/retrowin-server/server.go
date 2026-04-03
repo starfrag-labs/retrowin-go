@@ -178,7 +178,7 @@ func ProvideHTTPMux(
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(content)
+		_, _ = w.Write(content)
 	})
 	mux.HandleFunc("/swagger", httpSwagger.Handler(
 		httpSwagger.URL("/openapi.json"),

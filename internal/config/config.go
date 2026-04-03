@@ -92,11 +92,11 @@ type KeycloakConfig struct {
 
 // SessionConfig holds session configuration.
 type SessionConfig struct {
-	TTL        int    `mapstructure:"ttl" yaml:"ttl"`                 // Session TTL in seconds
-	Secure     bool   `mapstructure:"secure" yaml:"secure"`           // Set Secure flag on cookie
-	StateTTL   int    `mapstructure:"stateTTL" yaml:"stateTTL"`       // OAuth state TTL in seconds
-	RedisKey   string `mapstructure:"redisKey" yaml:"redisKey"`       // Redis key prefix
-	CookieName string `mapstructure:"cookieName" yaml:"cookieName"`   // Session cookie name
+	TTL        int    `mapstructure:"ttl" yaml:"ttl"`               // Session TTL in seconds
+	Secure     bool   `mapstructure:"secure" yaml:"secure"`         // Set Secure flag on cookie
+	StateTTL   int    `mapstructure:"stateTTL" yaml:"stateTTL"`     // OAuth state TTL in seconds
+	RedisKey   string `mapstructure:"redisKey" yaml:"redisKey"`     // Redis key prefix
+	CookieName string `mapstructure:"cookieName" yaml:"cookieName"` // Session cookie name
 }
 
 // CORSConfig holds CORS configuration.
