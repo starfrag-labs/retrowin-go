@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
@@ -12,7 +12,7 @@ import (
 )
 
 // InitiateLogin implements GET /auth/login.
-func (h *Handler) InitiateLogin(ctx context.Context) (apiv1.InitiateLoginRes, error) {
+func (h *Handler) InitiateLogin(ctx context.Context) (api.InitiateLoginRes, error) {
 	resp, err := h.authSvc.InitiateLogin(ctx)
 	if err != nil {
 		return nil, err
@@ -23,14 +23,14 @@ func (h *Handler) InitiateLogin(ctx context.Context) (apiv1.InitiateLoginRes, er
 		return nil, err
 	}
 
-	return &apiv1.LoginResponse{
+	return &api.LoginResponse{
 		AuthorizationUrl: *authURL,
 		State:            resp.State,
 	}, nil
 }
 
 // HandleCallback implements POST /auth/callback.
-func (h *Handler) HandleCallback(ctx context.Context, req *apiv1.CallbackRequest) (apiv1.HandleCallbackRes, error) {
+func (h *Handler) HandleCallback(ctx context.Context, req *api.CallbackRequest) (api.HandleCallbackRes, error) {
 	callbackReq := &auth.CallbackRequest{
 		Code:  req.Code,
 		State: req.State,
@@ -39,15 +39,15 @@ func (h *Handler) HandleCallback(ctx context.Context, req *apiv1.CallbackRequest
 	resp, err := h.authSvc.HandleCallback(ctx, callbackReq)
 	if err != nil {
 		if errors.IsUnauthorized(err) || errors.IsNotFound(err) {
-			return &apiv1.HandleCallbackUnauthorized{}, nil
+			return &api.HandleCallbackUnauthorized{}, nil
 		}
-		return &apiv1.HandleCallbackBadRequest{}, nil
+		return &api.HandleCallbackBadRequest{}, nil
 	}
 
-	return &apiv1.CallbackResponse{
+	return &api.CallbackResponse{
 		SessionId: resp.SessionID,
 		UserId:    resp.UserID,
-		ExpiresAt: apiv1.OptTimestamp{Value: apiv1.Timestamp(resp.ExpiresAt), Set: true},
+		ExpiresAt: api.OptTimestamp{Value: api.Timestamp(resp.ExpiresAt), Set: true},
 	}, nil
 }
 

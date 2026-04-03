@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
+	"strings"
 	"syscall"
 	"time"
 
@@ -18,7 +20,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	"github.com/starfrag-lab/retrowin-go/pkg/api"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/valkey-io/valkey-go"
 
@@ -161,7 +163,7 @@ func ProvideStorage(cfg *config.Config) (object.Storage, error) {
 
 // ProvideHTTPMux provides the HTTP mux with all routes.
 func ProvideHTTPMux(
-	ogenServer *apiv1.Server,
+	ogenServer *api.Server,
 	cfg *config.Config,
 ) *http.ServeMux {
 	mux := http.NewServeMux()
@@ -255,9 +257,73 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 	return r.ResponseWriter.Write(b)
 }
 
+// panicRecoveryMiddleware recovers from panics and logs them.
+func panicRecoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rv := recover(); rv != nil {
+				fmt.Printf("PANIC recovered: %v\n", rv)
+				fmt.Printf("Stack: %s\n", debug.Stack())
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// corsMiddleware adds CORS headers to responses.
+func corsMiddleware(next http.Handler, cfg *config.Config) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// If CORS is disabled, just pass through
+		if !cfg.CORS.Enabled {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Set CORS headers
+		origin := r.Header.Get("Origin")
+		allowedOrigin := ""
+
+		// Check if origin is in allowed list
+		for _, allowed := range cfg.CORS.AllowedOrigins {
+			if allowed == "*" || allowed == origin {
+				allowedOrigin = allowed
+				break
+			}
+		}
+
+		if allowedOrigin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+		}
+
+		if cfg.CORS.AllowCredentials {
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+
+		if len(cfg.CORS.ExposedHeaders) > 0 {
+			w.Header().Set("Access-Control-Expose-Headers", strings.Join(cfg.CORS.ExposedHeaders, ", "))
+		}
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", strings.Join(cfg.CORS.AllowedMethods, ", "))
+			w.Header().Set("Access-Control-Allow-Headers", strings.Join(cfg.CORS.AllowedHeaders, ", "))
+			if cfg.CORS.MaxAge > 0 {
+				w.Header().Set("Access-Control-Max-Age", fmt.Sprintf("%d", cfg.CORS.MaxAge))
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ProvideHTTPHandler provides the HTTP handler.
 func ProvideHTTPHandler(mux *http.ServeMux, cfg *config.Config) http.Handler {
-	return sessionMiddleware(mux, cfg.Auth.Session.Secure, cfg.Auth.Session.TTL, cfg.Auth.Session.CookieName)
+	handler := sessionMiddleware(mux, cfg.Auth.Session.Secure, cfg.Auth.Session.TTL, cfg.Auth.Session.CookieName)
+	handler = corsMiddleware(handler, cfg)
+	return panicRecoveryMiddleware(handler)
 }
 
 // ProvideHTTPServer provides the HTTP server.
@@ -338,9 +404,9 @@ func WaitForShutdown(lc fx.Lifecycle) {
 func ProvideOgenServer(
 	h *handler.Handler,
 	sessionSvc session.SessionService,
-) (*apiv1.Server, error) {
+) (*api.Server, error) {
 	securityHandler := handler.NewSecurityHandler(sessionSvc)
-	return apiv1.NewServer(h, securityHandler, apiv1.WithErrorHandler(h.ErrorHandler))
+	return api.NewServer(h, securityHandler, api.WithErrorHandler(h.ErrorHandler))
 }
 
 // FxOptions returns the fx options for the application.

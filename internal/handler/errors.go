@@ -9,17 +9,17 @@ import (
 	"github.com/ogen-go/ogen/ogenerrors"
 
 	domainerrors "github.com/starfrag-lab/retrowin-go/internal/errors"
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 )
 
 // NewError creates error response for ogen convenient errors.
-func (h *Handler) NewError(ctx context.Context, err error) *apiv1.ErrorStatusCode {
+func (h *Handler) NewError(ctx context.Context, err error) *api.ErrorStatusCode {
 	var domainErr *domainerrors.Error
 	if errors.As(err, &domainErr) {
-		return &apiv1.ErrorStatusCode{
+		return &api.ErrorStatusCode{
 			StatusCode: domainErr.StatusCode,
-			Response: apiv1.Error{
-				Error: apiv1.ErrorError{
+			Response: api.Error{
+				Error: api.ErrorError{
 					Type:    domainErr.Code,
 					Message: domainErr.Message,
 				},
@@ -30,10 +30,10 @@ func (h *Handler) NewError(ctx context.Context, err error) *apiv1.ErrorStatusCod
 	// Handle ogen security errors
 	var secErr *ogenerrors.SecurityError
 	if errors.As(err, &secErr) {
-		return &apiv1.ErrorStatusCode{
+		return &api.ErrorStatusCode{
 			StatusCode: http.StatusUnauthorized,
-			Response: apiv1.Error{
-				Error: apiv1.ErrorError{
+			Response: api.Error{
+				Error: api.ErrorError{
 					Type:    "UNAUTHORIZED",
 					Message: "authentication required",
 				},
@@ -41,10 +41,10 @@ func (h *Handler) NewError(ctx context.Context, err error) *apiv1.ErrorStatusCod
 		}
 	}
 
-	return &apiv1.ErrorStatusCode{
+	return &api.ErrorStatusCode{
 		StatusCode: http.StatusInternalServerError,
-		Response: apiv1.Error{
-			Error: apiv1.ErrorError{
+		Response: api.Error{
+			Error: api.ErrorError{
 				Type:    "internal_error",
 				Message: err.Error(),
 			},
@@ -58,8 +58,8 @@ func (h *Handler) ErrorHandler(ctx context.Context, w http.ResponseWriter, r *ht
 	if errors.As(err, &domainErr) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(domainErr.StatusCode)
-		resp := apiv1.Error{
-			Error: apiv1.ErrorError{
+		resp := api.Error{
+			Error: api.ErrorError{
 				Type:    domainErr.Code,
 				Message: domainErr.Message,
 			},
@@ -73,8 +73,8 @@ func (h *Handler) ErrorHandler(ctx context.Context, w http.ResponseWriter, r *ht
 	if errors.As(err, &secErr) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		resp := apiv1.Error{
-			Error: apiv1.ErrorError{
+		resp := api.Error{
+			Error: api.ErrorError{
 				Type:    "UNAUTHORIZED",
 				Message: "authentication required",
 			},
@@ -86,8 +86,8 @@ func (h *Handler) ErrorHandler(ctx context.Context, w http.ResponseWriter, r *ht
 	// Default to 500 Internal Server Error
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
-	resp := apiv1.Error{
-		Error: apiv1.ErrorError{
+	resp := api.Error{
+		Error: api.ErrorError{
 			Type:    "internal_error",
 			Message: err.Error(),
 		},

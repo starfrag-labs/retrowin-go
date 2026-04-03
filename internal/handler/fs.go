@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
@@ -14,7 +14,7 @@ import (
 )
 
 // GetRootDirectory implements GET /fs/{systemId}/root.
-func (h *Handler) GetRootDirectory(ctx context.Context, params apiv1.GetRootDirectoryParams) (apiv1.GetRootDirectoryRes, error) {
+func (h *Handler) GetRootDirectory(ctx context.Context, params api.GetRootDirectoryParams) (api.GetRootDirectoryRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -24,13 +24,13 @@ func (h *Handler) GetRootDirectory(ctx context.Context, params apiv1.GetRootDire
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(rootInode),
 	}, nil
 }
 
 // StatPath implements GET /fs/{systemId}/stat.
-func (h *Handler) StatPath(ctx context.Context, params apiv1.StatPathParams) (apiv1.StatPathRes, error) {
+func (h *Handler) StatPath(ctx context.Context, params api.StatPathParams) (api.StatPathRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -40,13 +40,13 @@ func (h *Handler) StatPath(ctx context.Context, params apiv1.StatPathParams) (ap
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(in),
 	}, nil
 }
 
 // Ls implements GET /fs/{systemId}/ls.
-func (h *Handler) Ls(ctx context.Context, params apiv1.LsParams) (apiv1.LsRes, error) {
+func (h *Handler) Ls(ctx context.Context, params api.LsParams) (api.LsRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -63,11 +63,11 @@ func (h *Handler) Ls(ctx context.Context, params apiv1.LsParams) (apiv1.LsRes, e
 		return nil, h.domainError(err)
 	}
 
-	resp := &apiv1.DirContentResponse{
-		Entries: make([]apiv1.DirEntry, len(entries)),
+	resp := &api.DirContentResponse{
+		Entries: make([]api.DirEntry, len(entries)),
 	}
 	for i, e := range entries {
-		resp.Entries[i] = apiv1.DirEntry{
+		resp.Entries[i] = api.DirEntry{
 			Name:     e.Name,
 			InodeId:  e.InodeID,
 			FileType: int32(e.FileType),
@@ -78,7 +78,7 @@ func (h *Handler) Ls(ctx context.Context, params apiv1.LsParams) (apiv1.LsRes, e
 }
 
 // Mkdir implements POST /fs/{systemId}/mkdir.
-func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params apiv1.MkdirParams) (apiv1.MkdirRes, error) {
+func (h *Handler) Mkdir(ctx context.Context, req *api.MkdirRequest, params api.MkdirParams) (api.MkdirRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -122,13 +122,13 @@ func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params api
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(dirInode),
 	}, nil
 }
 
 // Ln implements POST /fs/{systemId}/ln.
-func (h *Handler) Ln(ctx context.Context, req *apiv1.SymlinkRequest, params apiv1.LnParams) (apiv1.LnRes, error) {
+func (h *Handler) Ln(ctx context.Context, req *api.SymlinkRequest, params api.LnParams) (api.LnRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -170,13 +170,13 @@ func (h *Handler) Ln(ctx context.Context, req *apiv1.SymlinkRequest, params apiv
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(symlinkInode),
 	}, nil
 }
 
 // Chmod implements PATCH /fs/{systemId}/chmod.
-func (h *Handler) Chmod(ctx context.Context, req *apiv1.ChmodRequest, params apiv1.ChmodParams) (apiv1.ChmodRes, error) {
+func (h *Handler) Chmod(ctx context.Context, req *api.ChmodRequest, params api.ChmodParams) (api.ChmodRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -206,13 +206,13 @@ func (h *Handler) Chmod(ctx context.Context, req *apiv1.ChmodRequest, params api
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(updatedInode),
 	}, nil
 }
 
 // Unlink implements DELETE /fs/{systemId}/unlink.
-func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.UnlinkRes, error) {
+func (h *Handler) Unlink(ctx context.Context, params api.UnlinkParams) (api.UnlinkRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -246,11 +246,11 @@ func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.UnlinkNoContent{}, nil
+	return &api.UnlinkNoContent{}, nil
 }
 
 // Rename implements POST /fs/{systemId}/rename.
-func (h *Handler) Rename(ctx context.Context, req *apiv1.RenameReq, params apiv1.RenameParams) (apiv1.RenameRes, error) {
+func (h *Handler) Rename(ctx context.Context, req *api.RenameReq, params api.RenameParams) (api.RenameRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -313,13 +313,13 @@ func (h *Handler) Rename(ctx context.Context, req *apiv1.RenameReq, params apiv1
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(updatedInode),
 	}, nil
 }
 
 // Mv implements POST /fs/{systemId}/mv.
-func (h *Handler) Mv(ctx context.Context, req *apiv1.MvReq, params apiv1.MvParams) (apiv1.MvRes, error) {
+func (h *Handler) Mv(ctx context.Context, req *api.MvReq, params api.MvParams) (api.MvRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -422,13 +422,13 @@ func (h *Handler) Mv(ctx context.Context, req *apiv1.MvReq, params apiv1.MvParam
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(updatedInode),
 	}, nil
 }
 
-func (h *Handler) toInode(in *inode.Inode) *apiv1.Inode {
-	return &apiv1.Inode{
+func (h *Handler) toInode(in *inode.Inode) *api.Inode {
+	return &api.Inode{
 		ID:        in.ID(),
 		SystemId:  in.SystemID(),
 		Mode:      int32(in.Mode()),

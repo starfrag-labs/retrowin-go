@@ -74,8 +74,8 @@ openapi: openapi-bundle openapi-validate ## Bundle and validate OpenAPI spec
 
 .PHONY: ogen
 ogen: openapi-bundle ## Generate API code from OpenAPI spec
-	@rm -f pkg/api/v1/oas_*.go
-	go tool ogen -config ogen.yaml -target ./pkg/api/v1 -package apiv1 api/openapi.bundled.json
+	@rm -f pkg/api/oas_*.go
+	go tool ogen -config ogen.yaml -target ./pkg/api -package api api/openapi.bundled.json
 
 .PHONY: mock
 mock: ## Generate mocks

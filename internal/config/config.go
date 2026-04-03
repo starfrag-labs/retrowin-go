@@ -15,6 +15,7 @@ type Config struct {
 	Cache    CacheConfig    `mapstructure:"cache" yaml:"cache"`
 	Storage  StorageConfig  `mapstructure:"storage" yaml:"storage"`
 	Auth     AuthConfig     `mapstructure:"auth" yaml:"auth"`
+	CORS     CORSConfig     `mapstructure:"cors" yaml:"cors"`
 }
 
 // AppConfig holds application-level configuration.
@@ -97,6 +98,17 @@ type SessionConfig struct {
 	StateTTL   int    `mapstructure:"stateTTL" yaml:"stateTTL"`       // OAuth state TTL in seconds
 	RedisKey   string `mapstructure:"redisKey" yaml:"redisKey"`       // Redis key prefix
 	CookieName string `mapstructure:"cookieName" yaml:"cookieName"`   // Session cookie name
+}
+
+// CORSConfig holds CORS configuration.
+type CORSConfig struct {
+	Enabled          bool     `mapstructure:"enabled" yaml:"enabled"`
+	AllowedOrigins   []string `mapstructure:"allowedOrigins" yaml:"allowedOrigins"`
+	AllowedMethods   []string `mapstructure:"allowedMethods" yaml:"allowedMethods"`
+	AllowedHeaders   []string `mapstructure:"allowedHeaders" yaml:"allowedHeaders"`
+	ExposedHeaders   []string `mapstructure:"exposedHeaders" yaml:"exposedHeaders"`
+	AllowCredentials bool     `mapstructure:"allowCredentials" yaml:"allowCredentials"`
+	MaxAge           int      `mapstructure:"maxAge" yaml:"maxAge"` // in seconds
 }
 
 // OIDCRedirectURI returns the OIDC redirect URI.
