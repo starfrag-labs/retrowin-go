@@ -46,7 +46,7 @@ import (
 )
 
 // ProvideConfig provides the config from file.
-func ProvideConfig(cfgFile string, port int, openAPIPath string) (*config.Config, error) {
+func ProvideConfig(cfgFile string, port int) (*config.Config, error) {
 	var cfg *config.Config
 	var err error
 
@@ -62,11 +62,6 @@ func ProvideConfig(cfgFile string, port int, openAPIPath string) (*config.Config
 	// Override port if specified
 	if port != 8080 {
 		cfg.HTTP.Port = port
-	}
-
-	// Override OpenAPI path if specified via CLI flag
-	if openAPIPath != "" {
-		cfg.HTTP.OpenAPIPath = openAPIPath
 	}
 
 	return cfg, nil
@@ -170,15 +165,16 @@ func ProvideStorage(cfg *config.Config) (object.Storage, error) {
 func ProvideHTTPMux(
 	ogenServer *api.Server,
 	cfg *config.Config,
+	openAPIPath string,
 ) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Serve OpenAPI spec and Swagger UI (register before catch-all)
 	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-		// Use configured path
-		content, err := os.ReadFile(cfg.HTTP.OpenAPIPath)
+		// Use configured path from CLI flag
+		content, err := os.ReadFile(openAPIPath)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("OpenAPI spec not found: %s", cfg.HTTP.OpenAPIPath), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("OpenAPI spec not found: %s", openAPIPath), http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -431,7 +427,7 @@ func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 
 		// All providers - single fx.Provide call like serengeti
 		fx.Provide(
-			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`, `name:"openAPIPath"`)),
+			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`)),
 			ProvideLogger,
 			NewEntClient,
 			ProvideValkeyClient,
@@ -467,7 +463,7 @@ func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 			// HTTP layer
 			handler.NewHandler,
 			ProvideOgenServer,
-			ProvideHTTPMux,
+			fx.Annotate(ProvideHTTPMux, fx.ParamTags(``, ``, `name:"openAPIPath"`)),
 			ProvideHTTPHandler,
 			ProvideHTTPServer,
 		),

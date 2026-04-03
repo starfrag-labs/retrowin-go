@@ -27,9 +27,8 @@ type AppConfig struct {
 
 // HTTPConfig holds HTTP server configuration.
 type HTTPConfig struct {
-	Host        string `mapstructure:"host" yaml:"host"`
-	Port        int    `mapstructure:"port" yaml:"port"`
-	OpenAPIPath string `mapstructure:"openAPIPath" yaml:"openAPIPath"`
+	Host string `mapstructure:"host" yaml:"host"`
+	Port int    `mapstructure:"port" yaml:"port"`
 }
 
 // DatabaseConfig holds database connection configuration.
@@ -168,7 +167,6 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.env", "development")
 	v.SetDefault("http.host", "0.0.0.0")
 	v.SetDefault("http.port", 8080)
-	v.SetDefault("http.openAPIPath", "api/openapi.yaml")
 	v.SetDefault("database.driver", "postgres")
 	v.SetDefault("database.sslMode", "disable")
 	v.SetDefault("cache.provider", "valkey")
@@ -198,5 +196,4 @@ func bindEnvVars(v *viper.Viper) {
 	_ = v.BindEnv("storage.accessKey", "STORAGE_ACCESS_KEY")
 	_ = v.BindEnv("storage.secretKey", "STORAGE_SECRET_KEY")
 	_ = v.BindEnv("auth.keycloak.clientSecret", "AUTH_KEYCLOAK_CLIENT_SECRET")
-	_ = v.BindEnv("http.openAPIPath", "HTTP_OPENAPI_PATH")
 }

@@ -110,7 +110,6 @@ config:
   http:
     host: "0.0.0.0"
     port: 8080
-    openAPIPath: /app/api/openapi.bundled.json
 
   # Database settings
   database:

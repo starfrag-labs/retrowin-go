@@ -203,9 +203,8 @@ func (s *Suite) Start(ctx context.Context) error {
 			Env:     "test",
 		},
 		HTTP: config.HTTPConfig{
-			Host:        "127.0.0.1",
-			Port:        testPort,
-			OpenAPIPath: "../../api/openapi.yaml",
+			Host: "127.0.0.1",
+			Port: testPort,
 		},
 		Database: config.DatabaseConfig{
 			Driver:   "postgres",
@@ -274,7 +273,7 @@ func (s *Suite) StartServer(ctx context.Context) error {
 	}
 
 	// Start the actual fx app
-	s.app = retrowinserver.NewFXApp(s.cfgFile, s.Config.HTTP.Port, s.Config.HTTP.OpenAPIPath)
+	s.app = retrowinserver.NewFXApp(s.cfgFile, s.Config.HTTP.Port, "../../api/openapi.yaml")
 
 	go func() {
 		s.app.Run()
