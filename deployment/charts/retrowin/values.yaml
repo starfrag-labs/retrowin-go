@@ -118,7 +118,7 @@ config:
     port: 5432
     name: retrowin
     user: retrowin
-    sslmode: disable
+    sslMode: disable
 
   # Cache settings (Valkey)
   cache:

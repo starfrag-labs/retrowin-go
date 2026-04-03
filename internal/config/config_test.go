@@ -23,6 +23,7 @@ app:
 http:
   host: 127.0.0.1
   port: 3000
+  openAPIPath: /api/openapi.yaml
 
 database:
   driver: postgres
@@ -30,14 +31,14 @@ database:
   port: 5432
   name: testdb
   user: testuser
-  sslmode: disable
+  sslMode: disable
 
 cache:
   provider: valkey
   valkey:
     addr: "valkey:6379"
     db: 1
-    pool_size: 20
+    poolSize: 20
     password: secret
 
 storage:
@@ -47,10 +48,10 @@ storage:
 
 auth:
   keycloak:
-    base_url: https://idp.example.com
+    baseURL: https://idp.example.com
     realm: test-realm
-    client_id: test-client
-    redirect_uri: https://api.example.com/auth/callback
+    clientID: test-client
+    redirectURI: https://api.example.com/auth/callback
   session:
     ttl: 3600
     secure: true
@@ -100,6 +101,7 @@ func TestLoadFromPath_Defaults(t *testing.T) {
 database:
   host: localhost
   name: testdb
+  sslMode: disable
 
 storage:
   bucket: test-bucket
@@ -136,7 +138,7 @@ database:
   port: 5432
   name: testdb
   user: testuser
-  sslmode: disable
+  sslMode: disable
 
 storage:
   bucket: test-bucket
@@ -168,6 +170,7 @@ func TestLoadFromPath_ValkeyPasswordFromEnv(t *testing.T) {
 database:
   host: localhost
   name: testdb
+  sslMode: disable
 
 cache:
   provider: valkey
@@ -200,6 +203,7 @@ func TestLoadFromPath_StorageCredentialsFromEnv(t *testing.T) {
 database:
   host: localhost
   name: testdb
+  sslMode: disable
 
 storage:
   provider: s3
@@ -232,15 +236,16 @@ func TestLoadFromPath_KeycloakSecretFromEnv(t *testing.T) {
 database:
   host: localhost
   name: testdb
+  sslMode: disable
 
 storage:
   bucket: test-bucket
 
 auth:
   keycloak:
-    base_url: https://idp.example.com
+    baseURL: https://idp.example.com
     realm: test
-    client_id: test-client
+    clientID: test-client
 `
 	err := os.WriteFile(cfgPath, []byte(yamlContent), 0644)
 	require.NoError(t, err)
@@ -283,6 +288,7 @@ func TestValidate_MissingDatabaseHost(t *testing.T) {
 	yamlContent := `
 database:
   name: testdb
+  sslMode: disable
 
 storage:
   bucket: test-bucket
