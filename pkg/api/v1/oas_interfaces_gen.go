@@ -13,10 +13,6 @@ type CompleteUploadRes interface {
 	completeUploadRes()
 }
 
-type CreateSymlinkRes interface {
-	createSymlinkRes()
-}
-
 type CreateSystemGroupRes interface {
 	createSystemGroupRes()
 }
@@ -93,6 +89,10 @@ type ListSystemsRes interface {
 	listSystemsRes()
 }
 
+type LnRes interface {
+	lnRes()
+}
+
 type LsRes interface {
 	lsRes()
 }
@@ -101,8 +101,8 @@ type MkdirRes interface {
 	mkdirRes()
 }
 
-type MoveRes interface {
-	moveRes()
+type MvRes interface {
+	mvRes()
 }
 
 type RemoveGroupMemberRes interface {

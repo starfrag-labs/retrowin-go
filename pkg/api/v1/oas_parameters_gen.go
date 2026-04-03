@@ -320,72 +320,6 @@ func decodeCompleteUploadParams(args [1]string, argsEscaped bool, r *http.Reques
 	return params, nil
 }
 
-// CreateSymlinkParams is parameters of createSymlink operation.
-type CreateSymlinkParams struct {
-	// System ID.
-	SystemId string
-}
-
-func unpackCreateSymlinkParams(packed middleware.Parameters) (params CreateSymlinkParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "systemId",
-			In:   "path",
-		}
-		params.SystemId = packed[key].(string)
-	}
-	return params
-}
-
-func decodeCreateSymlinkParams(args [1]string, argsEscaped bool, r *http.Request) (params CreateSymlinkParams, _ error) {
-	// Decode path: systemId.
-	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "systemId",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToString(val)
-				if err != nil {
-					return err
-				}
-
-				params.SystemId = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "systemId",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
 // CreateSystemGroupParams is parameters of createSystemGroup operation.
 type CreateSystemGroupParams struct {
 	// System ID.
@@ -1440,6 +1374,72 @@ func decodeListSystemUsersParams(args [1]string, argsEscaped bool, r *http.Reque
 	return params, nil
 }
 
+// LnParams is parameters of ln operation.
+type LnParams struct {
+	// System ID.
+	SystemId string
+}
+
+func unpackLnParams(packed middleware.Parameters) (params LnParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeLnParams(args [1]string, argsEscaped bool, r *http.Request) (params LnParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // LsParams is parameters of ls operation.
 type LsParams struct {
 	// System ID.
@@ -1618,13 +1618,13 @@ func decodeMkdirParams(args [1]string, argsEscaped bool, r *http.Request) (param
 	return params, nil
 }
 
-// MoveParams is parameters of move operation.
-type MoveParams struct {
+// MvParams is parameters of mv operation.
+type MvParams struct {
 	// System ID.
 	SystemId string
 }
 
-func unpackMoveParams(packed middleware.Parameters) (params MoveParams) {
+func unpackMvParams(packed middleware.Parameters) (params MvParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "systemId",
@@ -1635,7 +1635,7 @@ func unpackMoveParams(packed middleware.Parameters) (params MoveParams) {
 	return params
 }
 
-func decodeMoveParams(args [1]string, argsEscaped bool, r *http.Request) (params MoveParams, _ error) {
+func decodeMvParams(args [1]string, argsEscaped bool, r *http.Request) (params MvParams, _ error) {
 	// Decode path: systemId.
 	if err := func() error {
 		param := args[0]

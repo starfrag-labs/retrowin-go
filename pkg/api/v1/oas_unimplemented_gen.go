@@ -40,15 +40,6 @@ func (UnimplementedHandler) CompleteUpload(ctx context.Context, req *CompleteUpl
 	return r, ht.ErrNotImplemented
 }
 
-// CreateSymlink implements createSymlink operation.
-//
-// Create a symbolic link.
-//
-// POST /fs/{systemId}/symlink
-func (UnimplementedHandler) CreateSymlink(ctx context.Context, req *SymlinkRequest, params CreateSymlinkParams) (r CreateSymlinkRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // CreateSystem implements createSystem operation.
 //
 // Create a new system with root user and directories.
@@ -226,6 +217,15 @@ func (UnimplementedHandler) ListSystems(ctx context.Context) (r ListSystemsRes, 
 	return r, ht.ErrNotImplemented
 }
 
+// Ln implements ln operation.
+//
+// Create a symbolic link (like Unix ln -s command).
+//
+// POST /fs/{systemId}/ln
+func (UnimplementedHandler) Ln(ctx context.Context, req *SymlinkRequest, params LnParams) (r LnRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // Logout implements logout operation.
 //
 // Logout and delete session (idempotent - always returns 204).
@@ -253,12 +253,12 @@ func (UnimplementedHandler) Mkdir(ctx context.Context, req *MkdirRequest, params
 	return r, ht.ErrNotImplemented
 }
 
-// Move implements move operation.
+// Mv implements mv operation.
 //
-// Move a file or directory to a different location (can also rename).
+// Move a file or directory to a different location (like Unix mv command).
 //
-// POST /fs/{systemId}/move
-func (UnimplementedHandler) Move(ctx context.Context, req *MoveReq, params MoveParams) (r MoveRes, _ error) {
+// POST /fs/{systemId}/mv
+func (UnimplementedHandler) Mv(ctx context.Context, req *MvReq, params MvParams) (r MvRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

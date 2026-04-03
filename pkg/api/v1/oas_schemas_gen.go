@@ -193,22 +193,6 @@ type CompleteUploadUnauthorized Error
 
 func (*CompleteUploadUnauthorized) completeUploadRes() {}
 
-type CreateSymlinkBadRequest Error
-
-func (*CreateSymlinkBadRequest) createSymlinkRes() {}
-
-type CreateSymlinkForbidden Error
-
-func (*CreateSymlinkForbidden) createSymlinkRes() {}
-
-type CreateSymlinkNotFound Error
-
-func (*CreateSymlinkNotFound) createSymlinkRes() {}
-
-type CreateSymlinkUnauthorized Error
-
-func (*CreateSymlinkUnauthorized) createSymlinkRes() {}
-
 type CreateSystemBadRequest Error
 
 func (*CreateSystemBadRequest) createSystemRes() {}
@@ -562,7 +546,6 @@ func (s *ErrorStatusCode) SetResponse(val Error) {
 func (*ErrorStatusCode) addGroupMemberRes()    {}
 func (*ErrorStatusCode) chmodRes()             {}
 func (*ErrorStatusCode) completeUploadRes()    {}
-func (*ErrorStatusCode) createSymlinkRes()     {}
 func (*ErrorStatusCode) createSystemGroupRes() {}
 func (*ErrorStatusCode) createSystemRes()      {}
 func (*ErrorStatusCode) createSystemUserRes()  {}
@@ -582,9 +565,10 @@ func (*ErrorStatusCode) initiateUploadRes()    {}
 func (*ErrorStatusCode) listSystemGroupsRes()  {}
 func (*ErrorStatusCode) listSystemUsersRes()   {}
 func (*ErrorStatusCode) listSystemsRes()       {}
+func (*ErrorStatusCode) lnRes()                {}
 func (*ErrorStatusCode) lsRes()                {}
 func (*ErrorStatusCode) mkdirRes()             {}
-func (*ErrorStatusCode) moveRes()              {}
+func (*ErrorStatusCode) mvRes()                {}
 func (*ErrorStatusCode) removeGroupMemberRes() {}
 func (*ErrorStatusCode) renameRes()            {}
 func (*ErrorStatusCode) statPathRes()          {}
@@ -959,10 +943,10 @@ func (s *InodeResponse) SetInode(val Inode) {
 
 func (*InodeResponse) chmodRes()            {}
 func (*InodeResponse) completeUploadRes()   {}
-func (*InodeResponse) createSymlinkRes()    {}
 func (*InodeResponse) getRootDirectoryRes() {}
+func (*InodeResponse) lnRes()               {}
 func (*InodeResponse) mkdirRes()            {}
-func (*InodeResponse) moveRes()             {}
+func (*InodeResponse) mvRes()               {}
 func (*InodeResponse) renameRes()           {}
 func (*InodeResponse) statPathRes()         {}
 
@@ -981,6 +965,22 @@ func (*ListSystemUsersNotFound) listSystemUsersRes() {}
 type ListSystemUsersUnauthorized Error
 
 func (*ListSystemUsersUnauthorized) listSystemUsersRes() {}
+
+type LnBadRequest Error
+
+func (*LnBadRequest) lnRes() {}
+
+type LnForbidden Error
+
+func (*LnForbidden) lnRes() {}
+
+type LnNotFound Error
+
+func (*LnNotFound) lnRes() {}
+
+type LnUnauthorized Error
+
+func (*LnUnauthorized) lnRes() {}
 
 // Ref: #/components/schemas/LoginResponse
 type LoginResponse struct {
@@ -1076,23 +1076,23 @@ type MkdirUnauthorized Error
 
 func (*MkdirUnauthorized) mkdirRes() {}
 
-type MoveBadRequest Error
+type MvBadRequest Error
 
-func (*MoveBadRequest) moveRes() {}
+func (*MvBadRequest) mvRes() {}
 
-type MoveConflict Error
+type MvConflict Error
 
-func (*MoveConflict) moveRes() {}
+func (*MvConflict) mvRes() {}
 
-type MoveForbidden Error
+type MvForbidden Error
 
-func (*MoveForbidden) moveRes() {}
+func (*MvForbidden) mvRes() {}
 
-type MoveNotFound Error
+type MvNotFound Error
 
-func (*MoveNotFound) moveRes() {}
+func (*MvNotFound) mvRes() {}
 
-type MoveReq struct {
+type MvReq struct {
 	// Current path of the file/directory to move.
 	Path string `json:"path"`
 	// Destination path. Can be:
@@ -1102,28 +1102,28 @@ type MoveReq struct {
 }
 
 // GetPath returns the value of Path.
-func (s *MoveReq) GetPath() string {
+func (s *MvReq) GetPath() string {
 	return s.Path
 }
 
 // GetDestination returns the value of Destination.
-func (s *MoveReq) GetDestination() string {
+func (s *MvReq) GetDestination() string {
 	return s.Destination
 }
 
 // SetPath sets the value of Path.
-func (s *MoveReq) SetPath(val string) {
+func (s *MvReq) SetPath(val string) {
 	s.Path = val
 }
 
 // SetDestination sets the value of Destination.
-func (s *MoveReq) SetDestination(val string) {
+func (s *MvReq) SetDestination(val string) {
 	s.Destination = val
 }
 
-type MoveUnauthorized Error
+type MvUnauthorized Error
 
-func (*MoveUnauthorized) moveRes() {}
+func (*MvUnauthorized) mvRes() {}
 
 // NewOptInt32 returns new OptInt32 with value set to v.
 func NewOptInt32(v int32) OptInt32 {

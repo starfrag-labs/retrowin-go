@@ -331,8 +331,8 @@ func TestFs_Delete(t *testing.T) {
 	})
 }
 
-// TestFs_Symlink tests symbolic link creation
-func TestFs_Symlink(t *testing.T) {
+// TestFs_Ln tests symbolic link creation
+func TestFs_Ln(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping e2e test in short mode")
 	}
@@ -368,7 +368,7 @@ func TestFs_Symlink(t *testing.T) {
 			"linkPath": "/home/linkdir",
 		}
 
-		resp, err := suite.Post("/fs/"+systemID+"/symlink", req)
+		resp, err := suite.Post("/fs/"+systemID+"/ln", req)
 		require.NoError(t, err, "Failed to create symlink")
 
 		// Read body first (before any assertion that might consume it)
@@ -407,7 +407,7 @@ func TestFs_Symlink(t *testing.T) {
 			"linkPath": "/home/dangling.txt",
 		}
 
-		resp, err := suite.Post("/fs/"+systemID+"/symlink", req)
+		resp, err := suite.Post("/fs/"+systemID+"/ln", req)
 		require.NoError(t, err, "Failed to create dangling symlink")
 		defer func() { _ = resp.Body.Close() }()
 
@@ -654,8 +654,8 @@ func TestFs_Rename(t *testing.T) {
 	})
 }
 
-// TestFs_Move tests file/directory moving
-func TestFs_Move(t *testing.T) {
+// TestFs_Mv tests file/directory moving
+func TestFs_Mv(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping e2e test in short mode")
 	}
@@ -698,7 +698,7 @@ func TestFs_Move(t *testing.T) {
 			"path":        "/home/srcdir/subdir",
 			"destination": "/home/destdir",
 		}
-		moveResp, err := suite.Post("/fs/"+systemID+"/move", moveReq)
+		moveResp, err := suite.Post("/fs/"+systemID+"/mv", moveReq)
 		require.NoError(t, err, "Failed to move directory")
 		defer func() { _ = moveResp.Body.Close() }()
 
@@ -732,7 +732,7 @@ func TestFs_Move(t *testing.T) {
 			"path":        "/home/srcdir/another",
 			"destination": "/home/destdir/renamed",
 		}
-		moveResp, err := suite.Post("/fs/"+systemID+"/move", moveReq)
+		moveResp, err := suite.Post("/fs/"+systemID+"/mv", moveReq)
 		require.NoError(t, err, "Failed to move and rename")
 		defer func() { _ = moveResp.Body.Close() }()
 
@@ -752,7 +752,7 @@ func TestFs_Move(t *testing.T) {
 			"path":        "/home/nonexistent",
 			"destination": "/home/destdir",
 		}
-		moveResp, err := suite.Post("/fs/"+systemID+"/move", moveReq)
+		moveResp, err := suite.Post("/fs/"+systemID+"/mv", moveReq)
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = moveResp.Body.Close() }()
 
@@ -772,7 +772,7 @@ func TestFs_Move(t *testing.T) {
 			"path":        "/home/srcdir",
 			"destination": "/home/destdir/existing",
 		}
-		moveResp, err := suite.Post("/fs/"+systemID+"/move", moveReq)
+		moveResp, err := suite.Post("/fs/"+systemID+"/mv", moveReq)
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = moveResp.Body.Close() }()
 
@@ -817,7 +817,7 @@ func TestFs_Move(t *testing.T) {
 			"path":        "/home/movesrc/conflict",
 			"destination": "/home/movedest",
 		}
-		moveResp, err := suite.Post("/fs/"+systemID+"/move", moveReq)
+		moveResp, err := suite.Post("/fs/"+systemID+"/mv", moveReq)
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = moveResp.Body.Close() }()
 
@@ -830,7 +830,7 @@ func TestFs_Move(t *testing.T) {
 			"path":        "/home/srcdir",
 			"destination": "/home/srcdir",
 		}
-		moveResp, err := suite.Post("/fs/"+systemID+"/move", moveReq)
+		moveResp, err := suite.Post("/fs/"+systemID+"/mv", moveReq)
 		require.NoError(t, err, "Failed to make request")
 		defer func() { _ = moveResp.Body.Close() }()
 

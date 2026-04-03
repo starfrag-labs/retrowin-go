@@ -26,12 +26,6 @@ type Handler interface {
 	//
 	// POST /fs/{systemId}/upload/complete
 	CompleteUpload(ctx context.Context, req *CompleteUploadRequest, params CompleteUploadParams) (CompleteUploadRes, error)
-	// CreateSymlink implements createSymlink operation.
-	//
-	// Create a symbolic link.
-	//
-	// POST /fs/{systemId}/symlink
-	CreateSymlink(ctx context.Context, req *SymlinkRequest, params CreateSymlinkParams) (CreateSymlinkRes, error)
 	// CreateSystem implements createSystem operation.
 	//
 	// Create a new system with root user and directories.
@@ -152,6 +146,12 @@ type Handler interface {
 	//
 	// GET /systems
 	ListSystems(ctx context.Context) (ListSystemsRes, error)
+	// Ln implements ln operation.
+	//
+	// Create a symbolic link (like Unix ln -s command).
+	//
+	// POST /fs/{systemId}/ln
+	Ln(ctx context.Context, req *SymlinkRequest, params LnParams) (LnRes, error)
 	// Logout implements logout operation.
 	//
 	// Logout and delete session (idempotent - always returns 204).
@@ -170,12 +170,12 @@ type Handler interface {
 	//
 	// POST /fs/{systemId}/mkdir
 	Mkdir(ctx context.Context, req *MkdirRequest, params MkdirParams) (MkdirRes, error)
-	// Move implements move operation.
+	// Mv implements mv operation.
 	//
-	// Move a file or directory to a different location (can also rename).
+	// Move a file or directory to a different location (like Unix mv command).
 	//
-	// POST /fs/{systemId}/move
-	Move(ctx context.Context, req *MoveReq, params MoveParams) (MoveRes, error)
+	// POST /fs/{systemId}/mv
+	Mv(ctx context.Context, req *MvReq, params MvParams) (MvRes, error)
 	// RemoveGroupMember implements removeGroupMember operation.
 	//
 	// Remove a user from a group.

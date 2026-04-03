@@ -127,8 +127,8 @@ func (h *Handler) Mkdir(ctx context.Context, req *apiv1.MkdirRequest, params api
 	}, nil
 }
 
-// CreateSymlink implements POST /fs/{systemId}/symlink.
-func (h *Handler) CreateSymlink(ctx context.Context, req *apiv1.SymlinkRequest, params apiv1.CreateSymlinkParams) (apiv1.CreateSymlinkRes, error) {
+// Ln implements POST /fs/{systemId}/ln.
+func (h *Handler) Ln(ctx context.Context, req *apiv1.SymlinkRequest, params apiv1.LnParams) (apiv1.LnRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -318,8 +318,8 @@ func (h *Handler) Rename(ctx context.Context, req *apiv1.RenameReq, params apiv1
 	}, nil
 }
 
-// Move implements POST /fs/{systemId}/move.
-func (h *Handler) Move(ctx context.Context, req *apiv1.MoveReq, params apiv1.MoveParams) (apiv1.MoveRes, error) {
+// Mv implements POST /fs/{systemId}/mv.
+func (h *Handler) Mv(ctx context.Context, req *apiv1.MvReq, params apiv1.MvParams) (apiv1.MvRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}

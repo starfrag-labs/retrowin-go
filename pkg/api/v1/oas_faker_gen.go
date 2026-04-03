@@ -155,42 +155,6 @@ func (s *CompleteUploadUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *CreateSymlinkBadRequest) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = CreateSymlinkBadRequest(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *CreateSymlinkForbidden) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = CreateSymlinkForbidden(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *CreateSymlinkNotFound) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = CreateSymlinkNotFound(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *CreateSymlinkUnauthorized) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = CreateSymlinkUnauthorized(unwrapped)
-}
-
-// SetFake set fake values.
 func (s *CreateSystemBadRequest) SetFake() {
 	var unwrapped Error
 	{
@@ -772,6 +736,42 @@ func (s *ListSystemUsersUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *LnBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = LnBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *LnForbidden) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = LnForbidden(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *LnNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = LnNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *LnUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = LnUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *LoginResponse) SetFake() {
 	{
 		{
@@ -863,43 +863,43 @@ func (s *MkdirUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *MoveBadRequest) SetFake() {
+func (s *MvBadRequest) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = MoveBadRequest(unwrapped)
+	*s = MvBadRequest(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *MoveConflict) SetFake() {
+func (s *MvConflict) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = MoveConflict(unwrapped)
+	*s = MvConflict(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *MoveForbidden) SetFake() {
+func (s *MvForbidden) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = MoveForbidden(unwrapped)
+	*s = MvForbidden(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *MoveNotFound) SetFake() {
+func (s *MvNotFound) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = MoveNotFound(unwrapped)
+	*s = MvNotFound(unwrapped)
 }
 
 // SetFake set fake values.
-func (s *MoveReq) SetFake() {
+func (s *MvReq) SetFake() {
 	{
 		{
 			s.Path = "string"
@@ -913,12 +913,12 @@ func (s *MoveReq) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *MoveUnauthorized) SetFake() {
+func (s *MvUnauthorized) SetFake() {
 	var unwrapped Error
 	{
 		unwrapped.SetFake()
 	}
-	*s = MoveUnauthorized(unwrapped)
+	*s = MvUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.

@@ -210,11 +210,11 @@
             schema:
               $ref: "../schemas/common.yaml#/Error"
 
-/fs/{systemId}/symlink:
+/fs/{systemId}/ln:
   post:
-    operationId: createSymlink
-    summary: Create symbolic link
-    description: Create a symbolic link
+    operationId: ln
+    summary: Create link
+    description: Create a symbolic link (like Unix ln -s command)
     tags:
       - Fs
     security:
@@ -396,11 +396,11 @@
             schema:
               $ref: "../schemas/common.yaml#/Error"
 
-/fs/{systemId}/move:
+/fs/{systemId}/mv:
   post:
-    operationId: move
+    operationId: mv
     summary: Move file or directory
-    description: Move a file or directory to a different location (can also rename)
+    description: Move a file or directory to a different location (like Unix mv command)
     tags:
       - Fs
     security:

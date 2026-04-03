@@ -38,20 +38,6 @@ func encodeCompleteUploadRequest(
 	return nil
 }
 
-func encodeCreateSymlinkRequest(
-	req *SymlinkRequest,
-	r *http.Request,
-) error {
-	const contentType = "application/json"
-	e := new(jx.Encoder)
-	{
-		req.Encode(e)
-	}
-	encoded := e.Bytes()
-	ht.SetBody(r, bytes.NewReader(encoded), contentType)
-	return nil
-}
-
 func encodeCreateSystemRequest(
 	req *CreateSystemRequest,
 	r *http.Request,
@@ -122,6 +108,20 @@ func encodeInitiateUploadRequest(
 	return nil
 }
 
+func encodeLnRequest(
+	req *SymlinkRequest,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	e := new(jx.Encoder)
+	{
+		req.Encode(e)
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
 func encodeMkdirRequest(
 	req *MkdirRequest,
 	r *http.Request,
@@ -136,8 +136,8 @@ func encodeMkdirRequest(
 	return nil
 }
 
-func encodeMoveRequest(
-	req *MoveReq,
+func encodeMvRequest(
+	req *MvReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
