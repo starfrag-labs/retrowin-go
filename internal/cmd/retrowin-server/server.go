@@ -170,25 +170,10 @@ func ProvideHTTPMux(
 
 	// Serve OpenAPI spec and Swagger UI (register before catch-all)
 	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-		// Try multiple paths to find the OpenAPI spec
-		paths := []string{
-			"api/openapi.yaml",           // Current directory
-			"./api/openapi.yaml",         // Explicit relative
-			"../api/openapi.yaml",        // From subdir
-			"../../api/openapi.yaml",     // From nested subdir
-		}
-
-		var content []byte
-		var err error
-		for _, path := range paths {
-			content, err = os.ReadFile(path)
-			if err == nil {
-				break
-			}
-		}
-
+		// Use configured path
+		content, err := os.ReadFile(cfg.HTTP.OpenAPIPath)
 		if err != nil {
-			http.Error(w, "OpenAPI spec not found", http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("OpenAPI spec not found: %s", cfg.HTTP.OpenAPIPath), http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")

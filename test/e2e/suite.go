@@ -203,8 +203,9 @@ func (s *Suite) Start(ctx context.Context) error {
 			Env:     "test",
 		},
 		HTTP: config.HTTPConfig{
-			Host: "127.0.0.1",
-			Port: testPort,
+			Host:        "127.0.0.1",
+			Port:        testPort,
+			OpenAPIPath: "../../api/openapi.yaml",
 		},
 		Database: config.DatabaseConfig{
 			Driver:   "postgres",
