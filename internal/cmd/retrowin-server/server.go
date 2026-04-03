@@ -168,23 +168,23 @@ func ProvideHTTPMux(
 ) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// Health check endpoint (direct access, no /v1 prefix)
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"healthy"}`))
-	})
-
-	// API routes (no prefix)
-	mux.Handle("/", ogenServer)
-
-	// Serve OpenAPI spec and Swagger UI
+	// Serve OpenAPI spec and Swagger UI (register before catch-all)
 	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, cfg.HTTP.OpenAPIPath)
 	})
 	mux.HandleFunc("/swagger", httpSwagger.Handler(
 		httpSwagger.URL("/openapi.json"),
 	))
+
+	// Health check endpoint
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"healthy"}`))
+	})
+
+	// API routes (catch-all - must be last)
+	mux.Handle("/", ogenServer)
 
 	return mux
 }
