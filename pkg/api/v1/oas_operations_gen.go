@@ -30,9 +30,11 @@ const (
 	ListSystemUsersOperation   OperationName = "ListSystemUsers"
 	ListSystemsOperation       OperationName = "ListSystems"
 	LogoutOperation            OperationName = "Logout"
+	LsOperation                OperationName = "Ls"
 	MkdirOperation             OperationName = "Mkdir"
-	ReadDirOperation           OperationName = "ReadDir"
+	MoveOperation              OperationName = "Move"
 	RemoveGroupMemberOperation OperationName = "RemoveGroupMember"
+	RenameOperation            OperationName = "Rename"
 	StatPathOperation          OperationName = "StatPath"
 	UnlinkOperation            OperationName = "Unlink"
 )

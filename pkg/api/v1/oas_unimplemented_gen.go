@@ -235,6 +235,15 @@ func (UnimplementedHandler) Logout(ctx context.Context) error {
 	return ht.ErrNotImplemented
 }
 
+// Ls implements ls operation.
+//
+// List contents of a directory (like Unix ls command).
+//
+// GET /fs/{systemId}/ls
+func (UnimplementedHandler) Ls(ctx context.Context, params LsParams) (r LsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // Mkdir implements mkdir operation.
 //
 // Create a new directory at the specified path.
@@ -244,12 +253,12 @@ func (UnimplementedHandler) Mkdir(ctx context.Context, req *MkdirRequest, params
 	return r, ht.ErrNotImplemented
 }
 
-// ReadDir implements readDir operation.
+// Move implements move operation.
 //
-// List contents of a directory.
+// Move a file or directory to a different location (can also rename).
 //
-// GET /fs/{systemId}/readdir
-func (UnimplementedHandler) ReadDir(ctx context.Context, params ReadDirParams) (r ReadDirRes, _ error) {
+// POST /fs/{systemId}/move
+func (UnimplementedHandler) Move(ctx context.Context, req *MoveReq, params MoveParams) (r MoveRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -259,6 +268,15 @@ func (UnimplementedHandler) ReadDir(ctx context.Context, params ReadDirParams) (
 //
 // DELETE /systems/{systemId}/groups/{gid}/members/{uid}
 func (UnimplementedHandler) RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (r RemoveGroupMemberRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// Rename implements rename operation.
+//
+// Rename a file or directory within the same parent directory.
+//
+// POST /fs/{systemId}/rename
+func (UnimplementedHandler) Rename(ctx context.Context, req *RenameReq, params RenameParams) (r RenameRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

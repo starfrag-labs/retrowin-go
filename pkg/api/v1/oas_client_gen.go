@@ -178,24 +178,36 @@ type Invoker interface {
 	//
 	// POST /auth/logout
 	Logout(ctx context.Context) error
+	// Ls invokes ls operation.
+	//
+	// List contents of a directory (like Unix ls command).
+	//
+	// GET /fs/{systemId}/ls
+	Ls(ctx context.Context, params LsParams) (LsRes, error)
 	// Mkdir invokes mkdir operation.
 	//
 	// Create a new directory at the specified path.
 	//
 	// POST /fs/{systemId}/mkdir
 	Mkdir(ctx context.Context, request *MkdirRequest, params MkdirParams) (MkdirRes, error)
-	// ReadDir invokes readDir operation.
+	// Move invokes move operation.
 	//
-	// List contents of a directory.
+	// Move a file or directory to a different location (can also rename).
 	//
-	// GET /fs/{systemId}/readdir
-	ReadDir(ctx context.Context, params ReadDirParams) (ReadDirRes, error)
+	// POST /fs/{systemId}/move
+	Move(ctx context.Context, request *MoveReq, params MoveParams) (MoveRes, error)
 	// RemoveGroupMember invokes removeGroupMember operation.
 	//
 	// Remove a user from a group.
 	//
 	// DELETE /systems/{systemId}/groups/{gid}/members/{uid}
 	RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (RemoveGroupMemberRes, error)
+	// Rename invokes rename operation.
+	//
+	// Rename a file or directory within the same parent directory.
+	//
+	// POST /fs/{systemId}/rename
+	Rename(ctx context.Context, request *RenameReq, params RenameParams) (RenameRes, error)
 	// StatPath invokes statPath operation.
 	//
 	// Get inode metadata for a given path.
@@ -3183,6 +3195,150 @@ func (c *Client) sendLogout(ctx context.Context) (res *LogoutNoContent, err erro
 	return result, nil
 }
 
+// Ls invokes ls operation.
+//
+// List contents of a directory (like Unix ls command).
+//
+// GET /fs/{systemId}/ls
+func (c *Client) Ls(ctx context.Context, params LsParams) (LsRes, error) {
+	res, err := c.sendLs(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendLs(ctx context.Context, params LsParams) (res LsRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("ls"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/ls"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, LsOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/ls"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "path" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "path",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.Path))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, LsOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeLsResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
 // Mkdir invokes mkdir operation.
 //
 // Create a new directory at the specified path.
@@ -3312,21 +3468,21 @@ func (c *Client) sendMkdir(ctx context.Context, request *MkdirRequest, params Mk
 	return result, nil
 }
 
-// ReadDir invokes readDir operation.
+// Move invokes move operation.
 //
-// List contents of a directory.
+// Move a file or directory to a different location (can also rename).
 //
-// GET /fs/{systemId}/readdir
-func (c *Client) ReadDir(ctx context.Context, params ReadDirParams) (ReadDirRes, error) {
-	res, err := c.sendReadDir(ctx, params)
+// POST /fs/{systemId}/move
+func (c *Client) Move(ctx context.Context, request *MoveReq, params MoveParams) (MoveRes, error) {
+	res, err := c.sendMove(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendReadDir(ctx context.Context, params ReadDirParams) (res ReadDirRes, err error) {
+func (c *Client) sendMove(ctx context.Context, request *MoveReq, params MoveParams) (res MoveRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("readDir"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/fs/{systemId}/readdir"),
+		otelogen.OperationID("move"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/move"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -3342,7 +3498,7 @@ func (c *Client) sendReadDir(ctx context.Context, params ReadDirParams) (res Rea
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, ReadDirOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, MoveOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -3379,31 +3535,16 @@ func (c *Client) sendReadDir(ctx context.Context, params ReadDirParams) (res Rea
 		}
 		pathParts[1] = encoded
 	}
-	pathParts[2] = "/readdir"
+	pathParts[2] = "/move"
 	uri.AddPathParts(u, pathParts[:]...)
 
-	stage = "EncodeQueryParams"
-	q := uri.NewQueryEncoder()
-	{
-		// Encode "path" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "path",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.StringToString(params.Path))
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	u.RawQuery = q.Values().Encode()
-
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
+	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeMoveRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
 	}
 
 	{
@@ -3411,7 +3552,7 @@ func (c *Client) sendReadDir(ctx context.Context, params ReadDirParams) (res Rea
 		var satisfied bitset
 		{
 			stage = "Security:SessionAuth"
-			switch err := c.securitySessionAuth(ctx, ReadDirOperation, r); {
+			switch err := c.securitySessionAuth(ctx, MoveOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3448,7 +3589,7 @@ func (c *Client) sendReadDir(ctx context.Context, params ReadDirParams) (res Rea
 	defer body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeReadDirResponse(resp)
+	result, err := decodeMoveResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3612,6 +3753,135 @@ func (c *Client) sendRemoveGroupMember(ctx context.Context, params RemoveGroupMe
 
 	stage = "DecodeResponse"
 	result, err := decodeRemoveGroupMemberResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// Rename invokes rename operation.
+//
+// Rename a file or directory within the same parent directory.
+//
+// POST /fs/{systemId}/rename
+func (c *Client) Rename(ctx context.Context, request *RenameReq, params RenameParams) (RenameRes, error) {
+	res, err := c.sendRename(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendRename(ctx context.Context, request *RenameReq, params RenameParams) (res RenameRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("rename"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/fs/{systemId}/rename"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, RenameOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/fs/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/rename"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeRenameRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, RenameOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeRenameResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

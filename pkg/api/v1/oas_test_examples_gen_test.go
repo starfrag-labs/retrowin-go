@@ -851,6 +851,42 @@ func TestLoginResponse_EncodeDecode(t *testing.T) {
 	var typ2 LoginResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestLsForbidden_EncodeDecode(t *testing.T) {
+	var typ LsForbidden
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 LsForbidden
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestLsNotFound_EncodeDecode(t *testing.T) {
+	var typ LsNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 LsNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestLsUnauthorized_EncodeDecode(t *testing.T) {
+	var typ LsUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 LsUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestMkdirBadRequest_EncodeDecode(t *testing.T) {
 	var typ MkdirBadRequest
 	typ.SetFake()
@@ -911,6 +947,78 @@ func TestMkdirUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 MkdirUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestMoveBadRequest_EncodeDecode(t *testing.T) {
+	var typ MoveBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 MoveBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestMoveConflict_EncodeDecode(t *testing.T) {
+	var typ MoveConflict
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 MoveConflict
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestMoveForbidden_EncodeDecode(t *testing.T) {
+	var typ MoveForbidden
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 MoveForbidden
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestMoveNotFound_EncodeDecode(t *testing.T) {
+	var typ MoveNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 MoveNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestMoveReq_EncodeDecode(t *testing.T) {
+	var typ MoveReq
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 MoveReq
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestMoveUnauthorized_EncodeDecode(t *testing.T) {
+	var typ MoveUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 MoveUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestProvider_EncodeDecode(t *testing.T) {
 	var typ Provider
 	typ.SetFake()
@@ -921,42 +1029,6 @@ func TestProvider_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 Provider
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestReadDirForbidden_EncodeDecode(t *testing.T) {
-	var typ ReadDirForbidden
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 ReadDirForbidden
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestReadDirNotFound_EncodeDecode(t *testing.T) {
-	var typ ReadDirNotFound
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 ReadDirNotFound
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
-func TestReadDirUnauthorized_EncodeDecode(t *testing.T) {
-	var typ ReadDirUnauthorized
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 ReadDirUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestRemoveGroupMemberNotFound_EncodeDecode(t *testing.T) {
@@ -981,6 +1053,78 @@ func TestRemoveGroupMemberUnauthorized_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 RemoveGroupMemberUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRenameBadRequest_EncodeDecode(t *testing.T) {
+	var typ RenameBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RenameBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRenameConflict_EncodeDecode(t *testing.T) {
+	var typ RenameConflict
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RenameConflict
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRenameForbidden_EncodeDecode(t *testing.T) {
+	var typ RenameForbidden
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RenameForbidden
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRenameNotFound_EncodeDecode(t *testing.T) {
+	var typ RenameNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RenameNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRenameReq_EncodeDecode(t *testing.T) {
+	var typ RenameReq
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RenameReq
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRenameUnauthorized_EncodeDecode(t *testing.T) {
+	var typ RenameUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RenameUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestStatPathForbidden_EncodeDecode(t *testing.T) {

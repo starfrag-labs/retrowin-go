@@ -17,7 +17,13 @@ var (
 	rn10AllowedHeaders = map[string]string{
 		"PATCH": "Content-Type",
 	}
-	rn31AllowedHeaders = map[string]string{
+	rn32AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn34AllowedHeaders = map[string]string{
+		"POST": "Content-Type",
+	}
+	rn36AllowedHeaders = map[string]string{
 		"POST": "Content-Type",
 	}
 	rn13AllowedHeaders = map[string]string{
@@ -281,9 +287,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							return
 						}
 
-					case 'm': // Prefix: "mkdir"
+					case 'l': // Prefix: "ls"
 
-						if l := len("mkdir"); len(elem) >= l && elem[0:l] == "mkdir" {
+						if l := len("ls"); len(elem) >= l && elem[0:l] == "ls" {
 							elem = elem[l:]
 						} else {
 							break
@@ -292,20 +298,88 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						if len(elem) == 0 {
 							// Leaf node.
 							switch r.Method {
-							case "POST":
-								s.handleMkdirRequest([1]string{
+							case "GET":
+								s.handleLsRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							default:
 								s.notAllowed(w, r, notAllowedParams{
-									allowedMethods: "POST",
-									allowedHeaders: rn31AllowedHeaders,
-									acceptPost:     "application/json",
+									allowedMethods: "GET",
+									allowedHeaders: nil,
+									acceptPost:     "",
 									acceptPatch:    "",
 								})
 							}
 
 							return
+						}
+
+					case 'm': // Prefix: "m"
+
+						if l := len("m"); len(elem) >= l && elem[0:l] == "m" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							break
+						}
+						switch elem[0] {
+						case 'k': // Prefix: "kdir"
+
+							if l := len("kdir"); len(elem) >= l && elem[0:l] == "kdir" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch r.Method {
+								case "POST":
+									s.handleMkdirRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, notAllowedParams{
+										allowedMethods: "POST",
+										allowedHeaders: rn32AllowedHeaders,
+										acceptPost:     "application/json",
+										acceptPatch:    "",
+									})
+								}
+
+								return
+							}
+
+						case 'o': // Prefix: "ove"
+
+							if l := len("ove"); len(elem) >= l && elem[0:l] == "ove" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch r.Method {
+								case "POST":
+									s.handleMoveRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, notAllowedParams{
+										allowedMethods: "POST",
+										allowedHeaders: rn34AllowedHeaders,
+										acceptPost:     "application/json",
+										acceptPatch:    "",
+									})
+								}
+
+								return
+							}
+
 						}
 
 					case 'r': // Prefix: "r"
@@ -320,9 +394,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							break
 						}
 						switch elem[0] {
-						case 'e': // Prefix: "eaddir"
+						case 'e': // Prefix: "ename"
 
-							if l := len("eaddir"); len(elem) >= l && elem[0:l] == "eaddir" {
+							if l := len("ename"); len(elem) >= l && elem[0:l] == "ename" {
 								elem = elem[l:]
 							} else {
 								break
@@ -331,15 +405,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							if len(elem) == 0 {
 								// Leaf node.
 								switch r.Method {
-								case "GET":
-									s.handleReadDirRequest([1]string{
+								case "POST":
+									s.handleRenameRequest([1]string{
 										args[0],
 									}, elemIsEscaped, w, r)
 								default:
 									s.notAllowed(w, r, notAllowedParams{
-										allowedMethods: "GET",
-										allowedHeaders: nil,
-										acceptPost:     "",
+										allowedMethods: "POST",
+										allowedHeaders: rn36AllowedHeaders,
+										acceptPost:     "application/json",
 										acceptPatch:    "",
 									})
 								}
@@ -1167,9 +1241,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							}
 						}
 
-					case 'm': // Prefix: "mkdir"
+					case 'l': // Prefix: "ls"
 
-						if l := len("mkdir"); len(elem) >= l && elem[0:l] == "mkdir" {
+						if l := len("ls"); len(elem) >= l && elem[0:l] == "ls" {
 							elem = elem[l:]
 						} else {
 							break
@@ -1178,18 +1252,82 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						if len(elem) == 0 {
 							// Leaf node.
 							switch method {
-							case "POST":
-								r.name = MkdirOperation
-								r.summary = "Create directory"
-								r.operationID = "mkdir"
+							case "GET":
+								r.name = LsOperation
+								r.summary = "List directory contents"
+								r.operationID = "ls"
 								r.operationGroup = ""
-								r.pathPattern = "/fs/{systemId}/mkdir"
+								r.pathPattern = "/fs/{systemId}/ls"
 								r.args = args
 								r.count = 1
 								return r, true
 							default:
 								return
 							}
+						}
+
+					case 'm': // Prefix: "m"
+
+						if l := len("m"); len(elem) >= l && elem[0:l] == "m" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							break
+						}
+						switch elem[0] {
+						case 'k': // Prefix: "kdir"
+
+							if l := len("kdir"); len(elem) >= l && elem[0:l] == "kdir" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch method {
+								case "POST":
+									r.name = MkdirOperation
+									r.summary = "Create directory"
+									r.operationID = "mkdir"
+									r.operationGroup = ""
+									r.pathPattern = "/fs/{systemId}/mkdir"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+
+						case 'o': // Prefix: "ove"
+
+							if l := len("ove"); len(elem) >= l && elem[0:l] == "ove" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch method {
+								case "POST":
+									r.name = MoveOperation
+									r.summary = "Move file or directory"
+									r.operationID = "move"
+									r.operationGroup = ""
+									r.pathPattern = "/fs/{systemId}/move"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+
 						}
 
 					case 'r': // Prefix: "r"
@@ -1204,9 +1342,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							break
 						}
 						switch elem[0] {
-						case 'e': // Prefix: "eaddir"
+						case 'e': // Prefix: "ename"
 
-							if l := len("eaddir"); len(elem) >= l && elem[0:l] == "eaddir" {
+							if l := len("ename"); len(elem) >= l && elem[0:l] == "ename" {
 								elem = elem[l:]
 							} else {
 								break
@@ -1215,12 +1353,12 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							if len(elem) == 0 {
 								// Leaf node.
 								switch method {
-								case "GET":
-									r.name = ReadDirOperation
-									r.summary = "Read directory contents"
-									r.operationID = "readDir"
+								case "POST":
+									r.name = RenameOperation
+									r.summary = "Rename file or directory"
+									r.operationID = "rename"
 									r.operationGroup = ""
-									r.pathPattern = "/fs/{systemId}/readdir"
+									r.pathPattern = "/fs/{systemId}/rename"
 									r.args = args
 									r.count = 1
 									return r, true

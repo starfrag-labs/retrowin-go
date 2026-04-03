@@ -1440,81 +1440,15 @@ func decodeListSystemUsersParams(args [1]string, argsEscaped bool, r *http.Reque
 	return params, nil
 }
 
-// MkdirParams is parameters of mkdir operation.
-type MkdirParams struct {
-	// System ID.
-	SystemId string
-}
-
-func unpackMkdirParams(packed middleware.Parameters) (params MkdirParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "systemId",
-			In:   "path",
-		}
-		params.SystemId = packed[key].(string)
-	}
-	return params
-}
-
-func decodeMkdirParams(args [1]string, argsEscaped bool, r *http.Request) (params MkdirParams, _ error) {
-	// Decode path: systemId.
-	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "systemId",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToString(val)
-				if err != nil {
-					return err
-				}
-
-				params.SystemId = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "systemId",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
-// ReadDirParams is parameters of readDir operation.
-type ReadDirParams struct {
+// LsParams is parameters of ls operation.
+type LsParams struct {
 	// System ID.
 	SystemId string
 	// Directory path.
 	Path string
 }
 
-func unpackReadDirParams(packed middleware.Parameters) (params ReadDirParams) {
+func unpackLsParams(packed middleware.Parameters) (params LsParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "systemId",
@@ -1532,7 +1466,7 @@ func unpackReadDirParams(packed middleware.Parameters) (params ReadDirParams) {
 	return params
 }
 
-func decodeReadDirParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadDirParams, _ error) {
+func decodeLsParams(args [1]string, argsEscaped bool, r *http.Request) (params LsParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode path: systemId.
 	if err := func() error {
@@ -1612,6 +1546,138 @@ func decodeReadDirParams(args [1]string, argsEscaped bool, r *http.Request) (par
 		return params, &ogenerrors.DecodeParamError{
 			Name: "path",
 			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// MkdirParams is parameters of mkdir operation.
+type MkdirParams struct {
+	// System ID.
+	SystemId string
+}
+
+func unpackMkdirParams(packed middleware.Parameters) (params MkdirParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeMkdirParams(args [1]string, argsEscaped bool, r *http.Request) (params MkdirParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// MoveParams is parameters of move operation.
+type MoveParams struct {
+	// System ID.
+	SystemId string
+}
+
+func unpackMoveParams(packed middleware.Parameters) (params MoveParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeMoveParams(args [1]string, argsEscaped bool, r *http.Request) (params MoveParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "path",
 			Err:  err,
 		}
 	}
@@ -1785,6 +1851,72 @@ func decodeRemoveGroupMemberParams(args [3]string, argsEscaped bool, r *http.Req
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
 			Name: "uid",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// RenameParams is parameters of rename operation.
+type RenameParams struct {
+	// System ID.
+	SystemId string
+}
+
+func unpackRenameParams(packed middleware.Parameters) (params RenameParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeRenameParams(args [1]string, argsEscaped bool, r *http.Request) (params RenameParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
 			In:   "path",
 			Err:  err,
 		}

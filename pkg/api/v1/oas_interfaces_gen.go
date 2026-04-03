@@ -93,16 +93,24 @@ type ListSystemsRes interface {
 	listSystemsRes()
 }
 
+type LsRes interface {
+	lsRes()
+}
+
 type MkdirRes interface {
 	mkdirRes()
 }
 
-type ReadDirRes interface {
-	readDirRes()
+type MoveRes interface {
+	moveRes()
 }
 
 type RemoveGroupMemberRes interface {
 	removeGroupMemberRes()
+}
+
+type RenameRes interface {
+	renameRes()
 }
 
 type StatPathRes interface {

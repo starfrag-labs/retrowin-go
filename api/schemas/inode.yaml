@@ -169,3 +169,32 @@ ChmodRequest:
         - 0644: rw-r--r-- (regular file)
         - 0600: rw------- (private file)
         - 0700: rwx------ (private directory)
+
+RenameRequest:
+  type: object
+  required:
+    - path
+    - newName
+  properties:
+    path:
+      type: string
+      description: Current path of the file/directory to rename
+    newName:
+      type: string
+      description: New name (without path, just the filename)
+
+MoveRequest:
+  type: object
+  required:
+    - path
+    - destination
+  properties:
+    path:
+      type: string
+      description: Current path of the file/directory to move
+    destination:
+      type: string
+      description: |
+        Destination path. Can be:
+        - A directory path (file keeps its name): /home/user/docs
+        - A full new path (file gets renamed): /home/user/docs/new.txt

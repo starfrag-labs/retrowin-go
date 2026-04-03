@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"path"
+	"strings"
 
 	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
 
@@ -44,8 +45,8 @@ func (h *Handler) StatPath(ctx context.Context, params apiv1.StatPathParams) (ap
 	}, nil
 }
 
-// ReadDir implements GET /fs/{systemId}/readdir.
-func (h *Handler) ReadDir(ctx context.Context, params apiv1.ReadDirParams) (apiv1.ReadDirRes, error) {
+// Ls implements GET /fs/{systemId}/ls.
+func (h *Handler) Ls(ctx context.Context, params apiv1.LsParams) (apiv1.LsRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -246,6 +247,184 @@ func (h *Handler) Unlink(ctx context.Context, params apiv1.UnlinkParams) (apiv1.
 	}
 
 	return &apiv1.UnlinkNoContent{}, nil
+}
+
+// Rename implements POST /fs/{systemId}/rename.
+func (h *Handler) Rename(ctx context.Context, req *apiv1.RenameReq, params apiv1.RenameParams) (apiv1.RenameRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Validate new name
+	if req.NewName == "" {
+		return nil, h.domainError(errors.BadRequest("new name is required"))
+	}
+	if path.Base(req.NewName) != req.NewName {
+		return nil, h.domainError(errors.BadRequest("new name must be a simple name, not a path"))
+	}
+
+	// Resolve source path to get inode
+	sourceInode, err := h.fsSvc.ResolvePath(ctx, params.SystemId, req.Path)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Get parent directory path and entry name
+	sourceDirPath := path.Dir(req.Path)
+	sourceEntryName := path.Base(req.Path)
+
+	// Resolve parent directory
+	sourceParentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, sourceDirPath)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Check if new name already exists in parent directory
+	entries, err := h.fsSvc.ReadDir(ctx, sourceParentDir.ID())
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+	for _, e := range entries {
+		if e.Name == req.NewName {
+			return nil, h.domainError(errors.Conflict("target already exists"))
+		}
+	}
+
+	// Create new entry with same inode but new name
+	newEntry := content.DirEntry{
+		Name:     req.NewName,
+		InodeID:  sourceInode.ID(),
+		FileType: uint8(sourceInode.Mode() >> 12),
+	}
+
+	// Add new entry
+	if err := h.fsSvc.Link(ctx, sourceParentDir.ID(), newEntry); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Remove old entry
+	if err := h.fsSvc.Unlink(ctx, sourceParentDir.ID(), sourceEntryName); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Get updated inode
+	updatedInode, err := h.fsSvc.Get(ctx, sourceInode.ID())
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	return &apiv1.InodeResponse{
+		Inode: *h.toInode(updatedInode),
+	}, nil
+}
+
+// Move implements POST /fs/{systemId}/move.
+func (h *Handler) Move(ctx context.Context, req *apiv1.MoveReq, params apiv1.MoveParams) (apiv1.MoveRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Cannot move to same path
+	if req.Path == req.Destination {
+		return nil, h.domainError(errors.BadRequest("source and destination are the same"))
+	}
+
+	// Resolve source path to get inode
+	sourceInode, err := h.fsSvc.ResolvePath(ctx, params.SystemId, req.Path)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Get source parent directory and entry name
+	sourceDirPath := path.Dir(req.Path)
+	sourceEntryName := path.Base(req.Path)
+
+	sourceParentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, sourceDirPath)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Determine destination directory and new entry name
+	var destDirPath, newEntryName string
+
+	// Check if destination exists
+	destInode, err := h.fsSvc.ResolvePath(ctx, params.SystemId, req.Destination)
+	if err == nil {
+		if destInode.IsDir() {
+			// Destination is an existing directory - move INTO it
+			destDirPath = req.Destination
+			newEntryName = sourceEntryName
+		} else {
+			// Destination exists and is not a directory - conflict
+			return nil, h.domainError(errors.Conflict("target already exists"))
+		}
+	} else {
+		// Destination doesn't exist, treat as full path
+		destDirPath = path.Dir(req.Destination)
+		newEntryName = path.Base(req.Destination)
+
+		// Handle trailing slash case (e.g., "/home/destdir/")
+		if destDirPath == "." {
+			destDirPath = "/"
+		}
+	}
+
+	// Normalize paths for comparison
+	normalizedSource := path.Clean(req.Path)
+	normalizedDest := path.Clean(destDirPath + "/" + newEntryName)
+	if normalizedSource == normalizedDest {
+		return nil, h.domainError(errors.BadRequest("source and destination are the same"))
+	}
+
+	// Check if moving directory into itself
+	if sourceInode.IsDir() {
+		if strings.HasPrefix(normalizedDest, normalizedSource+"/") {
+			return nil, h.domainError(errors.BadRequest("cannot move directory into itself"))
+		}
+	}
+
+	// Resolve destination parent directory
+	destParentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, destDirPath)
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Check if entry already exists in destination parent
+	destEntries, err := h.fsSvc.ReadDir(ctx, destParentDir.ID())
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+	for _, e := range destEntries {
+		if e.Name == newEntryName {
+			return nil, h.domainError(errors.Conflict("target already exists"))
+		}
+	}
+
+	// Create new entry in destination
+	newEntry := content.DirEntry{
+		Name:     newEntryName,
+		InodeID:  sourceInode.ID(),
+		FileType: uint8(sourceInode.Mode() >> 12),
+	}
+
+	if err := h.fsSvc.Link(ctx, destParentDir.ID(), newEntry); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Remove old entry from source
+	if err := h.fsSvc.Unlink(ctx, sourceParentDir.ID(), sourceEntryName); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Get updated inode
+	updatedInode, err := h.fsSvc.Get(ctx, sourceInode.ID())
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	return &apiv1.InodeResponse{
+		Inode: *h.toInode(updatedInode),
+	}, nil
 }
 
 func (h *Handler) toInode(in *inode.Inode) *apiv1.Inode {

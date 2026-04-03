@@ -403,7 +403,7 @@ func (s *DirContentResponse) SetEntries(val []DirEntry) {
 	s.Entries = val
 }
 
-func (*DirContentResponse) readDirRes() {}
+func (*DirContentResponse) lsRes() {}
 
 // Ref: #/components/schemas/DirEntry
 type DirEntry struct {
@@ -582,9 +582,11 @@ func (*ErrorStatusCode) initiateUploadRes()    {}
 func (*ErrorStatusCode) listSystemGroupsRes()  {}
 func (*ErrorStatusCode) listSystemUsersRes()   {}
 func (*ErrorStatusCode) listSystemsRes()       {}
+func (*ErrorStatusCode) lsRes()                {}
 func (*ErrorStatusCode) mkdirRes()             {}
-func (*ErrorStatusCode) readDirRes()           {}
+func (*ErrorStatusCode) moveRes()              {}
 func (*ErrorStatusCode) removeGroupMemberRes() {}
+func (*ErrorStatusCode) renameRes()            {}
 func (*ErrorStatusCode) statPathRes()          {}
 func (*ErrorStatusCode) unlinkRes()            {}
 
@@ -960,6 +962,8 @@ func (*InodeResponse) completeUploadRes()   {}
 func (*InodeResponse) createSymlinkRes()    {}
 func (*InodeResponse) getRootDirectoryRes() {}
 func (*InodeResponse) mkdirRes()            {}
+func (*InodeResponse) moveRes()             {}
+func (*InodeResponse) renameRes()           {}
 func (*InodeResponse) statPathRes()         {}
 
 type ListSystemGroupsNotFound Error
@@ -1011,6 +1015,18 @@ func (*LoginResponse) initiateLoginRes() {}
 // LogoutNoContent is response for Logout operation.
 type LogoutNoContent struct{}
 
+type LsForbidden Error
+
+func (*LsForbidden) lsRes() {}
+
+type LsNotFound Error
+
+func (*LsNotFound) lsRes() {}
+
+type LsUnauthorized Error
+
+func (*LsUnauthorized) lsRes() {}
+
 type MkdirBadRequest Error
 
 func (*MkdirBadRequest) mkdirRes() {}
@@ -1059,6 +1075,55 @@ func (s *MkdirRequest) SetMode(val OptInt32) {
 type MkdirUnauthorized Error
 
 func (*MkdirUnauthorized) mkdirRes() {}
+
+type MoveBadRequest Error
+
+func (*MoveBadRequest) moveRes() {}
+
+type MoveConflict Error
+
+func (*MoveConflict) moveRes() {}
+
+type MoveForbidden Error
+
+func (*MoveForbidden) moveRes() {}
+
+type MoveNotFound Error
+
+func (*MoveNotFound) moveRes() {}
+
+type MoveReq struct {
+	// Current path of the file/directory to move.
+	Path string `json:"path"`
+	// Destination path. Can be:
+	// - A directory path (file keeps its name): /home/user/docs
+	// - A full new path (file gets renamed): /home/user/docs/new.txt.
+	Destination string `json:"destination"`
+}
+
+// GetPath returns the value of Path.
+func (s *MoveReq) GetPath() string {
+	return s.Path
+}
+
+// GetDestination returns the value of Destination.
+func (s *MoveReq) GetDestination() string {
+	return s.Destination
+}
+
+// SetPath sets the value of Path.
+func (s *MoveReq) SetPath(val string) {
+	s.Path = val
+}
+
+// SetDestination sets the value of Destination.
+func (s *MoveReq) SetDestination(val string) {
+	s.Destination = val
+}
+
+type MoveUnauthorized Error
+
+func (*MoveUnauthorized) moveRes() {}
 
 // NewOptInt32 returns new OptInt32 with value set to v.
 func NewOptInt32(v int32) OptInt32 {
@@ -1304,18 +1369,6 @@ func (s *Provider) UnmarshalText(data []byte) error {
 	}
 }
 
-type ReadDirForbidden Error
-
-func (*ReadDirForbidden) readDirRes() {}
-
-type ReadDirNotFound Error
-
-func (*ReadDirNotFound) readDirRes() {}
-
-type ReadDirUnauthorized Error
-
-func (*ReadDirUnauthorized) readDirRes() {}
-
 // RemoveGroupMemberNoContent is response for RemoveGroupMember operation.
 type RemoveGroupMemberNoContent struct{}
 
@@ -1328,6 +1381,53 @@ func (*RemoveGroupMemberNotFound) removeGroupMemberRes() {}
 type RemoveGroupMemberUnauthorized Error
 
 func (*RemoveGroupMemberUnauthorized) removeGroupMemberRes() {}
+
+type RenameBadRequest Error
+
+func (*RenameBadRequest) renameRes() {}
+
+type RenameConflict Error
+
+func (*RenameConflict) renameRes() {}
+
+type RenameForbidden Error
+
+func (*RenameForbidden) renameRes() {}
+
+type RenameNotFound Error
+
+func (*RenameNotFound) renameRes() {}
+
+type RenameReq struct {
+	// Current path of the file/directory to rename.
+	Path string `json:"path"`
+	// New name (without path, just the filename).
+	NewName string `json:"newName"`
+}
+
+// GetPath returns the value of Path.
+func (s *RenameReq) GetPath() string {
+	return s.Path
+}
+
+// GetNewName returns the value of NewName.
+func (s *RenameReq) GetNewName() string {
+	return s.NewName
+}
+
+// SetPath sets the value of Path.
+func (s *RenameReq) SetPath(val string) {
+	s.Path = val
+}
+
+// SetNewName sets the value of NewName.
+func (s *RenameReq) SetNewName(val string) {
+	s.NewName = val
+}
+
+type RenameUnauthorized Error
+
+func (*RenameUnauthorized) renameRes() {}
 
 type SessionAuth struct {
 	APIKey string

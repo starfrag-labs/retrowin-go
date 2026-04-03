@@ -158,24 +158,36 @@ type Handler interface {
 	//
 	// POST /auth/logout
 	Logout(ctx context.Context) error
+	// Ls implements ls operation.
+	//
+	// List contents of a directory (like Unix ls command).
+	//
+	// GET /fs/{systemId}/ls
+	Ls(ctx context.Context, params LsParams) (LsRes, error)
 	// Mkdir implements mkdir operation.
 	//
 	// Create a new directory at the specified path.
 	//
 	// POST /fs/{systemId}/mkdir
 	Mkdir(ctx context.Context, req *MkdirRequest, params MkdirParams) (MkdirRes, error)
-	// ReadDir implements readDir operation.
+	// Move implements move operation.
 	//
-	// List contents of a directory.
+	// Move a file or directory to a different location (can also rename).
 	//
-	// GET /fs/{systemId}/readdir
-	ReadDir(ctx context.Context, params ReadDirParams) (ReadDirRes, error)
+	// POST /fs/{systemId}/move
+	Move(ctx context.Context, req *MoveReq, params MoveParams) (MoveRes, error)
 	// RemoveGroupMember implements removeGroupMember operation.
 	//
 	// Remove a user from a group.
 	//
 	// DELETE /systems/{systemId}/groups/{gid}/members/{uid}
 	RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (RemoveGroupMemberRes, error)
+	// Rename implements rename operation.
+	//
+	// Rename a file or directory within the same parent directory.
+	//
+	// POST /fs/{systemId}/rename
+	Rename(ctx context.Context, req *RenameReq, params RenameParams) (RenameRes, error)
 	// StatPath implements statPath operation.
 	//
 	// Get inode metadata for a given path.

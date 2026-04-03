@@ -786,6 +786,33 @@ func (s *LoginResponse) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *LsForbidden) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = LsForbidden(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *LsNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = LsNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *LsUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = LsUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *MkdirBadRequest) SetFake() {
 	var unwrapped Error
 	{
@@ -836,6 +863,65 @@ func (s *MkdirUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *MoveBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = MoveBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *MoveConflict) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = MoveConflict(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *MoveForbidden) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = MoveForbidden(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *MoveNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = MoveNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *MoveReq) SetFake() {
+	{
+		{
+			s.Path = "string"
+		}
+	}
+	{
+		{
+			s.Destination = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *MoveUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = MoveUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *OptInt32) SetFake() {
 	var elem int32
 	{
@@ -874,33 +960,6 @@ func (s *Provider) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *ReadDirForbidden) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = ReadDirForbidden(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *ReadDirNotFound) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = ReadDirNotFound(unwrapped)
-}
-
-// SetFake set fake values.
-func (s *ReadDirUnauthorized) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = ReadDirUnauthorized(unwrapped)
-}
-
-// SetFake set fake values.
 func (s *RemoveGroupMemberNotFound) SetFake() {
 	var unwrapped Error
 	{
@@ -916,6 +975,65 @@ func (s *RemoveGroupMemberUnauthorized) SetFake() {
 		unwrapped.SetFake()
 	}
 	*s = RemoveGroupMemberUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RenameBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RenameBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RenameConflict) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RenameConflict(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RenameForbidden) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RenameForbidden(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RenameNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RenameNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RenameReq) SetFake() {
+	{
+		{
+			s.Path = "string"
+		}
+	}
+	{
+		{
+			s.NewName = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *RenameUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RenameUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.
