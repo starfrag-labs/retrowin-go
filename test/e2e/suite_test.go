@@ -230,3 +230,37 @@ func TestSuite_FullServerStartup(t *testing.T) {
 		t.Log("App shutdown took longer than expected (this is OK for test cleanup)")
 	}
 }
+
+func TestSuite_OpenAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping e2e test in short mode")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	suite := NewSuite(t)
+	err := suite.Start(ctx)
+	require.NoError(t, err, "Failed to start test suite")
+	t.Cleanup(func() { _ = suite.Stop(ctx) })
+
+	err = suite.StartServer(ctx)
+	require.NoError(t, err, "Failed to start server")
+
+	// Test /openapi.json endpoint
+	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/openapi.json", suite.GetConfig().HTTP.Port))
+	require.NoError(t, err, "Failed to call /openapi.json endpoint")
+	defer func() { _ = resp.Body.Close() }()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "OpenAPI spec should return 200")
+
+	// Verify content type
+	ct := resp.Header.Get("Content-Type")
+	assert.Contains(t, ct, "application/json", "Content-Type should be application/json")
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err, "Failed to read response body")
+	assert.Contains(t, string(body), "openapi", "Response should contain OpenAPI spec")
+
+	t.Log("OpenAPI endpoint test passed successfully")
+}
