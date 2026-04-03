@@ -46,7 +46,7 @@ import (
 )
 
 // ProvideConfig provides the config from file.
-func ProvideConfig(cfgFile string, port int) (*config.Config, error) {
+func ProvideConfig(cfgFile string, port int, openAPIPath string) (*config.Config, error) {
 	var cfg *config.Config
 	var err error
 
@@ -62,6 +62,11 @@ func ProvideConfig(cfgFile string, port int) (*config.Config, error) {
 	// Override port if specified
 	if port != 8080 {
 		cfg.HTTP.Port = port
+	}
+
+	// Override OpenAPI path if specified via CLI flag
+	if openAPIPath != "" {
+		cfg.HTTP.OpenAPIPath = openAPIPath
 	}
 
 	return cfg, nil
@@ -417,15 +422,16 @@ func ProvideOgenServer(
 }
 
 // FxOptions returns the fx options for the application.
-func FxOptions(cfgFile string, port int) []fx.Option {
+func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 	return []fx.Option{
 		// Supply CLI args
 		fx.Supply(fx.Annotate(cfgFile, fx.ResultTags(`name:"cfgFile"`))),
 		fx.Supply(fx.Annotate(port, fx.ResultTags(`name:"port"`))),
+		fx.Supply(fx.Annotate(openAPIPath, fx.ResultTags(`name:"openAPIPath"`))),
 
 		// All providers - single fx.Provide call like serengeti
 		fx.Provide(
-			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`)),
+			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`, `name:"openAPIPath"`)),
 			ProvideLogger,
 			NewEntClient,
 			ProvideValkeyClient,
@@ -475,8 +481,8 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 }
 
 // NewFXApp creates a new fx application.
-func NewFXApp(cfgFile string, port int) *fx.App {
-	return fx.New(FxOptions(cfgFile, port)...)
+func NewFXApp(cfgFile string, port int, openAPIPath string) *fx.App {
+	return fx.New(FxOptions(cfgFile, port, openAPIPath)...)
 }
 
 // newValkeyClient creates a Valkey client based on ValkeyConfig.

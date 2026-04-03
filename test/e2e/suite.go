@@ -274,7 +274,7 @@ func (s *Suite) StartServer(ctx context.Context) error {
 	}
 
 	// Start the actual fx app
-	s.app = retrowinserver.NewFXApp(s.cfgFile, s.Config.HTTP.Port)
+	s.app = retrowinserver.NewFXApp(s.cfgFile, s.Config.HTTP.Port, s.Config.HTTP.OpenAPIPath)
 
 	go func() {
 		s.app.Run()

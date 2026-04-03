@@ -25,18 +25,20 @@ func NewCmd() *cobra.Command {
 func newServeCmd() *cobra.Command {
 	var cfgFile string
 	var port int
+	var openAPIPath string
 
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start the API server",
 		Run: func(cmd *cobra.Command, args []string) {
-			app := NewFXApp(cfgFile, port)
+			app := NewFXApp(cfgFile, port, openAPIPath)
 			app.Run()
 		},
 	}
 
 	cmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file path")
 	cmd.Flags().IntVarP(&port, "port", "p", 8080, "server port")
+	cmd.Flags().StringVar(&openAPIPath, "openapi", "", "OpenAPI spec file path")
 
 	return cmd
 }

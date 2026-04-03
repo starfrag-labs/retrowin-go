@@ -188,7 +188,7 @@ func TestSuite_FullServerStartup(t *testing.T) {
 
 	// Start the actual fx app with test config
 	// This test verifies that the real server starts and responds to health checks
-	app := retrowinserver.NewFXApp(cfgFile, cfg.HTTP.Port)
+	app := retrowinserver.NewFXApp(cfgFile, cfg.HTTP.Port, cfg.HTTP.OpenAPIPath)
 
 	// Start app in background
 	appDone := make(chan struct{})

@@ -11,7 +11,7 @@ import (
 
 // TestServerOptions verifies that the fx options are properly constructed.
 func TestServerOptions(t *testing.T) {
-	options := FxOptions("", 8080)
+	options := FxOptions("", 8080, "")
 
 	if options == nil {
 		t.Fatal("FxOptions returned nil")
@@ -26,7 +26,7 @@ func TestServerOptions(t *testing.T) {
 // TestServerStart verifies that the fx app can be created and starts without errors.
 // This test doesn't actually start the server but validates the dependency graph.
 func TestServerStart(t *testing.T) {
-	app := fx.New(FxOptions("", 8080)...)
+	app := fx.New(FxOptions("", 8080, "")...)
 
 	if app == nil {
 		t.Fatal("fx.New returned nil")
@@ -48,7 +48,7 @@ func TestServerStart(t *testing.T) {
 func TestServerShutdown(t *testing.T) {
 	t.Skip("Skipping integration test - requires database and cache")
 
-	app := NewFXApp("", 8081)
+	app := NewFXApp("", 8081, "")
 
 	// Start the app in a goroutine
 	done := make(chan struct{}, 1)

@@ -198,4 +198,5 @@ func bindEnvVars(v *viper.Viper) {
 	_ = v.BindEnv("storage.accessKey", "STORAGE_ACCESS_KEY")
 	_ = v.BindEnv("storage.secretKey", "STORAGE_SECRET_KEY")
 	_ = v.BindEnv("auth.keycloak.clientSecret", "AUTH_KEYCLOAK_CLIENT_SECRET")
+	_ = v.BindEnv("http.openAPIPath", "HTTP_OPENAPI_PATH")
 }
