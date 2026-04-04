@@ -346,3 +346,64 @@ func TestSuite_CORS(t *testing.T) {
 
 	t.Log("CORS tests passed successfully")
 }
+
+func TestSuite_Auth_Callback_ErrorResponse(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping e2e test in short mode")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	suite := NewSuite(t)
+	err := suite.Start(ctx)
+	require.NoError(t, err, "Failed to start test suite")
+	t.Cleanup(func() { _ = suite.Stop(ctx) })
+
+	err = suite.StartServer(ctx)
+	require.NoError(t, err, "Failed to start server")
+
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d", suite.GetConfig().HTTP.Port)
+
+	// Test 1: Missing required parameters returns proper error response
+	// Note: ogen returns 500 for decode errors (missing required params)
+	t.Run("Missing_Code_Parameter", func(t *testing.T) {
+		resp, err := http.Get(baseURL + "/auth/callback?state=test")
+		require.NoError(t, err, "Failed to send request")
+		defer func() { _ = resp.Body.Close() }()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err, "Failed to read response body")
+
+		// ogen returns 500 for decode errors, but response should still have proper structure
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "Should return 500 for decode error")
+
+		// Verify response contains error details
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+
+		// Should contain error structure with type and message
+		assert.Contains(t, string(body), `"error"`, "Response should contain error object")
+		assert.Contains(t, string(body), `"type"`, "Response should contain error type")
+		assert.Contains(t, string(body), `"message"`, "Response should contain error message")
+		assert.Contains(t, string(body), "code", "Error message should mention missing code parameter")
+	})
+
+	// Test 2: Invalid code returns proper error response with 400/401
+	t.Run("Invalid_Code_Parameter", func(t *testing.T) {
+		resp, err := http.Get(baseURL + "/auth/callback?code=invalid&state=test")
+		require.NoError(t, err, "Failed to send request")
+		defer func() { _ = resp.Body.Close() }()
+
+		// Should return 400 or 401 depending on the error
+		assert.Contains(t, []int{http.StatusBadRequest, http.StatusUnauthorized}, resp.StatusCode,
+			"Should return 400 or 401 for invalid code")
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err, "Failed to read response body")
+
+		// Should contain error structure
+		assert.Contains(t, string(body), `"error"`, "Response should contain error object")
+	})
+
+	t.Log("Auth callback error response tests passed successfully")
+}

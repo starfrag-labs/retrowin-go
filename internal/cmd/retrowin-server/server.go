@@ -217,7 +217,7 @@ func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName strin
 		}
 
 		// Callback: capture response to extract session ID and set cookie
-		if r.Method == http.MethodPost && r.URL.Path == "/auth/callback" {
+		if r.Method == http.MethodGet && r.URL.Path == "/auth/callback" {
 			rec := &responseRecorder{ResponseWriter: w}
 			next.ServeHTTP(rec, r)
 

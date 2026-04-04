@@ -67,7 +67,12 @@ func (h *Handler) GetSystemUser(ctx context.Context, params api.GetSystemUserPar
 		return nil, h.domainError(err)
 	}
 	if user == nil {
-		return &api.GetSystemUserNotFound{}, nil
+		return &api.GetSystemUserNotFound{
+			Error: api.ErrorError{
+				Type:    "not_found",
+				Message: "system user not found",
+			},
+		}, nil
 	}
 
 	return &api.SystemUserResponse{
@@ -88,7 +93,12 @@ func (h *Handler) DeleteSystemUser(ctx context.Context, params api.DeleteSystemU
 	}
 
 	if targetUser == nil {
-		return &api.DeleteSystemUserNotFound{}, nil
+		return &api.DeleteSystemUserNotFound{
+			Error: api.ErrorError{
+				Type:    "not_found",
+				Message: "system user not found",
+			},
+		}, nil
 	}
 
 	if err := h.sysUserSvc.Delete(ctx, targetUser.ID()); err != nil {

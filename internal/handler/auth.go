@@ -31,6 +31,24 @@ func (h *Handler) InitiateLogin(ctx context.Context) (api.InitiateLoginRes, erro
 
 // HandleCallback implements GET /auth/callback.
 func (h *Handler) HandleCallback(ctx context.Context, params api.HandleCallbackParams) (api.HandleCallbackRes, error) {
+	// Validate required parameters
+	if params.Code == "" {
+		return &api.HandleCallbackBadRequest{
+			Error: api.ErrorError{
+				Type:    "invalid_request",
+				Message: "code parameter is required",
+			},
+		}, nil
+	}
+	if params.State == "" {
+		return &api.HandleCallbackBadRequest{
+			Error: api.ErrorError{
+				Type:    "invalid_request",
+				Message: "state parameter is required",
+			},
+		}, nil
+	}
+
 	callbackReq := &auth.CallbackRequest{
 		Code:  params.Code,
 		State: params.State,
@@ -39,9 +57,19 @@ func (h *Handler) HandleCallback(ctx context.Context, params api.HandleCallbackP
 	resp, err := h.authSvc.HandleCallback(ctx, callbackReq)
 	if err != nil {
 		if errors.IsUnauthorized(err) || errors.IsNotFound(err) {
-			return &api.HandleCallbackUnauthorized{}, nil
+			return &api.HandleCallbackUnauthorized{
+				Error: api.ErrorError{
+					Type:    "authentication_error",
+					Message: err.Error(),
+				},
+			}, nil
 		}
-		return &api.HandleCallbackBadRequest{}, nil
+		return &api.HandleCallbackBadRequest{
+			Error: api.ErrorError{
+				Type:    "invalid_request",
+				Message: err.Error(),
+			},
+		}, nil
 	}
 
 	return &api.CallbackResponse{

@@ -14,15 +14,30 @@ import (
 func (h *Handler) GetUser(ctx context.Context) (api.GetUserRes, error) {
 	userID := middleware.GetUserID(ctx)
 	if userID == "" {
-		return &api.GetUserUnauthorized{}, nil
+		return &api.GetUserUnauthorized{
+			Error: api.ErrorError{
+				Type:    "authentication_error",
+				Message: "no user ID in context",
+			},
+		}, nil
 	}
 
 	u, err := h.extUserSvc.GetByID(ctx, userID)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return &api.GetUserNotFound{}, nil
+			return &api.GetUserNotFound{
+				Error: api.ErrorError{
+					Type:    "not_found",
+					Message: "user not found",
+				},
+			}, nil
 		}
-		return &api.GetUserUnauthorized{}, nil
+		return &api.GetUserUnauthorized{
+			Error: api.ErrorError{
+				Type:    "authentication_error",
+				Message: err.Error(),
+			},
+		}, nil
 	}
 
 	return &api.UserResponse{
@@ -34,24 +49,49 @@ func (h *Handler) GetUser(ctx context.Context) (api.GetUserRes, error) {
 func (h *Handler) DeleteUser(ctx context.Context) (api.DeleteUserRes, error) {
 	userID := middleware.GetUserID(ctx)
 	if userID == "" {
-		return &api.DeleteUserUnauthorized{}, nil
+		return &api.DeleteUserUnauthorized{
+			Error: api.ErrorError{
+				Type:    "authentication_error",
+				Message: "no user ID in context",
+			},
+		}, nil
 	}
 
 	// Get user first to obtain provider info for deletion
 	u, err := h.extUserSvc.GetByID(ctx, userID)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return &api.DeleteUserNotFound{}, nil
+			return &api.DeleteUserNotFound{
+				Error: api.ErrorError{
+					Type:    "not_found",
+					Message: "user not found",
+				},
+			}, nil
 		}
-		return &api.DeleteUserUnauthorized{}, nil
+		return &api.DeleteUserUnauthorized{
+			Error: api.ErrorError{
+				Type:    "authentication_error",
+				Message: err.Error(),
+			},
+		}, nil
 	}
 
 	err = h.extUserSvc.Delete(ctx, u.Provider(), u.ProviderID())
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return &api.DeleteUserNotFound{}, nil
+			return &api.DeleteUserNotFound{
+				Error: api.ErrorError{
+					Type:    "not_found",
+					Message: "user not found",
+				},
+			}, nil
 		}
-		return &api.DeleteUserUnauthorized{}, nil
+		return &api.DeleteUserUnauthorized{
+			Error: api.ErrorError{
+				Type:    "authentication_error",
+				Message: err.Error(),
+			},
+		}, nil
 	}
 
 	return &api.DeleteUserNoContent{}, nil
