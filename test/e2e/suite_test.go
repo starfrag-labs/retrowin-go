@@ -264,3 +264,85 @@ func TestSuite_OpenAPI(t *testing.T) {
 
 	t.Log("OpenAPI endpoint test passed successfully")
 }
+
+func TestSuite_CORS(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping e2e test in short mode")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	suite := NewSuite(t)
+	err := suite.Start(ctx)
+	require.NoError(t, err, "Failed to start test suite")
+	t.Cleanup(func() { _ = suite.Stop(ctx) })
+
+	err = suite.StartServer(ctx)
+	require.NoError(t, err, "Failed to start server")
+
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d", suite.GetConfig().HTTP.Port)
+
+	// Test 1: OPTIONS preflight request (should return 204 with CORS headers)
+	t.Run("Preflight_Success", func(t *testing.T) {
+		req, err := http.NewRequest("OPTIONS", baseURL+"/user", nil)
+		require.NoError(t, err, "Failed to create request")
+		req.Header.Set("Origin", "http://localhost:3000")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+		req.Header.Set("Access-Control-Request-Headers", "authorization")
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err, "Failed to send OPTIONS request")
+		defer func() { _ = resp.Body.Close() }()
+
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode, "OPTIONS preflight should return 204")
+
+		// Verify CORS headers
+		allowOrigin := resp.Header.Get("Access-Control-Allow-Origin")
+		assert.Equal(t, "http://localhost:3000", allowOrigin, "Should return correct origin")
+
+		allowMethods := resp.Header.Get("Access-Control-Allow-Methods")
+		assert.Contains(t, allowMethods, "GET", "Should allow GET method")
+
+		allowHeaders := resp.Header.Get("Access-Control-Allow-Headers")
+		assert.Contains(t, allowHeaders, "Authorization", "Should allow authorization header")
+
+		maxAge := resp.Header.Get("Access-Control-Max-Age")
+		assert.NotEmpty(t, maxAge, "Should have max-age header")
+	})
+
+	// Test 2: Simple request with Origin header (should return CORS headers)
+	t.Run("Simple_Request", func(t *testing.T) {
+		req, err := http.NewRequest("GET", baseURL+"/health", nil)
+		require.NoError(t, err, "Failed to create request")
+		req.Header.Set("Origin", "http://localhost:3000")
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err, "Failed to send GET request")
+		defer func() { _ = resp.Body.Close() }()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Health check should return 200")
+
+		allowOrigin := resp.Header.Get("Access-Control-Allow-Origin")
+		assert.Equal(t, "http://localhost:3000", allowOrigin, "Should return CORS header for simple request")
+	})
+
+	// Test 3: Preflight with allowed origin from config
+	t.Run("Preflight_AllowedOrigin", func(t *testing.T) {
+		req, err := http.NewRequest("OPTIONS", baseURL+"/user", nil)
+		require.NoError(t, err, "Failed to create request")
+		req.Header.Set("Origin", "https://retrowin.starship.co")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err, "Failed to send OPTIONS request")
+		defer func() { _ = resp.Body.Close() }()
+
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode, "OPTIONS should return 204")
+
+		allowOrigin := resp.Header.Get("Access-Control-Allow-Origin")
+		assert.Equal(t, "https://retrowin.starship.co", allowOrigin, "Should return configured origin")
+	})
+
+	t.Log("CORS tests passed successfully")
+}
