@@ -266,7 +266,7 @@ func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName strin
 			// On error, return the original response
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(rec.statusCode)
-			w.Write(rec.body)
+			_, _ = w.Write(rec.body)
 			return
 		}
 

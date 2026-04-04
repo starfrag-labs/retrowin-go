@@ -92,14 +92,14 @@ type KeycloakConfig struct {
 
 // SessionConfig holds session configuration.
 type SessionConfig struct {
-	TTL          int    `mapstructure:"ttl" yaml:"ttl"`                     // Session TTL in seconds
-	Secure       bool   `mapstructure:"secure" yaml:"secure"`               // Set Secure flag on cookie
-	StateTTL     int    `mapstructure:"stateTTL" yaml:"stateTTL"`           // OAuth state TTL in seconds
-	RedisKey     string `mapstructure:"redisKey" yaml:"redisKey"`           // Redis key prefix
-	CookieName   string `mapstructure:"cookieName" yaml:"cookieName"`       // Session cookie name
-	FrontendURL  string `mapstructure:"frontendURL" yaml:"frontendURL"`     // Frontend URL for redirect after login
-	Domain       string `mapstructure:"domain" yaml:"domain"`               // Cookie domain (e.g., ".starfrag.co" for cross-subdomain)
-	SameSite     string `mapstructure:"sameSite" yaml:"sameSite"`           // SameSite policy: "lax", "strict", "none"
+	TTL         int    `mapstructure:"ttl" yaml:"ttl"`                 // Session TTL in seconds
+	Secure      bool   `mapstructure:"secure" yaml:"secure"`           // Set Secure flag on cookie
+	StateTTL    int    `mapstructure:"stateTTL" yaml:"stateTTL"`       // OAuth state TTL in seconds
+	RedisKey    string `mapstructure:"redisKey" yaml:"redisKey"`       // Redis key prefix
+	CookieName  string `mapstructure:"cookieName" yaml:"cookieName"`   // Session cookie name
+	FrontendURL string `mapstructure:"frontendURL" yaml:"frontendURL"` // Frontend URL for redirect after login
+	Domain      string `mapstructure:"domain" yaml:"domain"`           // Cookie domain (e.g., ".starfrag.co" for cross-subdomain)
+	SameSite    string `mapstructure:"sameSite" yaml:"sameSite"`       // SameSite policy: "lax", "strict", "none"
 }
 
 // CORSConfig holds CORS configuration.
@@ -186,7 +186,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("auth.session.redisKey", "retrowin")
 	v.SetDefault("auth.session.cookieName", "session_id")
 	v.SetDefault("auth.session.frontendURL", "http://localhost:5173")
-	v.SetDefault("auth.session.domain", "") // Empty means current host only
+	v.SetDefault("auth.session.domain", "")      // Empty means current host only
 	v.SetDefault("auth.session.sameSite", "lax") // lax, strict, or none
 	v.SetDefault("auth.keycloak.redirectURI", "http://localhost:8080/auth/callback")
 }
