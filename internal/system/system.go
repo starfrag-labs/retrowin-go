@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
+	"github.com/google/uuid"
+
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -110,13 +111,12 @@ func (f Filter) toQueryFilter() *QueryFilter {
 }
 
 type service struct {
-	repo   SystemRepository
-	client *ent.Client
+	repo SystemRepository
 }
 
 // NewService creates a new SystemService.
-func NewService(repo SystemRepository, client *ent.Client) SystemService {
-	return &service{repo: repo, client: client}
+func NewService(repo SystemRepository) SystemService {
+	return &service{repo: repo}
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*System, error) {
@@ -127,16 +127,23 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*System, erro
 		cmd.Status = StatusActive
 	}
 
-	params := &CreateParams{
-		Name:        cmd.Name,
-		Description: cmd.Description,
-		Status:      cmd.Status,
-	}
-	return s.repo.Create(ctx, s.client, params)
+	// Generate ID for the system
+	now := time.Now()
+	systemID := uuid.New().String()
+
+	newSystem := NewSystem(
+		systemID,
+		cmd.Name,
+		cmd.Description,
+		cmd.Status,
+		now,
+		now,
+	)
+	return s.repo.Create(ctx, newSystem)
 }
 
 func (s *service) GetByID(ctx context.Context, id string) (*System, error) {
-	sys, err := s.repo.GetByID(ctx, s.client, id)
+	sys, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +154,7 @@ func (s *service) GetByID(ctx context.Context, id string) (*System, error) {
 }
 
 func (s *service) GetByName(ctx context.Context, name string) (*System, error) {
-	sys, err := s.repo.GetByName(ctx, s.client, name)
+	sys, err := s.repo.GetByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -158,23 +165,59 @@ func (s *service) GetByName(ctx context.Context, name string) (*System, error) {
 }
 
 func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
-	params := &UpdateParams{
-		ID:          cmd.ID,
-		Name:        cmd.Name,
-		Description: cmd.Description,
-		Status:      cmd.Status,
+	// Get existing system to handle partial updates
+	existing, err := s.repo.GetByID(ctx, cmd.ID)
+	if err != nil {
+		return err
 	}
-	return s.repo.Update(ctx, s.client, params)
+	if existing == nil {
+		return errors.NotFound("system not found")
+	}
+
+	// Build updated system with coalesced values
+	updated := NewSystem(
+		existing.ID(),
+		coalesceString(cmd.Name, existing.Name()),
+		coalescePtr(cmd.Description, existing.Description()),
+		coalesceStatus(cmd.Status, existing.Status()),
+		existing.CreatedAt(),
+		existing.UpdatedAt(), // TODO: should be updated in repository
+	)
+	return s.repo.Update(ctx, updated)
+}
+
+// coalesceString returns new if non-empty, otherwise returns existing.
+func coalesceString(new *string, existing string) string {
+	if new != nil && *new != "" {
+		return *new
+	}
+	return existing
+}
+
+// coalescePtr returns new if not nil, otherwise returns existing.
+func coalescePtr[T any](new, existing *T) *T {
+	if new != nil {
+		return new
+	}
+	return existing
+}
+
+// coalesceStatus returns new if not nil, otherwise returns existing.
+func coalesceStatus(new *Status, existing Status) Status {
+	if new != nil {
+		return *new
+	}
+	return existing
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, s.client, id)
+	return s.repo.Delete(ctx, id)
 }
 
 func (s *service) Find(ctx context.Context, filter Filter) ([]*System, error) {
-	return s.repo.Find(ctx, s.client, filter.toQueryFilter())
+	return s.repo.Find(ctx, filter.toQueryFilter())
 }
 
 func (s *service) FindOne(ctx context.Context, filter Filter) (*System, error) {
-	return s.repo.FindOne(ctx, s.client, filter.toQueryFilter())
+	return s.repo.FindOne(ctx, filter.toQueryFilter())
 }

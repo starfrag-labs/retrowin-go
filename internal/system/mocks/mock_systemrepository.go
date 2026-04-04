@@ -7,7 +7,6 @@ package systemMocks
 import (
 	"context"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -40,8 +39,8 @@ func (_m *SystemRepositoryMock) EXPECT() *SystemRepositoryMock_Expecter {
 }
 
 // Create provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) Create(ctx context.Context, client *ent.Client, params *system.CreateParams) (*system.System, error) {
-	ret := _mock.Called(ctx, client, params)
+func (_mock *SystemRepositoryMock) Create(ctx context.Context, system1 *system.System) (*system.System, error) {
+	ret := _mock.Called(ctx, system1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -49,18 +48,18 @@ func (_mock *SystemRepositoryMock) Create(ctx context.Context, client *ent.Clien
 
 	var r0 *system.System
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.CreateParams) (*system.System, error)); ok {
-		return returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.System) (*system.System, error)); ok {
+		return returnFunc(ctx, system1)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.CreateParams) *system.System); ok {
-		r0 = returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.System) *system.System); ok {
+		r0 = returnFunc(ctx, system1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*system.System)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *system.CreateParams) error); ok {
-		r1 = returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *system.System) error); ok {
+		r1 = returnFunc(ctx, system1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -74,56 +73,50 @@ type SystemRepositoryMock_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
-//   - params *system.CreateParams
-func (_e *SystemRepositoryMock_Expecter) Create(ctx interface{}, client interface{}, params interface{}) *SystemRepositoryMock_Create_Call {
-	return &SystemRepositoryMock_Create_Call{Call: _e.mock.On("Create", ctx, client, params)}
+//   - system1 *system.System
+func (_e *SystemRepositoryMock_Expecter) Create(ctx interface{}, system1 interface{}) *SystemRepositoryMock_Create_Call {
+	return &SystemRepositoryMock_Create_Call{Call: _e.mock.On("Create", ctx, system1)}
 }
 
-func (_c *SystemRepositoryMock_Create_Call) Run(run func(ctx context.Context, client *ent.Client, params *system.CreateParams)) *SystemRepositoryMock_Create_Call {
+func (_c *SystemRepositoryMock_Create_Call) Run(run func(ctx context.Context, system1 *system.System)) *SystemRepositoryMock_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *system.System
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *system.CreateParams
-		if args[2] != nil {
-			arg2 = args[2].(*system.CreateParams)
+			arg1 = args[1].(*system.System)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *SystemRepositoryMock_Create_Call) Return(system1 *system.System, err error) *SystemRepositoryMock_Create_Call {
-	_c.Call.Return(system1, err)
+func (_c *SystemRepositoryMock_Create_Call) Return(system11 *system.System, err error) *SystemRepositoryMock_Create_Call {
+	_c.Call.Return(system11, err)
 	return _c
 }
 
-func (_c *SystemRepositoryMock_Create_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, params *system.CreateParams) (*system.System, error)) *SystemRepositoryMock_Create_Call {
+func (_c *SystemRepositoryMock_Create_Call) RunAndReturn(run func(ctx context.Context, system1 *system.System) (*system.System, error)) *SystemRepositoryMock_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Delete provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) Delete(ctx context.Context, client *ent.Client, id string) error {
-	ret := _mock.Called(ctx, client, id)
+func (_mock *SystemRepositoryMock) Delete(ctx context.Context, id string) error {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) error); ok {
-		r0 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -137,30 +130,24 @@ type SystemRepositoryMock_Delete_Call struct {
 
 // Delete is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - id string
-func (_e *SystemRepositoryMock_Expecter) Delete(ctx interface{}, client interface{}, id interface{}) *SystemRepositoryMock_Delete_Call {
-	return &SystemRepositoryMock_Delete_Call{Call: _e.mock.On("Delete", ctx, client, id)}
+func (_e *SystemRepositoryMock_Expecter) Delete(ctx interface{}, id interface{}) *SystemRepositoryMock_Delete_Call {
+	return &SystemRepositoryMock_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
 }
 
-func (_c *SystemRepositoryMock_Delete_Call) Run(run func(ctx context.Context, client *ent.Client, id string)) *SystemRepositoryMock_Delete_Call {
+func (_c *SystemRepositoryMock_Delete_Call) Run(run func(ctx context.Context, id string)) *SystemRepositoryMock_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -171,14 +158,14 @@ func (_c *SystemRepositoryMock_Delete_Call) Return(err error) *SystemRepositoryM
 	return _c
 }
 
-func (_c *SystemRepositoryMock_Delete_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, id string) error) *SystemRepositoryMock_Delete_Call {
+func (_c *SystemRepositoryMock_Delete_Call) RunAndReturn(run func(ctx context.Context, id string) error) *SystemRepositoryMock_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Exists provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) Exists(ctx context.Context, client *ent.Client, filter *system.QueryFilter) (bool, error) {
-	ret := _mock.Called(ctx, client, filter)
+func (_mock *SystemRepositoryMock) Exists(ctx context.Context, filter *system.QueryFilter) (bool, error) {
+	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Exists")
@@ -186,16 +173,16 @@ func (_mock *SystemRepositoryMock) Exists(ctx context.Context, client *ent.Clien
 
 	var r0 bool
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.QueryFilter) (bool, error)); ok {
-		return returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.QueryFilter) (bool, error)); ok {
+		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.QueryFilter) bool); ok {
-		r0 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.QueryFilter) bool); ok {
+		r0 = returnFunc(ctx, filter)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *system.QueryFilter) error); ok {
-		r1 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *system.QueryFilter) error); ok {
+		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -209,30 +196,24 @@ type SystemRepositoryMock_Exists_Call struct {
 
 // Exists is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - filter *system.QueryFilter
-func (_e *SystemRepositoryMock_Expecter) Exists(ctx interface{}, client interface{}, filter interface{}) *SystemRepositoryMock_Exists_Call {
-	return &SystemRepositoryMock_Exists_Call{Call: _e.mock.On("Exists", ctx, client, filter)}
+func (_e *SystemRepositoryMock_Expecter) Exists(ctx interface{}, filter interface{}) *SystemRepositoryMock_Exists_Call {
+	return &SystemRepositoryMock_Exists_Call{Call: _e.mock.On("Exists", ctx, filter)}
 }
 
-func (_c *SystemRepositoryMock_Exists_Call) Run(run func(ctx context.Context, client *ent.Client, filter *system.QueryFilter)) *SystemRepositoryMock_Exists_Call {
+func (_c *SystemRepositoryMock_Exists_Call) Run(run func(ctx context.Context, filter *system.QueryFilter)) *SystemRepositoryMock_Exists_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *system.QueryFilter
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *system.QueryFilter
-		if args[2] != nil {
-			arg2 = args[2].(*system.QueryFilter)
+			arg1 = args[1].(*system.QueryFilter)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -243,14 +224,14 @@ func (_c *SystemRepositoryMock_Exists_Call) Return(b bool, err error) *SystemRep
 	return _c
 }
 
-func (_c *SystemRepositoryMock_Exists_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, filter *system.QueryFilter) (bool, error)) *SystemRepositoryMock_Exists_Call {
+func (_c *SystemRepositoryMock_Exists_Call) RunAndReturn(run func(ctx context.Context, filter *system.QueryFilter) (bool, error)) *SystemRepositoryMock_Exists_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Find provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) Find(ctx context.Context, client *ent.Client, filter *system.QueryFilter) ([]*system.System, error) {
-	ret := _mock.Called(ctx, client, filter)
+func (_mock *SystemRepositoryMock) Find(ctx context.Context, filter *system.QueryFilter) ([]*system.System, error) {
+	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Find")
@@ -258,18 +239,18 @@ func (_mock *SystemRepositoryMock) Find(ctx context.Context, client *ent.Client,
 
 	var r0 []*system.System
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.QueryFilter) ([]*system.System, error)); ok {
-		return returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.QueryFilter) ([]*system.System, error)); ok {
+		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.QueryFilter) []*system.System); ok {
-		r0 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.QueryFilter) []*system.System); ok {
+		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*system.System)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *system.QueryFilter) error); ok {
-		r1 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *system.QueryFilter) error); ok {
+		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -283,30 +264,24 @@ type SystemRepositoryMock_Find_Call struct {
 
 // Find is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - filter *system.QueryFilter
-func (_e *SystemRepositoryMock_Expecter) Find(ctx interface{}, client interface{}, filter interface{}) *SystemRepositoryMock_Find_Call {
-	return &SystemRepositoryMock_Find_Call{Call: _e.mock.On("Find", ctx, client, filter)}
+func (_e *SystemRepositoryMock_Expecter) Find(ctx interface{}, filter interface{}) *SystemRepositoryMock_Find_Call {
+	return &SystemRepositoryMock_Find_Call{Call: _e.mock.On("Find", ctx, filter)}
 }
 
-func (_c *SystemRepositoryMock_Find_Call) Run(run func(ctx context.Context, client *ent.Client, filter *system.QueryFilter)) *SystemRepositoryMock_Find_Call {
+func (_c *SystemRepositoryMock_Find_Call) Run(run func(ctx context.Context, filter *system.QueryFilter)) *SystemRepositoryMock_Find_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *system.QueryFilter
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *system.QueryFilter
-		if args[2] != nil {
-			arg2 = args[2].(*system.QueryFilter)
+			arg1 = args[1].(*system.QueryFilter)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -317,14 +292,14 @@ func (_c *SystemRepositoryMock_Find_Call) Return(systems []*system.System, err e
 	return _c
 }
 
-func (_c *SystemRepositoryMock_Find_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, filter *system.QueryFilter) ([]*system.System, error)) *SystemRepositoryMock_Find_Call {
+func (_c *SystemRepositoryMock_Find_Call) RunAndReturn(run func(ctx context.Context, filter *system.QueryFilter) ([]*system.System, error)) *SystemRepositoryMock_Find_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindOne provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) FindOne(ctx context.Context, client *ent.Client, filter *system.QueryFilter) (*system.System, error) {
-	ret := _mock.Called(ctx, client, filter)
+func (_mock *SystemRepositoryMock) FindOne(ctx context.Context, filter *system.QueryFilter) (*system.System, error) {
+	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindOne")
@@ -332,18 +307,18 @@ func (_mock *SystemRepositoryMock) FindOne(ctx context.Context, client *ent.Clie
 
 	var r0 *system.System
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.QueryFilter) (*system.System, error)); ok {
-		return returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.QueryFilter) (*system.System, error)); ok {
+		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.QueryFilter) *system.System); ok {
-		r0 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.QueryFilter) *system.System); ok {
+		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*system.System)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *system.QueryFilter) error); ok {
-		r1 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *system.QueryFilter) error); ok {
+		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -357,30 +332,24 @@ type SystemRepositoryMock_FindOne_Call struct {
 
 // FindOne is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - filter *system.QueryFilter
-func (_e *SystemRepositoryMock_Expecter) FindOne(ctx interface{}, client interface{}, filter interface{}) *SystemRepositoryMock_FindOne_Call {
-	return &SystemRepositoryMock_FindOne_Call{Call: _e.mock.On("FindOne", ctx, client, filter)}
+func (_e *SystemRepositoryMock_Expecter) FindOne(ctx interface{}, filter interface{}) *SystemRepositoryMock_FindOne_Call {
+	return &SystemRepositoryMock_FindOne_Call{Call: _e.mock.On("FindOne", ctx, filter)}
 }
 
-func (_c *SystemRepositoryMock_FindOne_Call) Run(run func(ctx context.Context, client *ent.Client, filter *system.QueryFilter)) *SystemRepositoryMock_FindOne_Call {
+func (_c *SystemRepositoryMock_FindOne_Call) Run(run func(ctx context.Context, filter *system.QueryFilter)) *SystemRepositoryMock_FindOne_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *system.QueryFilter
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *system.QueryFilter
-		if args[2] != nil {
-			arg2 = args[2].(*system.QueryFilter)
+			arg1 = args[1].(*system.QueryFilter)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -391,14 +360,14 @@ func (_c *SystemRepositoryMock_FindOne_Call) Return(system1 *system.System, err 
 	return _c
 }
 
-func (_c *SystemRepositoryMock_FindOne_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, filter *system.QueryFilter) (*system.System, error)) *SystemRepositoryMock_FindOne_Call {
+func (_c *SystemRepositoryMock_FindOne_Call) RunAndReturn(run func(ctx context.Context, filter *system.QueryFilter) (*system.System, error)) *SystemRepositoryMock_FindOne_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetByID provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) GetByID(ctx context.Context, client *ent.Client, id string) (*system.System, error) {
-	ret := _mock.Called(ctx, client, id)
+func (_mock *SystemRepositoryMock) GetByID(ctx context.Context, id string) (*system.System, error) {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByID")
@@ -406,18 +375,18 @@ func (_mock *SystemRepositoryMock) GetByID(ctx context.Context, client *ent.Clie
 
 	var r0 *system.System
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) (*system.System, error)); ok {
-		return returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*system.System, error)); ok {
+		return returnFunc(ctx, id)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) *system.System); ok {
-		r0 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *system.System); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*system.System)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, string) error); ok {
-		r1 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -431,30 +400,24 @@ type SystemRepositoryMock_GetByID_Call struct {
 
 // GetByID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - id string
-func (_e *SystemRepositoryMock_Expecter) GetByID(ctx interface{}, client interface{}, id interface{}) *SystemRepositoryMock_GetByID_Call {
-	return &SystemRepositoryMock_GetByID_Call{Call: _e.mock.On("GetByID", ctx, client, id)}
+func (_e *SystemRepositoryMock_Expecter) GetByID(ctx interface{}, id interface{}) *SystemRepositoryMock_GetByID_Call {
+	return &SystemRepositoryMock_GetByID_Call{Call: _e.mock.On("GetByID", ctx, id)}
 }
 
-func (_c *SystemRepositoryMock_GetByID_Call) Run(run func(ctx context.Context, client *ent.Client, id string)) *SystemRepositoryMock_GetByID_Call {
+func (_c *SystemRepositoryMock_GetByID_Call) Run(run func(ctx context.Context, id string)) *SystemRepositoryMock_GetByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -465,14 +428,14 @@ func (_c *SystemRepositoryMock_GetByID_Call) Return(system1 *system.System, err 
 	return _c
 }
 
-func (_c *SystemRepositoryMock_GetByID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, id string) (*system.System, error)) *SystemRepositoryMock_GetByID_Call {
+func (_c *SystemRepositoryMock_GetByID_Call) RunAndReturn(run func(ctx context.Context, id string) (*system.System, error)) *SystemRepositoryMock_GetByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetByName provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) GetByName(ctx context.Context, client *ent.Client, name string) (*system.System, error) {
-	ret := _mock.Called(ctx, client, name)
+func (_mock *SystemRepositoryMock) GetByName(ctx context.Context, name string) (*system.System, error) {
+	ret := _mock.Called(ctx, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByName")
@@ -480,18 +443,18 @@ func (_mock *SystemRepositoryMock) GetByName(ctx context.Context, client *ent.Cl
 
 	var r0 *system.System
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) (*system.System, error)); ok {
-		return returnFunc(ctx, client, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*system.System, error)); ok {
+		return returnFunc(ctx, name)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) *system.System); ok {
-		r0 = returnFunc(ctx, client, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *system.System); ok {
+		r0 = returnFunc(ctx, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*system.System)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, string) error); ok {
-		r1 = returnFunc(ctx, client, name)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, name)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -505,30 +468,24 @@ type SystemRepositoryMock_GetByName_Call struct {
 
 // GetByName is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - name string
-func (_e *SystemRepositoryMock_Expecter) GetByName(ctx interface{}, client interface{}, name interface{}) *SystemRepositoryMock_GetByName_Call {
-	return &SystemRepositoryMock_GetByName_Call{Call: _e.mock.On("GetByName", ctx, client, name)}
+func (_e *SystemRepositoryMock_Expecter) GetByName(ctx interface{}, name interface{}) *SystemRepositoryMock_GetByName_Call {
+	return &SystemRepositoryMock_GetByName_Call{Call: _e.mock.On("GetByName", ctx, name)}
 }
 
-func (_c *SystemRepositoryMock_GetByName_Call) Run(run func(ctx context.Context, client *ent.Client, name string)) *SystemRepositoryMock_GetByName_Call {
+func (_c *SystemRepositoryMock_GetByName_Call) Run(run func(ctx context.Context, name string)) *SystemRepositoryMock_GetByName_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -539,22 +496,22 @@ func (_c *SystemRepositoryMock_GetByName_Call) Return(system1 *system.System, er
 	return _c
 }
 
-func (_c *SystemRepositoryMock_GetByName_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, name string) (*system.System, error)) *SystemRepositoryMock_GetByName_Call {
+func (_c *SystemRepositoryMock_GetByName_Call) RunAndReturn(run func(ctx context.Context, name string) (*system.System, error)) *SystemRepositoryMock_GetByName_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Update provides a mock function for the type SystemRepositoryMock
-func (_mock *SystemRepositoryMock) Update(ctx context.Context, client *ent.Client, params *system.UpdateParams) error {
-	ret := _mock.Called(ctx, client, params)
+func (_mock *SystemRepositoryMock) Update(ctx context.Context, system1 *system.System) error {
+	ret := _mock.Called(ctx, system1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *system.UpdateParams) error); ok {
-		r0 = returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *system.System) error); ok {
+		r0 = returnFunc(ctx, system1)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -568,30 +525,24 @@ type SystemRepositoryMock_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
-//   - params *system.UpdateParams
-func (_e *SystemRepositoryMock_Expecter) Update(ctx interface{}, client interface{}, params interface{}) *SystemRepositoryMock_Update_Call {
-	return &SystemRepositoryMock_Update_Call{Call: _e.mock.On("Update", ctx, client, params)}
+//   - system1 *system.System
+func (_e *SystemRepositoryMock_Expecter) Update(ctx interface{}, system1 interface{}) *SystemRepositoryMock_Update_Call {
+	return &SystemRepositoryMock_Update_Call{Call: _e.mock.On("Update", ctx, system1)}
 }
 
-func (_c *SystemRepositoryMock_Update_Call) Run(run func(ctx context.Context, client *ent.Client, params *system.UpdateParams)) *SystemRepositoryMock_Update_Call {
+func (_c *SystemRepositoryMock_Update_Call) Run(run func(ctx context.Context, system1 *system.System)) *SystemRepositoryMock_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *system.System
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *system.UpdateParams
-		if args[2] != nil {
-			arg2 = args[2].(*system.UpdateParams)
+			arg1 = args[1].(*system.System)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -602,7 +553,7 @@ func (_c *SystemRepositoryMock_Update_Call) Return(err error) *SystemRepositoryM
 	return _c
 }
 
-func (_c *SystemRepositoryMock_Update_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, params *system.UpdateParams) error) *SystemRepositoryMock_Update_Call {
+func (_c *SystemRepositoryMock_Update_Call) RunAndReturn(run func(ctx context.Context, system1 *system.System) error) *SystemRepositoryMock_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

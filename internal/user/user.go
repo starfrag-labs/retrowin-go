@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
+	"github.com/google/uuid"
+
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -83,20 +84,18 @@ type CreateCommand struct {
 }
 
 type service struct {
-	repo   UserRepository
-	client *ent.Client
+	repo UserRepository
 }
 
 // NewService creates a new user service.
-func NewService(repo UserRepository, client *ent.Client) UserService {
+func NewService(repo UserRepository) UserService {
 	return &service{
-		repo:   repo,
-		client: client,
+		repo: repo,
 	}
 }
 
 func (s *service) Get(ctx context.Context, provider, providerID string) (*User, error) {
-	user, err := s.repo.GetByProvider(ctx, s.client, provider, providerID)
+	user, err := s.repo.GetByProvider(ctx, provider, providerID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +106,7 @@ func (s *service) Get(ctx context.Context, provider, providerID string) (*User, 
 }
 
 func (s *service) GetByID(ctx context.Context, id string) (*User, error) {
-	user, err := s.repo.GetByID(ctx, s.client, id)
+	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +117,7 @@ func (s *service) GetByID(ctx context.Context, id string) (*User, error) {
 }
 
 func (s *service) GetByUsername(ctx context.Context, username string) (*User, error) {
-	user, err := s.repo.GetByUsername(ctx, s.client, username)
+	user, err := s.repo.GetByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +138,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 		return nil, errors.BadRequest("invalid provider")
 	}
 
-	exists, err := s.repo.ExistsByProvider(ctx, s.client, cmd.Provider, cmd.ProviderID)
+	exists, err := s.repo.ExistsByProvider(ctx, cmd.Provider, cmd.ProviderID)
 	if err != nil {
 		return nil, err
 	}
@@ -147,27 +146,35 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*User, error)
 		return nil, errors.Conflict("user already exists")
 	}
 
-	params := &CreateParams{
-		Username:   cmd.Username,
-		Provider:   cmd.Provider,
-		ProviderID: cmd.ProviderID,
-	}
-	return s.repo.Create(ctx, s.client, params)
+	// Generate ID for the user
+	userID := uuid.New().String()
+	now := time.Now()
+
+	newUser := NewUser(
+		userID,
+		cmd.Username,
+		cmd.Provider,
+		cmd.ProviderID,
+		now, // joinDate
+		now, // createdAt
+		now, // updatedAt
+	)
+	return s.repo.Create(ctx, newUser)
 }
 
 func (s *service) Delete(ctx context.Context, provider, providerID string) error {
-	user, err := s.repo.GetByProvider(ctx, s.client, provider, providerID)
+	user, err := s.repo.GetByProvider(ctx, provider, providerID)
 	if err != nil {
 		return err
 	}
 	if user == nil {
 		return errors.NotFound("user not found")
 	}
-	return s.repo.Delete(ctx, s.client, user.ID())
+	return s.repo.Delete(ctx, user.ID())
 }
 
 func (s *service) FindOrCreateByOIDC(ctx context.Context, provider, subject, username string) (string, error) {
-	user, err := s.repo.GetByProvider(ctx, s.client, provider, subject)
+	user, err := s.repo.GetByProvider(ctx, provider, subject)
 	if err != nil {
 		return "", err
 	}

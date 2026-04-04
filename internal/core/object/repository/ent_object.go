@@ -20,26 +20,7 @@ func NewRepository() domain.ObjectRepository {
 
 func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.Object, error) {
 	builder := client.Object.Create().
-		SetProvider(entobject.Provider(string(params.Provider))).
-		SetBucket(params.Bucket).
-		SetSystemID(params.SystemID).
-		SetStorageKey(params.StorageKey)
-
-	if params.Status != "" {
-		builder = builder.SetStatus(entobject.Status(string(params.Status)))
-	}
-
-	entObject, err := builder.Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create object: %w", err)
-	}
-
-	return fromEnt(entObject), nil
-}
-
-func (r *EntRepository) CreateWithID(ctx context.Context, client *ent.Client, id string, params *domain.CreateParams) (*domain.Object, error) {
-	builder := client.Object.Create().
-		SetID(id).
+		SetID(params.ID).
 		SetProvider(entobject.Provider(string(params.Provider))).
 		SetBucket(params.Bucket).
 		SetSystemID(params.SystemID).

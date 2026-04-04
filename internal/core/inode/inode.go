@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
@@ -197,7 +199,11 @@ func NewService(repo InodeRepository, client *ent.Client) InodeService {
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Inode, error) {
+	// Generate ID for the inode
+	inodeID := uuid.New().String()
+
 	params := &CreateParams{
+		ID:       inodeID,
 		SystemID: cmd.SystemID,
 		Mode:     cmd.Mode,
 		UID:      cmd.UID,

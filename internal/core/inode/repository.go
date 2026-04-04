@@ -20,6 +20,7 @@ type InodeRepository interface {
 
 // CreateParams for creating a new inode (repository layer).
 type CreateParams struct {
+	ID       string
 	SystemID string
 	Mode     int
 	UID      int

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 	userMocks "github.com/starfrag-lab/retrowin-go/internal/user/mocks"
 	"github.com/stretchr/testify/assert"
@@ -72,8 +71,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("returns user when found", func(t *testing.T) {
 		userRepo := userMocks.NewUserRepositoryMock(t)
-		client := &ent.Client{}
-		svc := user.NewService(userRepo, client)
+		svc := user.NewService(userRepo)
 
 		expectedUser := user.NewUser(
 			"user-123",
@@ -84,7 +82,7 @@ func TestService_Get(t *testing.T) {
 			time.Now(),
 			time.Now(),
 		)
-		userRepo.EXPECT().GetByProvider(mock.Anything, client, user.ProviderKeycloak, "keycloak-123").Return(expectedUser, nil)
+		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(expectedUser, nil)
 
 		result, err := svc.Get(ctx, user.ProviderKeycloak, "keycloak-123")
 
@@ -94,10 +92,9 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("returns error when user not found", func(t *testing.T) {
 		userRepo := userMocks.NewUserRepositoryMock(t)
-		client := &ent.Client{}
-		svc := user.NewService(userRepo, client)
+		svc := user.NewService(userRepo)
 
-		userRepo.EXPECT().GetByProvider(mock.Anything, client, user.ProviderKeycloak, "keycloak-123").Return(nil, nil)
+		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(nil, nil)
 
 		result, err := svc.Get(ctx, user.ProviderKeycloak, "keycloak-123")
 
@@ -107,10 +104,9 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		userRepo := userMocks.NewUserRepositoryMock(t)
-		client := &ent.Client{}
-		svc := user.NewService(userRepo, client)
+		svc := user.NewService(userRepo)
 
-		userRepo.EXPECT().GetByProvider(mock.Anything, client, user.ProviderKeycloak, "keycloak-123").Return(nil, errors.New("db error"))
+		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "keycloak-123").Return(nil, errors.New("db error"))
 
 		result, err := svc.Get(ctx, user.ProviderKeycloak, "keycloak-123")
 
@@ -124,8 +120,7 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 
 	t.Run("returns existing user", func(t *testing.T) {
 		userRepo := userMocks.NewUserRepositoryMock(t)
-		client := &ent.Client{}
-		svc := user.NewService(userRepo, client)
+		svc := user.NewService(userRepo)
 
 		existingUser := user.NewUser(
 			"user-123",
@@ -136,7 +131,7 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 			time.Now(),
 			time.Now(),
 		)
-		userRepo.EXPECT().GetByProvider(mock.Anything, client, user.ProviderKeycloak, "subject-123").Return(existingUser, nil)
+		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "subject-123").Return(existingUser, nil)
 
 		userID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "testuser")
 
@@ -146,11 +141,10 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 
 	t.Run("creates new user when not found", func(t *testing.T) {
 		userRepo := userMocks.NewUserRepositoryMock(t)
-		client := &ent.Client{}
-		svc := user.NewService(userRepo, client)
+		svc := user.NewService(userRepo)
 
-		userRepo.EXPECT().GetByProvider(mock.Anything, client, user.ProviderKeycloak, "subject-123").Return(nil, nil)
-		userRepo.EXPECT().ExistsByProvider(mock.Anything, client, user.ProviderKeycloak, "subject-123").Return(false, nil)
+		userRepo.EXPECT().GetByProvider(mock.Anything, user.ProviderKeycloak, "subject-123").Return(nil, nil)
+		userRepo.EXPECT().ExistsByProvider(mock.Anything, user.ProviderKeycloak, "subject-123").Return(false, nil)
 		newUser := user.NewUser(
 			"user-456",
 			"testuser",
@@ -160,7 +154,7 @@ func TestService_FindOrCreateByOIDC(t *testing.T) {
 			time.Now(),
 			time.Now(),
 		)
-		userRepo.EXPECT().Create(mock.Anything, client, mock.Anything).Return(newUser, nil)
+		userRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(newUser, nil)
 
 		userID, err := svc.FindOrCreateByOIDC(ctx, user.ProviderKeycloak, "subject-123", "testuser")
 
