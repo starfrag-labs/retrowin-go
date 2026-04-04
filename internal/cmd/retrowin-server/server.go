@@ -197,47 +197,76 @@ func ProvideHTTPMux(
 	return mux
 }
 
+// parseSameSite parses the SameSite configuration string.
+func parseSameSite(sameSite string) http.SameSite {
+	switch strings.ToLower(sameSite) {
+	case "strict":
+		return http.SameSiteStrictMode
+	case "none", "":
+		return http.SameSiteNoneMode
+	default:
+		return http.SameSiteLaxMode
+	}
+}
+
 // sessionMiddleware wraps the handler to manage session cookies:
-// - On callback: captures the response body to extract session ID and sets the cookie.
+// - On callback: captures the response body to extract session ID and sets the cookie, then redirects to frontend.
 // - On logout: clears the session cookie.
-func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName string) http.Handler {
+func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName string, frontendURL string, domain string, sameSite string) http.Handler {
+	parsedSameSite := parseSameSite(sameSite)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Logout: clear session cookie before the handler runs
 		if r.Method == http.MethodPost && r.URL.Path == "/auth/logout" {
-			http.SetCookie(w, &http.Cookie{
+			cookie := &http.Cookie{
 				Name:     cookieName,
 				Value:    "",
 				Path:     "/",
 				HttpOnly: true,
 				Secure:   secure,
 				MaxAge:   -1,
-			})
+				SameSite: parsedSameSite,
+			}
+			if domain != "" {
+				cookie.Domain = domain
+			}
+			http.SetCookie(w, cookie)
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// Callback: capture response to extract session ID and set cookie
+		// Callback: capture response to extract session ID, set cookie, and redirect to frontend
 		if r.Method == http.MethodGet && r.URL.Path == "/auth/callback" {
 			rec := &responseRecorder{ResponseWriter: w}
 			next.ServeHTTP(rec, r)
 
-			// Only set cookie on successful callback (200 status)
+			// Only set cookie on successful callback (200 status) and redirect
 			if rec.statusCode == http.StatusOK && len(rec.body) > 0 {
 				var resp struct {
 					SessionID string `json:"sessionId"`
 				}
 				if err := json.Unmarshal(rec.body, &resp); err == nil && resp.SessionID != "" {
-					http.SetCookie(w, &http.Cookie{
+					cookie := &http.Cookie{
 						Name:     cookieName,
 						Value:    resp.SessionID,
 						Path:     "/",
 						HttpOnly: true,
 						Secure:   secure,
 						MaxAge:   ttl,
-						SameSite: http.SameSiteLaxMode,
-					})
+						SameSite: parsedSameSite,
+					}
+					if domain != "" {
+						cookie.Domain = domain
+					}
+					http.SetCookie(w, cookie)
+					// Redirect to frontend after successful login
+					http.Redirect(w, r, frontendURL, http.StatusFound)
+					return
 				}
 			}
+			// On error, return the original response
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(rec.statusCode)
+			w.Write(rec.body)
 			return
 		}
 
@@ -329,7 +358,15 @@ func corsMiddleware(next http.Handler, cfg *config.Config) http.Handler {
 
 // ProvideHTTPHandler provides the HTTP handler.
 func ProvideHTTPHandler(mux *http.ServeMux, cfg *config.Config) http.Handler {
-	handler := sessionMiddleware(mux, cfg.Auth.Session.Secure, cfg.Auth.Session.TTL, cfg.Auth.Session.CookieName)
+	handler := sessionMiddleware(
+		mux,
+		cfg.Auth.Session.Secure,
+		cfg.Auth.Session.TTL,
+		cfg.Auth.Session.CookieName,
+		cfg.Auth.Session.FrontendURL,
+		cfg.Auth.Session.Domain,
+		cfg.Auth.Session.SameSite,
+	)
 	handler = corsMiddleware(handler, cfg)
 	return panicRecoveryMiddleware(handler)
 }

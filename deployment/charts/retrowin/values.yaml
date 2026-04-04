@@ -152,6 +152,9 @@ config:
       stateTTL: 300     # 5 minutes
       redisKey: retrowin
       cookieName: session_id
+      frontendURL: https://retrowin.starfrag.co
+      domain: ".starfrag.co"   # Share cookie across all subdomains
+      sameSite: "lax"          # lax, strict, or none (use "none" with secure:true for cross-origin)
 
   # CORS settings
   cors:
