@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
+	"strings"
 	"syscall"
 	"time"
 
@@ -18,7 +20,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	"github.com/starfrag-lab/retrowin-go/pkg/api"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/valkey-io/valkey-go"
 
@@ -161,73 +163,110 @@ func ProvideStorage(cfg *config.Config) (object.Storage, error) {
 
 // ProvideHTTPMux provides the HTTP mux with all routes.
 func ProvideHTTPMux(
-	ogenServer *apiv1.Server,
+	ogenServer *api.Server,
 	cfg *config.Config,
+	openAPIPath string,
 ) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// Health check endpoint (direct access, no /v1 prefix)
+	// Serve OpenAPI spec and Swagger UI (register before catch-all)
+	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+		// Use configured path from CLI flag
+		content, err := os.ReadFile(openAPIPath)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("OpenAPI spec not found: %s", openAPIPath), http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(content)
+	})
+	mux.HandleFunc("/swagger", httpSwagger.Handler(
+		httpSwagger.URL("/openapi.json"),
+	))
+
+	// Health check endpoint
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"healthy"}`))
 	})
 
-	// API routes (no prefix)
+	// API routes (catch-all - must be last)
 	mux.Handle("/", ogenServer)
-
-	// Serve OpenAPI spec and Swagger UI
-	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, cfg.HTTP.OpenAPIPath)
-	})
-	mux.HandleFunc("/swagger", httpSwagger.Handler(
-		httpSwagger.URL("/openapi.json"),
-	))
 
 	return mux
 }
 
+// parseSameSite parses the SameSite configuration string.
+func parseSameSite(sameSite string) http.SameSite {
+	switch strings.ToLower(sameSite) {
+	case "strict":
+		return http.SameSiteStrictMode
+	case "none", "":
+		return http.SameSiteNoneMode
+	default:
+		return http.SameSiteLaxMode
+	}
+}
+
 // sessionMiddleware wraps the handler to manage session cookies:
-// - On callback: captures the response body to extract session ID and sets the cookie.
+// - On callback: captures the response body to extract session ID and sets the cookie, then redirects to frontend.
 // - On logout: clears the session cookie.
-func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName string) http.Handler {
+func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName string, frontendURL string, domain string, sameSite string) http.Handler {
+	parsedSameSite := parseSameSite(sameSite)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Logout: clear session cookie before the handler runs
 		if r.Method == http.MethodPost && r.URL.Path == "/auth/logout" {
-			http.SetCookie(w, &http.Cookie{
+			cookie := &http.Cookie{
 				Name:     cookieName,
 				Value:    "",
 				Path:     "/",
 				HttpOnly: true,
 				Secure:   secure,
 				MaxAge:   -1,
-			})
+				SameSite: parsedSameSite,
+			}
+			if domain != "" {
+				cookie.Domain = domain
+			}
+			http.SetCookie(w, cookie)
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// Callback: capture response to extract session ID and set cookie
-		if r.Method == http.MethodPost && r.URL.Path == "/auth/callback" {
+		// Callback: capture response to extract session ID, set cookie, and redirect to frontend
+		if r.Method == http.MethodGet && r.URL.Path == "/auth/callback" {
 			rec := &responseRecorder{ResponseWriter: w}
 			next.ServeHTTP(rec, r)
 
-			// Only set cookie on successful callback (200 status)
+			// Only set cookie on successful callback (200 status) and redirect
 			if rec.statusCode == http.StatusOK && len(rec.body) > 0 {
 				var resp struct {
 					SessionID string `json:"sessionId"`
 				}
 				if err := json.Unmarshal(rec.body, &resp); err == nil && resp.SessionID != "" {
-					http.SetCookie(w, &http.Cookie{
+					cookie := &http.Cookie{
 						Name:     cookieName,
 						Value:    resp.SessionID,
 						Path:     "/",
 						HttpOnly: true,
 						Secure:   secure,
 						MaxAge:   ttl,
-						SameSite: http.SameSiteLaxMode,
-					})
+						SameSite: parsedSameSite,
+					}
+					if domain != "" {
+						cookie.Domain = domain
+					}
+					http.SetCookie(w, cookie)
+					// Redirect to frontend after successful login
+					http.Redirect(w, r, frontendURL, http.StatusFound)
+					return
 				}
 			}
+			// On error, return the original response
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(rec.statusCode)
+			_, _ = w.Write(rec.body)
 			return
 		}
 
@@ -255,9 +294,81 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 	return r.ResponseWriter.Write(b)
 }
 
+// panicRecoveryMiddleware recovers from panics and logs them.
+func panicRecoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rv := recover(); rv != nil {
+				fmt.Printf("PANIC recovered: %v\n", rv)
+				fmt.Printf("Stack: %s\n", debug.Stack())
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// corsMiddleware adds CORS headers to responses.
+func corsMiddleware(next http.Handler, cfg *config.Config) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// If CORS is disabled, just pass through
+		if !cfg.CORS.Enabled {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Set CORS headers
+		origin := r.Header.Get("Origin")
+		allowedOrigin := ""
+
+		// Check if origin is in allowed list
+		for _, allowed := range cfg.CORS.AllowedOrigins {
+			if allowed == "*" || allowed == origin {
+				allowedOrigin = allowed
+				break
+			}
+		}
+
+		if allowedOrigin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+		}
+
+		if cfg.CORS.AllowCredentials {
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+
+		if len(cfg.CORS.ExposedHeaders) > 0 {
+			w.Header().Set("Access-Control-Expose-Headers", strings.Join(cfg.CORS.ExposedHeaders, ", "))
+		}
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", strings.Join(cfg.CORS.AllowedMethods, ", "))
+			w.Header().Set("Access-Control-Allow-Headers", strings.Join(cfg.CORS.AllowedHeaders, ", "))
+			if cfg.CORS.MaxAge > 0 {
+				w.Header().Set("Access-Control-Max-Age", fmt.Sprintf("%d", cfg.CORS.MaxAge))
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ProvideHTTPHandler provides the HTTP handler.
 func ProvideHTTPHandler(mux *http.ServeMux, cfg *config.Config) http.Handler {
-	return sessionMiddleware(mux, cfg.Auth.Session.Secure, cfg.Auth.Session.TTL, cfg.Auth.Session.CookieName)
+	handler := sessionMiddleware(
+		mux,
+		cfg.Auth.Session.Secure,
+		cfg.Auth.Session.TTL,
+		cfg.Auth.Session.CookieName,
+		cfg.Auth.Session.FrontendURL,
+		cfg.Auth.Session.Domain,
+		cfg.Auth.Session.SameSite,
+	)
+	handler = corsMiddleware(handler, cfg)
+	return panicRecoveryMiddleware(handler)
 }
 
 // ProvideHTTPServer provides the HTTP server.
@@ -338,17 +449,18 @@ func WaitForShutdown(lc fx.Lifecycle) {
 func ProvideOgenServer(
 	h *handler.Handler,
 	sessionSvc session.SessionService,
-) (*apiv1.Server, error) {
+) (*api.Server, error) {
 	securityHandler := handler.NewSecurityHandler(sessionSvc)
-	return apiv1.NewServer(h, securityHandler, apiv1.WithErrorHandler(h.ErrorHandler))
+	return api.NewServer(h, securityHandler, api.WithErrorHandler(h.ErrorHandler))
 }
 
 // FxOptions returns the fx options for the application.
-func FxOptions(cfgFile string, port int) []fx.Option {
+func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 	return []fx.Option{
 		// Supply CLI args
 		fx.Supply(fx.Annotate(cfgFile, fx.ResultTags(`name:"cfgFile"`))),
 		fx.Supply(fx.Annotate(port, fx.ResultTags(`name:"port"`))),
+		fx.Supply(fx.Annotate(openAPIPath, fx.ResultTags(`name:"openAPIPath"`))),
 
 		// All providers - single fx.Provide call like serengeti
 		fx.Provide(
@@ -388,7 +500,7 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 			// HTTP layer
 			handler.NewHandler,
 			ProvideOgenServer,
-			ProvideHTTPMux,
+			fx.Annotate(ProvideHTTPMux, fx.ParamTags(``, ``, `name:"openAPIPath"`)),
 			ProvideHTTPHandler,
 			ProvideHTTPServer,
 		),
@@ -402,8 +514,8 @@ func FxOptions(cfgFile string, port int) []fx.Option {
 }
 
 // NewFXApp creates a new fx application.
-func NewFXApp(cfgFile string, port int) *fx.App {
-	return fx.New(FxOptions(cfgFile, port)...)
+func NewFXApp(cfgFile string, port int, openAPIPath string) *fx.App {
+	return fx.New(FxOptions(cfgFile, port, openAPIPath)...)
 }
 
 // newValkeyClient creates a Valkey client based on ValkeyConfig.

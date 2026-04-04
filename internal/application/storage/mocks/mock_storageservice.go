@@ -6,6 +6,7 @@ package storageMocks
 
 import (
 	"context"
+	"time"
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
@@ -107,8 +108,65 @@ func (_c *StorageServiceMock_CompleteUpload_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// DeleteObjectByInode provides a mock function for the type StorageServiceMock
+func (_mock *StorageServiceMock) DeleteObjectByInode(ctx context.Context, inodeID string) error {
+	ret := _mock.Called(ctx, inodeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteObjectByInode")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, inodeID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// StorageServiceMock_DeleteObjectByInode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteObjectByInode'
+type StorageServiceMock_DeleteObjectByInode_Call struct {
+	*mock.Call
+}
+
+// DeleteObjectByInode is a helper method to define mock.On call
+//   - ctx context.Context
+//   - inodeID string
+func (_e *StorageServiceMock_Expecter) DeleteObjectByInode(ctx interface{}, inodeID interface{}) *StorageServiceMock_DeleteObjectByInode_Call {
+	return &StorageServiceMock_DeleteObjectByInode_Call{Call: _e.mock.On("DeleteObjectByInode", ctx, inodeID)}
+}
+
+func (_c *StorageServiceMock_DeleteObjectByInode_Call) Run(run func(ctx context.Context, inodeID string)) *StorageServiceMock_DeleteObjectByInode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *StorageServiceMock_DeleteObjectByInode_Call) Return(err error) *StorageServiceMock_DeleteObjectByInode_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *StorageServiceMock_DeleteObjectByInode_Call) RunAndReturn(run func(ctx context.Context, inodeID string) error) *StorageServiceMock_DeleteObjectByInode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDownloadURL provides a mock function for the type StorageServiceMock
-func (_mock *StorageServiceMock) GetDownloadURL(ctx context.Context, id string) (string, error) {
+func (_mock *StorageServiceMock) GetDownloadURL(ctx context.Context, id string) (string, time.Time, error) {
 	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
@@ -116,8 +174,9 @@ func (_mock *StorageServiceMock) GetDownloadURL(ctx context.Context, id string) 
 	}
 
 	var r0 string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+	var r1 time.Time
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, time.Time, error)); ok {
 		return returnFunc(ctx, id)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
@@ -125,12 +184,17 @@ func (_mock *StorageServiceMock) GetDownloadURL(ctx context.Context, id string) 
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) time.Time); ok {
 		r1 = returnFunc(ctx, id)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(time.Time)
 	}
-	return r0, r1
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = returnFunc(ctx, id)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
 }
 
 // StorageServiceMock_GetDownloadURL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDownloadURL'
@@ -163,12 +227,12 @@ func (_c *StorageServiceMock_GetDownloadURL_Call) Run(run func(ctx context.Conte
 	return _c
 }
 
-func (_c *StorageServiceMock_GetDownloadURL_Call) Return(s string, err error) *StorageServiceMock_GetDownloadURL_Call {
-	_c.Call.Return(s, err)
+func (_c *StorageServiceMock_GetDownloadURL_Call) Return(s string, time1 time.Time, err error) *StorageServiceMock_GetDownloadURL_Call {
+	_c.Call.Return(s, time1, err)
 	return _c
 }
 
-func (_c *StorageServiceMock_GetDownloadURL_Call) RunAndReturn(run func(ctx context.Context, id string) (string, error)) *StorageServiceMock_GetDownloadURL_Call {
+func (_c *StorageServiceMock_GetDownloadURL_Call) RunAndReturn(run func(ctx context.Context, id string) (string, time.Time, error)) *StorageServiceMock_GetDownloadURL_Call {
 	_c.Call.Return(run)
 	return _c
 }

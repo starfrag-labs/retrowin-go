@@ -188,7 +188,7 @@ func TestSuite_FullServerStartup(t *testing.T) {
 
 	// Start the actual fx app with test config
 	// This test verifies that the real server starts and responds to health checks
-	app := retrowinserver.NewFXApp(cfgFile, cfg.HTTP.Port)
+	app := retrowinserver.NewFXApp(cfgFile, cfg.HTTP.Port, "../../api/openapi.yaml")
 
 	// Start app in background
 	appDone := make(chan struct{})
@@ -229,4 +229,181 @@ func TestSuite_FullServerStartup(t *testing.T) {
 		// Don't fail the test if shutdown takes longer, just log it
 		t.Log("App shutdown took longer than expected (this is OK for test cleanup)")
 	}
+}
+
+func TestSuite_OpenAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping e2e test in short mode")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	suite := NewSuite(t)
+	err := suite.Start(ctx)
+	require.NoError(t, err, "Failed to start test suite")
+	t.Cleanup(func() { _ = suite.Stop(ctx) })
+
+	err = suite.StartServer(ctx)
+	require.NoError(t, err, "Failed to start server")
+
+	// Test /openapi.json endpoint
+	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/openapi.json", suite.GetConfig().HTTP.Port))
+	require.NoError(t, err, "Failed to call /openapi.json endpoint")
+	defer func() { _ = resp.Body.Close() }()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "OpenAPI spec should return 200")
+
+	// Verify content type
+	ct := resp.Header.Get("Content-Type")
+	assert.Contains(t, ct, "application/json", "Content-Type should be application/json")
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err, "Failed to read response body")
+	assert.Contains(t, string(body), "openapi", "Response should contain OpenAPI spec")
+
+	t.Log("OpenAPI endpoint test passed successfully")
+}
+
+func TestSuite_CORS(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping e2e test in short mode")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	suite := NewSuite(t)
+	err := suite.Start(ctx)
+	require.NoError(t, err, "Failed to start test suite")
+	t.Cleanup(func() { _ = suite.Stop(ctx) })
+
+	err = suite.StartServer(ctx)
+	require.NoError(t, err, "Failed to start server")
+
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d", suite.GetConfig().HTTP.Port)
+
+	// Test 1: OPTIONS preflight request (should return 204 with CORS headers)
+	t.Run("Preflight_Success", func(t *testing.T) {
+		req, err := http.NewRequest("OPTIONS", baseURL+"/user", nil)
+		require.NoError(t, err, "Failed to create request")
+		req.Header.Set("Origin", "http://localhost:3000")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+		req.Header.Set("Access-Control-Request-Headers", "authorization")
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err, "Failed to send OPTIONS request")
+		defer func() { _ = resp.Body.Close() }()
+
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode, "OPTIONS preflight should return 204")
+
+		// Verify CORS headers
+		allowOrigin := resp.Header.Get("Access-Control-Allow-Origin")
+		assert.Equal(t, "http://localhost:3000", allowOrigin, "Should return correct origin")
+
+		allowMethods := resp.Header.Get("Access-Control-Allow-Methods")
+		assert.Contains(t, allowMethods, "GET", "Should allow GET method")
+
+		allowHeaders := resp.Header.Get("Access-Control-Allow-Headers")
+		assert.Contains(t, allowHeaders, "Authorization", "Should allow authorization header")
+
+		maxAge := resp.Header.Get("Access-Control-Max-Age")
+		assert.NotEmpty(t, maxAge, "Should have max-age header")
+	})
+
+	// Test 2: Simple request with Origin header (should return CORS headers)
+	t.Run("Simple_Request", func(t *testing.T) {
+		req, err := http.NewRequest("GET", baseURL+"/health", nil)
+		require.NoError(t, err, "Failed to create request")
+		req.Header.Set("Origin", "http://localhost:3000")
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err, "Failed to send GET request")
+		defer func() { _ = resp.Body.Close() }()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Health check should return 200")
+
+		allowOrigin := resp.Header.Get("Access-Control-Allow-Origin")
+		assert.Equal(t, "http://localhost:3000", allowOrigin, "Should return CORS header for simple request")
+	})
+
+	// Test 3: Preflight with allowed origin from config
+	t.Run("Preflight_AllowedOrigin", func(t *testing.T) {
+		req, err := http.NewRequest("OPTIONS", baseURL+"/user", nil)
+		require.NoError(t, err, "Failed to create request")
+		req.Header.Set("Origin", "https://retrowin.starship.co")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err, "Failed to send OPTIONS request")
+		defer func() { _ = resp.Body.Close() }()
+
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode, "OPTIONS should return 204")
+
+		allowOrigin := resp.Header.Get("Access-Control-Allow-Origin")
+		assert.Equal(t, "https://retrowin.starship.co", allowOrigin, "Should return configured origin")
+	})
+
+	t.Log("CORS tests passed successfully")
+}
+
+func TestSuite_Auth_Callback_ErrorResponse(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping e2e test in short mode")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	suite := NewSuite(t)
+	err := suite.Start(ctx)
+	require.NoError(t, err, "Failed to start test suite")
+	t.Cleanup(func() { _ = suite.Stop(ctx) })
+
+	err = suite.StartServer(ctx)
+	require.NoError(t, err, "Failed to start server")
+
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d", suite.GetConfig().HTTP.Port)
+
+	// Test 1: Missing required parameters returns proper error response
+	// Note: ogen returns 500 for decode errors (missing required params)
+	t.Run("Missing_Code_Parameter", func(t *testing.T) {
+		resp, err := http.Get(baseURL + "/auth/callback?state=test")
+		require.NoError(t, err, "Failed to send request")
+		defer func() { _ = resp.Body.Close() }()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err, "Failed to read response body")
+
+		// ogen returns 500 for decode errors, but response should still have proper structure
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "Should return 500 for decode error")
+
+		// Verify response contains error details
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+
+		// Should contain error structure with type and message
+		assert.Contains(t, string(body), `"error"`, "Response should contain error object")
+		assert.Contains(t, string(body), `"type"`, "Response should contain error type")
+		assert.Contains(t, string(body), `"message"`, "Response should contain error message")
+		assert.Contains(t, string(body), "code", "Error message should mention missing code parameter")
+	})
+
+	// Test 2: Invalid code returns proper error response with 400/401
+	t.Run("Invalid_Code_Parameter", func(t *testing.T) {
+		resp, err := http.Get(baseURL + "/auth/callback?code=invalid&state=test")
+		require.NoError(t, err, "Failed to send request")
+		defer func() { _ = resp.Body.Close() }()
+
+		// Should return 400 or 401 depending on the error
+		assert.Contains(t, []int{http.StatusBadRequest, http.StatusUnauthorized}, resp.StatusCode,
+			"Should return 400 or 401 for invalid code")
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err, "Failed to read response body")
+
+		// Should contain error structure
+		assert.Contains(t, string(body), `"error"`, "Response should contain error object")
+	})
+
+	t.Log("Auth callback error response tests passed successfully")
 }

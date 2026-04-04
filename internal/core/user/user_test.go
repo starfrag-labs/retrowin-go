@@ -37,7 +37,7 @@ func TestUserService_Create(t *testing.T) {
 	t.Run("creates user with auto-assigned UID", func(t *testing.T) {
 		userRepo := userMocks.NewSystemUserRepositoryMock(t)
 		groupRepo := userMocks.NewSystemGroupRepositoryMock(t)
-		svc := user.NewService(userRepo, groupRepo, nil)
+		svc := user.NewService(userRepo, groupRepo)
 
 		cmd := &user.CreateCommand{
 			UserID:   "user-123",
@@ -47,20 +47,20 @@ func TestUserService_Create(t *testing.T) {
 		}
 
 		// Mock no existing user
-		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything).Return(nil, nil)
 		// Mock no existing username
-		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything).Return(nil, nil)
 		// Mock get next UID
-		userRepo.EXPECT().GetNextUID(mock.Anything, mock.Anything, "system-456").Return(1000, nil)
+		userRepo.EXPECT().GetNextUID(mock.Anything, "system-456").Return(1000, nil)
 		// Mock group creation
-		groupRepo.EXPECT().FindOne(mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
-		groupRepo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).Return(
+		groupRepo.EXPECT().FindOne(mock.Anything, mock.Anything).Return(nil, nil)
+		groupRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(
 			user.NewSystemGroup(1, "system-456", "testuser", 1000),
 			nil,
 		)
 		// Mock user creation
 		expectedUser := user.NewSystemUser(1, "user-123", "system-456", "testuser", 1000, 1000)
-		userRepo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).Return(expectedUser, nil)
+		userRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(expectedUser, nil)
 
 		result, err := svc.Create(ctx, cmd)
 
@@ -72,7 +72,7 @@ func TestUserService_Create(t *testing.T) {
 	t.Run("creates user with explicit UID", func(t *testing.T) {
 		userRepo := userMocks.NewSystemUserRepositoryMock(t)
 		groupRepo := userMocks.NewSystemGroupRepositoryMock(t)
-		svc := user.NewService(userRepo, groupRepo, nil)
+		svc := user.NewService(userRepo, groupRepo)
 
 		cmd := &user.CreateCommand{
 			UserID:   "user-123",
@@ -82,18 +82,18 @@ func TestUserService_Create(t *testing.T) {
 		}
 
 		// Mock no existing user
-		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything).Return(nil, nil)
 		// Mock no existing username
-		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything).Return(nil, nil)
 		// Mock group creation
-		groupRepo.EXPECT().FindOne(mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
-		groupRepo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).Return(
+		groupRepo.EXPECT().FindOne(mock.Anything, mock.Anything).Return(nil, nil)
+		groupRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(
 			user.NewSystemGroup(1, "system-456", "testuser", 2000),
 			nil,
 		)
 		// Mock user creation
 		expectedUser := user.NewSystemUser(1, "user-123", "system-456", "testuser", 2000, 2000)
-		userRepo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).Return(expectedUser, nil)
+		userRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(expectedUser, nil)
 
 		result, err := svc.Create(ctx, cmd)
 
@@ -109,11 +109,11 @@ func TestUserService_ResolveUID(t *testing.T) {
 	t.Run("resolves UID from context", func(t *testing.T) {
 		userRepo := userMocks.NewSystemUserRepositoryMock(t)
 		groupRepo := userMocks.NewSystemGroupRepositoryMock(t)
-		svc := user.NewService(userRepo, groupRepo, nil)
+		svc := user.NewService(userRepo, groupRepo)
 
 		// Mock user lookup
 		expectedUser := user.NewSystemUser(1, "user-123", "system-456", "testuser", 1000, 1000)
-		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything, mock.Anything).Return(expectedUser, nil)
+		userRepo.EXPECT().FindOne(mock.Anything, mock.Anything).Return(expectedUser, nil)
 
 		// Create context with user ID using the proper context key
 		ctxWithUser := utils.ContextWithUserID(ctx, "user-123")
@@ -130,7 +130,7 @@ func TestGroupService_Create(t *testing.T) {
 
 	t.Run("creates group successfully", func(t *testing.T) {
 		groupRepo := userMocks.NewSystemGroupRepositoryMock(t)
-		svc := user.NewGroupService(groupRepo, nil)
+		svc := user.NewGroupService(groupRepo)
 
 		cmd := &user.GroupCreateCommand{
 			SystemID: "system-456",
@@ -139,7 +139,7 @@ func TestGroupService_Create(t *testing.T) {
 		}
 
 		expectedGroup := user.NewSystemGroup(1, "system-456", "developers", 1000)
-		groupRepo.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything).Return(expectedGroup, nil)
+		groupRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(expectedGroup, nil)
 
 		result, err := svc.Create(ctx, cmd)
 

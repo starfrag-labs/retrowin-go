@@ -166,6 +166,9 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Object, erro
 		provider = ProviderS3
 	}
 
+	// Generate object ID
+	objectID := uuid.New().String()
+
 	// Stream upload to storage
 	if err := s.storage.PutObject(ctx, cmd.Bucket, cmd.StorageKey, cmd.Reader, cmd.Size); err != nil {
 		return nil, errors.WrapInternal(err, "failed to upload to storage")
@@ -173,6 +176,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Object, erro
 
 	// Create object record in DB
 	params := &CreateParams{
+		ID:         objectID,
 		Provider:   provider,
 		Bucket:     cmd.Bucket,
 		SystemID:   cmd.SystemID,
@@ -203,13 +207,14 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 
 	// Create pending object in DB
 	params := &CreateParams{
+		ID:         objectID,
 		Provider:   ProviderS3,
 		Bucket:     bucket,
 		SystemID:   cmd.SystemID,
 		StorageKey: storageKey,
 		Status:     StatusPending,
 	}
-	if _, err := s.repo.CreateWithID(ctx, s.client, objectID, params); err != nil {
+	if _, err := s.repo.Create(ctx, s.client, params); err != nil {
 		return nil, errors.WrapInternal(err, "failed to create pending object")
 	}
 

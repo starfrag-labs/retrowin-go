@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
@@ -64,16 +64,16 @@ func NewHandler(
 }
 
 // Ensure Handler implements the ogen Handler interface.
-var _ apiv1.Handler = (*Handler)(nil)
+var _ api.Handler = (*Handler)(nil)
 
 // Helper functions
 
-func toTimestamp(t time.Time) apiv1.Timestamp {
-	return apiv1.Timestamp(t)
+func toTimestamp(t time.Time) api.Timestamp {
+	return api.Timestamp(t)
 }
 
-func toOptTimestamp(t time.Time) apiv1.OptTimestamp {
-	return apiv1.NewOptTimestamp(toTimestamp(t))
+func toOptTimestamp(t time.Time) api.OptTimestamp {
+	return api.NewOptTimestamp(toTimestamp(t))
 }
 
 // domainError converts domain errors to HTTP errors.

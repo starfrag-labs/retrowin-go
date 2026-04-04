@@ -12,18 +12,20 @@ import (
 )
 
 // EntSystemGroupRepository implements user.SystemGroupRepository using Ent.
-type EntSystemGroupRepository struct{}
-
-// NewSystemGroupRepository creates a new EntSystemGroupRepository.
-func NewSystemGroupRepository() user.SystemGroupRepository {
-	return &EntSystemGroupRepository{}
+type EntSystemGroupRepository struct {
+	client *ent.Client
 }
 
-func (r *EntSystemGroupRepository) Create(ctx context.Context, client *ent.Client, params *user.GroupCreateParams) (*user.SystemGroup, error) {
-	entGroup, err := client.SystemGroup.Create().
-		SetSystemID(params.SystemID).
-		SetName(params.Name).
-		SetGid(params.GID).
+// NewSystemGroupRepository creates a new EntSystemGroupRepository.
+func NewSystemGroupRepository(client *ent.Client) user.SystemGroupRepository {
+	return &EntSystemGroupRepository{client: client}
+}
+
+func (r *EntSystemGroupRepository) Create(ctx context.Context, group *user.SystemGroup) (*user.SystemGroup, error) {
+	entGroup, err := r.client.SystemGroup.Create().
+		SetSystemID(group.SystemID()).
+		SetName(group.Name()).
+		SetGid(group.GID()).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system group: %w", err)
@@ -31,8 +33,8 @@ func (r *EntSystemGroupRepository) Create(ctx context.Context, client *ent.Clien
 	return systemGroupFromEnt(entGroup), nil
 }
 
-func (r *EntSystemGroupRepository) GetByID(ctx context.Context, client *ent.Client, id int) (*user.SystemGroup, error) {
-	entGroup, err := client.SystemGroup.Get(ctx, id)
+func (r *EntSystemGroupRepository) GetByID(ctx context.Context, id int) (*user.SystemGroup, error) {
+	entGroup, err := r.client.SystemGroup.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, nil
@@ -42,12 +44,12 @@ func (r *EntSystemGroupRepository) GetByID(ctx context.Context, client *ent.Clie
 	return systemGroupFromEnt(entGroup), nil
 }
 
-func (r *EntSystemGroupRepository) Delete(ctx context.Context, client *ent.Client, id int) error {
-	return client.SystemGroup.DeleteOneID(id).Exec(ctx)
+func (r *EntSystemGroupRepository) Delete(ctx context.Context, id int) error {
+	return r.client.SystemGroup.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntSystemGroupRepository) Find(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error) {
-	query := client.SystemGroup.Query()
+func (r *EntSystemGroupRepository) Find(ctx context.Context, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error) {
+	query := r.client.SystemGroup.Query()
 	query = applySystemGroupFilter(query, filter)
 
 	entGroups, err := query.All(ctx)
@@ -57,8 +59,8 @@ func (r *EntSystemGroupRepository) Find(ctx context.Context, client *ent.Client,
 	return systemGroupFromEntSlice(entGroups), nil
 }
 
-func (r *EntSystemGroupRepository) FindOne(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter) (*user.SystemGroup, error) {
-	query := client.SystemGroup.Query()
+func (r *EntSystemGroupRepository) FindOne(ctx context.Context, filter *user.GroupQueryFilter) (*user.SystemGroup, error) {
+	query := r.client.SystemGroup.Query()
 	query = applySystemGroupFilter(query, filter)
 
 	entGroup, err := query.Only(ctx)
@@ -71,8 +73,8 @@ func (r *EntSystemGroupRepository) FindOne(ctx context.Context, client *ent.Clie
 	return systemGroupFromEnt(entGroup), nil
 }
 
-func (r *EntSystemGroupRepository) AddUserToGroup(ctx context.Context, client *ent.Client, userSystemID, groupID int) error {
-	_, err := client.UserGroup.Create().
+func (r *EntSystemGroupRepository) AddUserToGroup(ctx context.Context, userSystemID, groupID int) error {
+	_, err := r.client.UserGroup.Create().
 		SetUserSystemID(userSystemID).
 		SetSystemGroupID(groupID).
 		Save(ctx)
@@ -82,8 +84,8 @@ func (r *EntSystemGroupRepository) AddUserToGroup(ctx context.Context, client *e
 	return nil
 }
 
-func (r *EntSystemGroupRepository) RemoveUserFromGroup(ctx context.Context, client *ent.Client, userSystemID, groupID int) error {
-	_, err := client.UserGroup.Delete().
+func (r *EntSystemGroupRepository) RemoveUserFromGroup(ctx context.Context, userSystemID, groupID int) error {
+	_, err := r.client.UserGroup.Delete().
 		Where(
 			entusergroup.UserSystemIDEQ(userSystemID),
 			entusergroup.SystemGroupIDEQ(groupID),
@@ -95,8 +97,8 @@ func (r *EntSystemGroupRepository) RemoveUserFromGroup(ctx context.Context, clie
 	return nil
 }
 
-func (r *EntSystemGroupRepository) FindGIDsByUserSystemID(ctx context.Context, client *ent.Client, userSystemID int) ([]int, error) {
-	groups, err := client.SystemGroup.Query().
+func (r *EntSystemGroupRepository) FindGIDsByUserSystemID(ctx context.Context, userSystemID int) ([]int, error) {
+	groups, err := r.client.SystemGroup.Query().
 		Where(
 			entsystemgroup.HasUsersWith(
 				entusersystem.IDEQ(userSystemID),
@@ -116,9 +118,9 @@ func (r *EntSystemGroupRepository) FindGIDsByUserSystemID(ctx context.Context, c
 
 // GetNextGID returns the next available GID for the system.
 // It finds the max GID in the system and returns max+1, or MinGID if no groups exist.
-func (r *EntSystemGroupRepository) GetNextGID(ctx context.Context, client *ent.Client, systemID string) (int, error) {
+func (r *EntSystemGroupRepository) GetNextGID(ctx context.Context, systemID string) (int, error) {
 	// Find max GID in the system
-	maxGID, err := client.SystemGroup.Query().
+	maxGID, err := r.client.SystemGroup.Query().
 		Where(entsystemgroup.SystemIDEQ(systemID)).
 		Aggregate(
 			ent.Max(entsystemgroup.FieldGid),
@@ -138,7 +140,7 @@ func (r *EntSystemGroupRepository) GetNextGID(ctx context.Context, client *ent.C
 
 	// Ensure we start from MinUID
 	if nextGID < user.MinUID {
-		return user.MinUID, nil
+		nextGID = user.MinUID
 	}
 
 	return nextGID, nil

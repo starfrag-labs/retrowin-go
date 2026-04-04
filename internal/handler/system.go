@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
@@ -13,7 +13,7 @@ import (
 )
 
 // CreateSystem implements POST /systems.
-func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemRequest) (apiv1.CreateSystemRes, error) {
+func (h *Handler) CreateSystem(ctx context.Context, req *api.CreateSystemRequest) (api.CreateSystemRes, error) {
 	userID, ok := utils.GetUserID(ctx)
 	if !ok {
 		return nil, h.domainError(errors.Unauthorized("user not authenticated"))
@@ -33,13 +33,13 @@ func (h *Handler) CreateSystem(ctx context.Context, req *apiv1.CreateSystemReque
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.SystemResponse{
+	return &api.SystemResponse{
 		System: *h.toSystem(result.System),
 	}, nil
 }
 
 // ListSystems implements GET /systems.
-func (h *Handler) ListSystems(ctx context.Context) (apiv1.ListSystemsRes, error) {
+func (h *Handler) ListSystems(ctx context.Context) (api.ListSystemsRes, error) {
 	userID, ok := utils.GetUserID(ctx)
 	if !ok {
 		return nil, h.domainError(errors.Unauthorized("user not authenticated"))
@@ -58,8 +58,8 @@ func (h *Handler) ListSystems(ctx context.Context) (apiv1.ListSystemsRes, error)
 	}
 
 	// Load each system
-	resp := &apiv1.SystemListResponse{
-		Systems: make([]apiv1.System, 0, len(systemIDs)),
+	resp := &api.SystemListResponse{
+		Systems: make([]api.System, 0, len(systemIDs)),
 	}
 	for _, sysID := range systemIDs {
 		sys, err := h.systemSvc.GetByID(ctx, sysID)
@@ -73,22 +73,22 @@ func (h *Handler) ListSystems(ctx context.Context) (apiv1.ListSystemsRes, error)
 }
 
 // GetSystem implements GET /systems/{systemId}.
-func (h *Handler) GetSystem(ctx context.Context, params apiv1.GetSystemParams) (apiv1.GetSystemRes, error) {
+func (h *Handler) GetSystem(ctx context.Context, params api.GetSystemParams) (api.GetSystemRes, error) {
 	sys, err := h.systemSvc.GetByID(ctx, params.SystemId)
 	if err != nil {
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.SystemResponse{
+	return &api.SystemResponse{
 		System: *h.toSystem(sys),
 	}, nil
 }
 
-func (h *Handler) toSystem(sys *system.System) *apiv1.System {
-	resp := &apiv1.System{
+func (h *Handler) toSystem(sys *system.System) *api.System {
+	resp := &api.System{
 		ID:        sys.ID(),
 		Name:      sys.Name(),
-		Status:    apiv1.SystemStatus(sys.Status()),
+		Status:    api.SystemStatus(sys.Status()),
 		CreatedAt: toOptTimestamp(sys.CreatedAt()),
 		UpdatedAt: toOptTimestamp(sys.UpdatedAt()),
 	}

@@ -25,18 +25,20 @@ func NewCmd() *cobra.Command {
 func newServeCmd() *cobra.Command {
 	var cfgFile string
 	var port int
+	var openAPIPath string
 
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start the API server",
 		Run: func(cmd *cobra.Command, args []string) {
-			app := NewFXApp(cfgFile, port)
+			app := NewFXApp(cfgFile, port, openAPIPath)
 			app.Run()
 		},
 	}
 
 	cmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file path")
 	cmd.Flags().IntVarP(&port, "port", "p", 8080, "server port")
+	cmd.Flags().StringVar(&openAPIPath, "openapi", "", "OpenAPI spec file path")
 
 	return cmd
 }
@@ -59,6 +61,7 @@ func newMigrateApplyCmd() *cobra.Command {
 	var mode string
 	var baseline string
 	var clean bool
+	var allowDirty bool
 
 	cmd := &cobra.Command{
 		Use:   "apply",
@@ -78,9 +81,10 @@ func newMigrateApplyCmd() *cobra.Command {
 
 			// CLI flags override config
 			opts := MigrateOptions{
-				Mode:     mode,
-				Baseline: baseline,
-				Clean:    clean,
+				Mode:       mode,
+				Baseline:   baseline,
+				Clean:      clean,
+				AllowDirty: allowDirty,
 			}
 			if opts.Mode == "" {
 				opts.Mode = "auto"
@@ -94,6 +98,7 @@ func newMigrateApplyCmd() *cobra.Command {
 	cmd.Flags().StringVar(&mode, "mode", "", "Migration mode: auto or versioned (overrides config)")
 	cmd.Flags().StringVar(&baseline, "baseline", "", "Baseline version for existing databases (versioned mode)")
 	cmd.Flags().BoolVar(&clean, "clean", false, "Drop all tables before applying migrations")
+	cmd.Flags().BoolVar(&allowDirty, "allow-dirty", false, "Allow applying versioned migrations to a non-clean database")
 
 	return cmd
 }

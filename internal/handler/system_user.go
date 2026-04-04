@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 )
 
 // CreateSystemUser implements POST /systems/{systemId}/users.
-func (h *Handler) CreateSystemUser(ctx context.Context, req *apiv1.CreateSystemUserRequest, params apiv1.CreateSystemUserParams) (apiv1.CreateSystemUserRes, error) {
+func (h *Handler) CreateSystemUser(ctx context.Context, req *api.CreateSystemUserRequest, params api.CreateSystemUserParams) (api.CreateSystemUserRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -29,13 +29,13 @@ func (h *Handler) CreateSystemUser(ctx context.Context, req *apiv1.CreateSystemU
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.SystemUserResponse{
+	return &api.SystemUserResponse{
 		User: *h.toSystemUser(sysUser),
 	}, nil
 }
 
 // ListSystemUsers implements GET /systems/{systemId}/users.
-func (h *Handler) ListSystemUsers(ctx context.Context, params apiv1.ListSystemUsersParams) (apiv1.ListSystemUsersRes, error) {
+func (h *Handler) ListSystemUsers(ctx context.Context, params api.ListSystemUsersParams) (api.ListSystemUsersRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -45,8 +45,8 @@ func (h *Handler) ListSystemUsers(ctx context.Context, params apiv1.ListSystemUs
 		return nil, h.domainError(err)
 	}
 
-	resp := &apiv1.SystemUserListResponse{
-		Users: make([]apiv1.SystemUser, len(users)),
+	resp := &api.SystemUserListResponse{
+		Users: make([]api.SystemUser, len(users)),
 	}
 	for i, u := range users {
 		resp.Users[i] = *h.toSystemUser(u)
@@ -56,7 +56,7 @@ func (h *Handler) ListSystemUsers(ctx context.Context, params apiv1.ListSystemUs
 }
 
 // GetSystemUser implements GET /systems/{systemId}/users/{uid}.
-func (h *Handler) GetSystemUser(ctx context.Context, params apiv1.GetSystemUserParams) (apiv1.GetSystemUserRes, error) {
+func (h *Handler) GetSystemUser(ctx context.Context, params api.GetSystemUserParams) (api.GetSystemUserRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -67,16 +67,21 @@ func (h *Handler) GetSystemUser(ctx context.Context, params apiv1.GetSystemUserP
 		return nil, h.domainError(err)
 	}
 	if user == nil {
-		return &apiv1.GetSystemUserNotFound{}, nil
+		return &api.GetSystemUserNotFound{
+			Error: api.ErrorError{
+				Type:    "not_found",
+				Message: "system user not found",
+			},
+		}, nil
 	}
 
-	return &apiv1.SystemUserResponse{
+	return &api.SystemUserResponse{
 		User: *h.toSystemUser(user),
 	}, nil
 }
 
 // DeleteSystemUser implements DELETE /systems/{systemId}/users/{uid}.
-func (h *Handler) DeleteSystemUser(ctx context.Context, params apiv1.DeleteSystemUserParams) (apiv1.DeleteSystemUserRes, error) {
+func (h *Handler) DeleteSystemUser(ctx context.Context, params api.DeleteSystemUserParams) (api.DeleteSystemUserRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
@@ -88,18 +93,23 @@ func (h *Handler) DeleteSystemUser(ctx context.Context, params apiv1.DeleteSyste
 	}
 
 	if targetUser == nil {
-		return &apiv1.DeleteSystemUserNotFound{}, nil
+		return &api.DeleteSystemUserNotFound{
+			Error: api.ErrorError{
+				Type:    "not_found",
+				Message: "system user not found",
+			},
+		}, nil
 	}
 
 	if err := h.sysUserSvc.Delete(ctx, targetUser.ID()); err != nil {
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.DeleteSystemUserNoContent{}, nil
+	return &api.DeleteSystemUserNoContent{}, nil
 }
 
-func (h *Handler) toSystemUser(u *coreuser.SystemUser) *apiv1.SystemUser {
-	return &apiv1.SystemUser{
+func (h *Handler) toSystemUser(u *coreuser.SystemUser) *api.SystemUser {
+	return &api.SystemUser{
 		ID:       int64(u.ID()),
 		UserId:   u.UserID(),
 		SystemId: u.SystemID(),

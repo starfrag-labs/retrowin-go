@@ -11,20 +11,22 @@ import (
 )
 
 // EntSystemUserRepository implements user.SystemUserRepository using Ent.
-type EntSystemUserRepository struct{}
-
-// NewSystemUserRepository creates a new EntSystemUserRepository.
-func NewSystemUserRepository() user.SystemUserRepository {
-	return &EntSystemUserRepository{}
+type EntSystemUserRepository struct {
+	client *ent.Client
 }
 
-func (r *EntSystemUserRepository) Create(ctx context.Context, client *ent.Client, params *user.CreateParams) (*user.SystemUser, error) {
-	entUserSystem, err := client.UserSystem.Create().
-		SetUserID(params.UserID).
-		SetSystemID(params.SystemID).
-		SetUsername(params.Username).
-		SetUID(params.UID).
-		SetGid(params.GID).
+// NewSystemUserRepository creates a new EntSystemUserRepository.
+func NewSystemUserRepository(client *ent.Client) user.SystemUserRepository {
+	return &EntSystemUserRepository{client: client}
+}
+
+func (r *EntSystemUserRepository) Create(ctx context.Context, systemUser *user.SystemUser) (*user.SystemUser, error) {
+	entUserSystem, err := r.client.UserSystem.Create().
+		SetUserID(systemUser.UserID()).
+		SetSystemID(systemUser.SystemID()).
+		SetUsername(systemUser.Username()).
+		SetUID(systemUser.UID()).
+		SetGid(systemUser.GID()).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system user: %w", err)
@@ -32,8 +34,8 @@ func (r *EntSystemUserRepository) Create(ctx context.Context, client *ent.Client
 	return systemUserFromEnt(entUserSystem), nil
 }
 
-func (r *EntSystemUserRepository) GetByID(ctx context.Context, client *ent.Client, id int) (*user.SystemUser, error) {
-	entUserSystem, err := client.UserSystem.Get(ctx, id)
+func (r *EntSystemUserRepository) GetByID(ctx context.Context, id int) (*user.SystemUser, error) {
+	entUserSystem, err := r.client.UserSystem.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, nil
@@ -43,12 +45,12 @@ func (r *EntSystemUserRepository) GetByID(ctx context.Context, client *ent.Clien
 	return systemUserFromEnt(entUserSystem), nil
 }
 
-func (r *EntSystemUserRepository) Delete(ctx context.Context, client *ent.Client, id int) error {
-	return client.UserSystem.DeleteOneID(id).Exec(ctx)
+func (r *EntSystemUserRepository) Delete(ctx context.Context, id int) error {
+	return r.client.UserSystem.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntSystemUserRepository) Find(ctx context.Context, client *ent.Client, filter *user.QueryFilter) ([]*user.SystemUser, error) {
-	query := client.UserSystem.Query()
+func (r *EntSystemUserRepository) Find(ctx context.Context, filter *user.QueryFilter) ([]*user.SystemUser, error) {
+	query := r.client.UserSystem.Query()
 	query = applySystemUserFilter(query, filter)
 
 	entUserSystems, err := query.All(ctx)
@@ -58,8 +60,8 @@ func (r *EntSystemUserRepository) Find(ctx context.Context, client *ent.Client, 
 	return systemUserFromEntSlice(entUserSystems), nil
 }
 
-func (r *EntSystemUserRepository) FindOne(ctx context.Context, client *ent.Client, filter *user.QueryFilter) (*user.SystemUser, error) {
-	query := client.UserSystem.Query()
+func (r *EntSystemUserRepository) FindOne(ctx context.Context, filter *user.QueryFilter) (*user.SystemUser, error) {
+	query := r.client.UserSystem.Query()
 	query = applySystemUserFilter(query, filter)
 
 	entUserSystem, err := query.Only(ctx)
@@ -75,9 +77,9 @@ func (r *EntSystemUserRepository) FindOne(ctx context.Context, client *ent.Clien
 // GetNextUID returns the next available UID for the system.
 // It finds the max UID/GID in the system and returns max+1, or MinUID if no users exist.
 // This ensures the UID doesn't conflict with existing GIDs since user private groups use GID=UID.
-func (r *EntSystemUserRepository) GetNextUID(ctx context.Context, client *ent.Client, systemID string) (int, error) {
+func (r *EntSystemUserRepository) GetNextUID(ctx context.Context, systemID string) (int, error) {
 	// Find max UID in the system
-	maxUID, err := client.UserSystem.Query().
+	maxUID, err := r.client.UserSystem.Query().
 		Where(entusersystem.SystemIDEQ(systemID)).
 		Aggregate(
 			ent.Max(entusersystem.FieldUID),
@@ -88,7 +90,7 @@ func (r *EntSystemUserRepository) GetNextUID(ctx context.Context, client *ent.Cl
 	}
 
 	// Also check max GID to avoid conflicts with private groups
-	maxGID, err := client.SystemGroup.Query().
+	maxGID, err := r.client.SystemGroup.Query().
 		Where(entsystemgroup.SystemIDEQ(systemID)).
 		Aggregate(
 			ent.Max(entsystemgroup.FieldGid),

@@ -10,19 +10,23 @@ import (
 )
 
 // EntRepository implements domain.UserRepository using Ent.
-type EntRepository struct{}
-
-// NewRepository creates a new EntRepository.
-func NewRepository() domain.UserRepository {
-	return &EntRepository{}
+type EntRepository struct {
+	client *ent.Client
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.User, error) {
-	entUser, err := client.User.
+// NewRepository creates a new EntRepository.
+func NewRepository(client *ent.Client) domain.UserRepository {
+	return &EntRepository{client: client}
+}
+
+func (r *EntRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+	entUser, err := r.client.User.
 		Create().
-		SetUsername(params.Username).
-		SetProvider(params.Provider).
-		SetProviderID(params.ProviderID).
+		SetID(user.ID()).
+		SetUsername(user.Username()).
+		SetProvider(user.Provider()).
+		SetProviderID(user.ProviderID()).
+		SetJoinDate(user.JoinDate()).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -30,8 +34,8 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return fromEnt(entUser), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*domain.User, error) {
-	entUser, err := client.User.
+func (r *EntRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
+	entUser, err := r.client.User.
 		Query().
 		Where(entuser.ID(id)).
 		Only(ctx)
@@ -44,8 +48,8 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id stri
 	return fromEnt(entUser), nil
 }
 
-func (r *EntRepository) GetByUsername(ctx context.Context, client *ent.Client, username string) (*domain.User, error) {
-	entUser, err := client.User.
+func (r *EntRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
+	entUser, err := r.client.User.
 		Query().
 		Where(entuser.Username(username)).
 		Only(ctx)
@@ -58,8 +62,8 @@ func (r *EntRepository) GetByUsername(ctx context.Context, client *ent.Client, u
 	return fromEnt(entUser), nil
 }
 
-func (r *EntRepository) GetByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (*domain.User, error) {
-	entUser, err := client.User.
+func (r *EntRepository) GetByProvider(ctx context.Context, provider, providerID string) (*domain.User, error) {
+	entUser, err := r.client.User.
 		Query().
 		Where(
 			entuser.Provider(provider),
@@ -75,12 +79,12 @@ func (r *EntRepository) GetByProvider(ctx context.Context, client *ent.Client, p
 	return fromEnt(entUser), nil
 }
 
-func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id string) error {
-	return client.User.DeleteOneID(id).Exec(ctx)
+func (r *EntRepository) Delete(ctx context.Context, id string) error {
+	return r.client.User.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) ExistsByProvider(ctx context.Context, client *ent.Client, provider, providerID string) (bool, error) {
-	return client.User.
+func (r *EntRepository) ExistsByProvider(ctx context.Context, provider, providerID string) (bool, error) {
+	return r.client.User.
 		Query().
 		Where(
 			entuser.Provider(provider),

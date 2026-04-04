@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
@@ -12,7 +12,7 @@ import (
 )
 
 // InitiateLogin implements GET /auth/login.
-func (h *Handler) InitiateLogin(ctx context.Context) (apiv1.InitiateLoginRes, error) {
+func (h *Handler) InitiateLogin(ctx context.Context) (api.InitiateLoginRes, error) {
 	resp, err := h.authSvc.InitiateLogin(ctx)
 	if err != nil {
 		return nil, err
@@ -23,31 +23,59 @@ func (h *Handler) InitiateLogin(ctx context.Context) (apiv1.InitiateLoginRes, er
 		return nil, err
 	}
 
-	return &apiv1.LoginResponse{
+	return &api.LoginResponse{
 		AuthorizationUrl: *authURL,
 		State:            resp.State,
 	}, nil
 }
 
-// HandleCallback implements POST /auth/callback.
-func (h *Handler) HandleCallback(ctx context.Context, req *apiv1.CallbackRequest) (apiv1.HandleCallbackRes, error) {
+// HandleCallback implements GET /auth/callback.
+func (h *Handler) HandleCallback(ctx context.Context, params api.HandleCallbackParams) (api.HandleCallbackRes, error) {
+	// Validate required parameters
+	if params.Code == "" {
+		return &api.HandleCallbackBadRequest{
+			Error: api.ErrorError{
+				Type:    "invalid_request",
+				Message: "code parameter is required",
+			},
+		}, nil
+	}
+	if params.State == "" {
+		return &api.HandleCallbackBadRequest{
+			Error: api.ErrorError{
+				Type:    "invalid_request",
+				Message: "state parameter is required",
+			},
+		}, nil
+	}
+
 	callbackReq := &auth.CallbackRequest{
-		Code:  req.Code,
-		State: req.State,
+		Code:  params.Code,
+		State: params.State,
 	}
 
 	resp, err := h.authSvc.HandleCallback(ctx, callbackReq)
 	if err != nil {
 		if errors.IsUnauthorized(err) || errors.IsNotFound(err) {
-			return &apiv1.HandleCallbackUnauthorized{}, nil
+			return &api.HandleCallbackUnauthorized{
+				Error: api.ErrorError{
+					Type:    "authentication_error",
+					Message: err.Error(),
+				},
+			}, nil
 		}
-		return &apiv1.HandleCallbackBadRequest{}, nil
+		return &api.HandleCallbackBadRequest{
+			Error: api.ErrorError{
+				Type:    "invalid_request",
+				Message: err.Error(),
+			},
+		}, nil
 	}
 
-	return &apiv1.CallbackResponse{
+	return &api.CallbackResponse{
 		SessionId: resp.SessionID,
 		UserId:    resp.UserID,
-		ExpiresAt: apiv1.OptTimestamp{Value: apiv1.Timestamp(resp.ExpiresAt), Set: true},
+		ExpiresAt: api.OptTimestamp{Value: api.Timestamp(resp.ExpiresAt), Set: true},
 	}, nil
 }
 

@@ -22,19 +22,36 @@
               $ref: "../schemas/common.yaml#/Error"
 
 /auth/callback:
-  post:
+  get:
     operationId: handleCallback
     summary: Handle OAuth callback
     description: Handle OAuth callback from Keycloak
     tags:
       - Auth
     security: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: "../schemas/auth.yaml#/CallbackRequest"
+    parameters:
+      - name: code
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Authorization code from Keycloak
+      - name: state
+        in: query
+        required: true
+        schema:
+          type: string
+        description: OAuth state parameter for CSRF protection
+      - name: session_state
+        in: query
+        schema:
+          type: string
+        description: Session state from Keycloak
+      - name: iss
+        in: query
+        schema:
+          type: string
+        description: Issuer URL
     responses:
       '200':
         description: Authentication successful

@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"path"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
@@ -14,7 +14,7 @@ import (
 )
 
 // InitiateUpload implements POST /fs/{systemId}/upload/initiate.
-func (h *Handler) InitiateUpload(ctx context.Context, req *apiv1.InitiateUploadRequest, params apiv1.InitiateUploadParams) (apiv1.InitiateUploadRes, error) {
+func (h *Handler) InitiateUpload(ctx context.Context, req *api.InitiateUploadRequest, params api.InitiateUploadParams) (api.InitiateUploadRes, error) {
 	if req.Path == "" || req.Path[0] != '/' {
 		return nil, errors.BadRequest("path must be absolute (start with /)")
 	}
@@ -38,8 +38,8 @@ func (h *Handler) InitiateUpload(ctx context.Context, req *apiv1.InitiateUploadR
 
 	uploadURL, _ := url.Parse(session.UploadURL)
 
-	return &apiv1.UploadSessionResponse{
-		UploadSession: apiv1.UploadSession{
+	return &api.UploadSessionResponse{
+		UploadSession: api.UploadSession{
 			ObjectId:  session.ObjectID,
 			UploadUrl: *uploadURL,
 			ExpiresAt: toTimestamp(session.ExpiresAt),
@@ -48,7 +48,7 @@ func (h *Handler) InitiateUpload(ctx context.Context, req *apiv1.InitiateUploadR
 }
 
 // CompleteUpload implements POST /fs/{systemId}/upload/complete.
-func (h *Handler) CompleteUpload(ctx context.Context, req *apiv1.CompleteUploadRequest, params apiv1.CompleteUploadParams) (apiv1.CompleteUploadRes, error) {
+func (h *Handler) CompleteUpload(ctx context.Context, req *api.CompleteUploadRequest, params api.CompleteUploadParams) (api.CompleteUploadRes, error) {
 	// Validate and parse path
 	if req.Path == "" || req.Path[0] != '/' {
 		return nil, h.domainError(errors.BadRequest("path must be absolute (start with /)"))
@@ -93,13 +93,13 @@ func (h *Handler) CompleteUpload(ctx context.Context, req *apiv1.CompleteUploadR
 		_ = h.fsSvc.Delete(ctx, prevInodeID)
 	}
 
-	return &apiv1.InodeResponse{
+	return &api.InodeResponse{
 		Inode: *h.toInode(result.Inode),
 	}, nil
 }
 
 // GetDownloadUrl implements GET /fs/{systemId}/download.
-func (h *Handler) GetDownloadUrl(ctx context.Context, params apiv1.GetDownloadUrlParams) (apiv1.GetDownloadUrlRes, error) {
+func (h *Handler) GetDownloadUrl(ctx context.Context, params api.GetDownloadUrlParams) (api.GetDownloadUrlRes, error) {
 	// First resolve the path to get inode ID
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {
@@ -113,8 +113,8 @@ func (h *Handler) GetDownloadUrl(ctx context.Context, params apiv1.GetDownloadUr
 
 	parsedURL, _ := url.Parse(downloadURL)
 
-	return &apiv1.DownloadURLResponse{
-		DownloadUrl: apiv1.DownloadURL{
+	return &api.DownloadURLResponse{
+		DownloadUrl: api.DownloadURL{
 			DownloadUrl: *parsedURL,
 			ExpiresAt:   toTimestamp(expiresAt),
 		},

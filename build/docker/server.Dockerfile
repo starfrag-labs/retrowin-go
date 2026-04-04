@@ -10,7 +10,12 @@ ARG GIT_COMMIT=unknown
 FROM golang:1.26.1-alpine3.23 AS builder
 
 # Install build dependencies (nodejs for openapi bundling)
-RUN apk add --no-cache git gcc musl-dev nodejs npm
+RUN apk add --no-cache \
+      git=2.52.0-r0 \
+      gcc=15.2.0-r2 \
+      musl-dev=1.2.5-r21 \
+      nodejs=24.14.1-r0 \
+      npm=11.11.0-r0
 
 WORKDIR /build
 
@@ -54,7 +59,16 @@ LABEL org.opencontainers.image.title="Retrowin Server" \
       org.opencontainers.image.source="https://github.com/starfrag-lab/retrowin-go"
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache \
+      ca-certificates=20251003-r0 \
+      tzdata=2026a-r0 \
+      curl=8.17.0-r1
+
+# Install atlas CLI for versioned migrations (v1.1.0)
+ARG ATLAS_VERSION=v1.1.0
+RUN curl -sSfLo /usr/local/bin/atlas \
+      "https://release.ariga.io/atlas/atlas-linux-amd64-${ATLAS_VERSION}" && \
+    chmod +x /usr/local/bin/atlas
 
 # Create non-root user
 RUN adduser -D -u 1001 retrowin

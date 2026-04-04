@@ -7,7 +7,6 @@ package userMocks
 import (
 	"context"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/core/user"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -40,16 +39,16 @@ func (_m *SystemGroupRepositoryMock) EXPECT() *SystemGroupRepositoryMock_Expecte
 }
 
 // AddUserToGroup provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) AddUserToGroup(ctx context.Context, client *ent.Client, userSystemID int, groupID int) error {
-	ret := _mock.Called(ctx, client, userSystemID, groupID)
+func (_mock *SystemGroupRepositoryMock) AddUserToGroup(ctx context.Context, userSystemID int, groupID int) error {
+	ret := _mock.Called(ctx, userSystemID, groupID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddUserToGroup")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, int, int) error); ok {
-		r0 = returnFunc(ctx, client, userSystemID, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, int) error); ok {
+		r0 = returnFunc(ctx, userSystemID, groupID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -63,36 +62,30 @@ type SystemGroupRepositoryMock_AddUserToGroup_Call struct {
 
 // AddUserToGroup is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - userSystemID int
 //   - groupID int
-func (_e *SystemGroupRepositoryMock_Expecter) AddUserToGroup(ctx interface{}, client interface{}, userSystemID interface{}, groupID interface{}) *SystemGroupRepositoryMock_AddUserToGroup_Call {
-	return &SystemGroupRepositoryMock_AddUserToGroup_Call{Call: _e.mock.On("AddUserToGroup", ctx, client, userSystemID, groupID)}
+func (_e *SystemGroupRepositoryMock_Expecter) AddUserToGroup(ctx interface{}, userSystemID interface{}, groupID interface{}) *SystemGroupRepositoryMock_AddUserToGroup_Call {
+	return &SystemGroupRepositoryMock_AddUserToGroup_Call{Call: _e.mock.On("AddUserToGroup", ctx, userSystemID, groupID)}
 }
 
-func (_c *SystemGroupRepositoryMock_AddUserToGroup_Call) Run(run func(ctx context.Context, client *ent.Client, userSystemID int, groupID int)) *SystemGroupRepositoryMock_AddUserToGroup_Call {
+func (_c *SystemGroupRepositoryMock_AddUserToGroup_Call) Run(run func(ctx context.Context, userSystemID int, groupID int)) *SystemGroupRepositoryMock_AddUserToGroup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 int
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
+			arg1 = args[1].(int)
 		}
 		var arg2 int
 		if args[2] != nil {
 			arg2 = args[2].(int)
 		}
-		var arg3 int
-		if args[3] != nil {
-			arg3 = args[3].(int)
-		}
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3,
 		)
 	})
 	return _c
@@ -103,14 +96,14 @@ func (_c *SystemGroupRepositoryMock_AddUserToGroup_Call) Return(err error) *Syst
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_AddUserToGroup_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, userSystemID int, groupID int) error) *SystemGroupRepositoryMock_AddUserToGroup_Call {
+func (_c *SystemGroupRepositoryMock_AddUserToGroup_Call) RunAndReturn(run func(ctx context.Context, userSystemID int, groupID int) error) *SystemGroupRepositoryMock_AddUserToGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Create provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) Create(ctx context.Context, client *ent.Client, params *user.GroupCreateParams) (*user.SystemGroup, error) {
-	ret := _mock.Called(ctx, client, params)
+func (_mock *SystemGroupRepositoryMock) Create(ctx context.Context, group *user.SystemGroup) (*user.SystemGroup, error) {
+	ret := _mock.Called(ctx, group)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -118,18 +111,18 @@ func (_mock *SystemGroupRepositoryMock) Create(ctx context.Context, client *ent.
 
 	var r0 *user.SystemGroup
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *user.GroupCreateParams) (*user.SystemGroup, error)); ok {
-		return returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *user.SystemGroup) (*user.SystemGroup, error)); ok {
+		return returnFunc(ctx, group)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *user.GroupCreateParams) *user.SystemGroup); ok {
-		r0 = returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *user.SystemGroup) *user.SystemGroup); ok {
+		r0 = returnFunc(ctx, group)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*user.SystemGroup)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *user.GroupCreateParams) error); ok {
-		r1 = returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *user.SystemGroup) error); ok {
+		r1 = returnFunc(ctx, group)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -143,30 +136,24 @@ type SystemGroupRepositoryMock_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
-//   - params *user.GroupCreateParams
-func (_e *SystemGroupRepositoryMock_Expecter) Create(ctx interface{}, client interface{}, params interface{}) *SystemGroupRepositoryMock_Create_Call {
-	return &SystemGroupRepositoryMock_Create_Call{Call: _e.mock.On("Create", ctx, client, params)}
+//   - group *user.SystemGroup
+func (_e *SystemGroupRepositoryMock_Expecter) Create(ctx interface{}, group interface{}) *SystemGroupRepositoryMock_Create_Call {
+	return &SystemGroupRepositoryMock_Create_Call{Call: _e.mock.On("Create", ctx, group)}
 }
 
-func (_c *SystemGroupRepositoryMock_Create_Call) Run(run func(ctx context.Context, client *ent.Client, params *user.GroupCreateParams)) *SystemGroupRepositoryMock_Create_Call {
+func (_c *SystemGroupRepositoryMock_Create_Call) Run(run func(ctx context.Context, group *user.SystemGroup)) *SystemGroupRepositoryMock_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *user.SystemGroup
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *user.GroupCreateParams
-		if args[2] != nil {
-			arg2 = args[2].(*user.GroupCreateParams)
+			arg1 = args[1].(*user.SystemGroup)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -177,22 +164,22 @@ func (_c *SystemGroupRepositoryMock_Create_Call) Return(systemGroup *user.System
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_Create_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, params *user.GroupCreateParams) (*user.SystemGroup, error)) *SystemGroupRepositoryMock_Create_Call {
+func (_c *SystemGroupRepositoryMock_Create_Call) RunAndReturn(run func(ctx context.Context, group *user.SystemGroup) (*user.SystemGroup, error)) *SystemGroupRepositoryMock_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Delete provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) Delete(ctx context.Context, client *ent.Client, id int) error {
-	ret := _mock.Called(ctx, client, id)
+func (_mock *SystemGroupRepositoryMock) Delete(ctx context.Context, id int) error {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, int) error); ok {
-		r0 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) error); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -206,30 +193,24 @@ type SystemGroupRepositoryMock_Delete_Call struct {
 
 // Delete is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - id int
-func (_e *SystemGroupRepositoryMock_Expecter) Delete(ctx interface{}, client interface{}, id interface{}) *SystemGroupRepositoryMock_Delete_Call {
-	return &SystemGroupRepositoryMock_Delete_Call{Call: _e.mock.On("Delete", ctx, client, id)}
+func (_e *SystemGroupRepositoryMock_Expecter) Delete(ctx interface{}, id interface{}) *SystemGroupRepositoryMock_Delete_Call {
+	return &SystemGroupRepositoryMock_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
 }
 
-func (_c *SystemGroupRepositoryMock_Delete_Call) Run(run func(ctx context.Context, client *ent.Client, id int)) *SystemGroupRepositoryMock_Delete_Call {
+func (_c *SystemGroupRepositoryMock_Delete_Call) Run(run func(ctx context.Context, id int)) *SystemGroupRepositoryMock_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 int
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
+			arg1 = args[1].(int)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -240,14 +221,14 @@ func (_c *SystemGroupRepositoryMock_Delete_Call) Return(err error) *SystemGroupR
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_Delete_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, id int) error) *SystemGroupRepositoryMock_Delete_Call {
+func (_c *SystemGroupRepositoryMock_Delete_Call) RunAndReturn(run func(ctx context.Context, id int) error) *SystemGroupRepositoryMock_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Find provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) Find(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error) {
-	ret := _mock.Called(ctx, client, filter)
+func (_mock *SystemGroupRepositoryMock) Find(ctx context.Context, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error) {
+	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Find")
@@ -255,18 +236,18 @@ func (_mock *SystemGroupRepositoryMock) Find(ctx context.Context, client *ent.Cl
 
 	var r0 []*user.SystemGroup
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *user.GroupQueryFilter) ([]*user.SystemGroup, error)); ok {
-		return returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *user.GroupQueryFilter) ([]*user.SystemGroup, error)); ok {
+		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *user.GroupQueryFilter) []*user.SystemGroup); ok {
-		r0 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *user.GroupQueryFilter) []*user.SystemGroup); ok {
+		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*user.SystemGroup)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *user.GroupQueryFilter) error); ok {
-		r1 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *user.GroupQueryFilter) error); ok {
+		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -280,30 +261,24 @@ type SystemGroupRepositoryMock_Find_Call struct {
 
 // Find is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - filter *user.GroupQueryFilter
-func (_e *SystemGroupRepositoryMock_Expecter) Find(ctx interface{}, client interface{}, filter interface{}) *SystemGroupRepositoryMock_Find_Call {
-	return &SystemGroupRepositoryMock_Find_Call{Call: _e.mock.On("Find", ctx, client, filter)}
+func (_e *SystemGroupRepositoryMock_Expecter) Find(ctx interface{}, filter interface{}) *SystemGroupRepositoryMock_Find_Call {
+	return &SystemGroupRepositoryMock_Find_Call{Call: _e.mock.On("Find", ctx, filter)}
 }
 
-func (_c *SystemGroupRepositoryMock_Find_Call) Run(run func(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter)) *SystemGroupRepositoryMock_Find_Call {
+func (_c *SystemGroupRepositoryMock_Find_Call) Run(run func(ctx context.Context, filter *user.GroupQueryFilter)) *SystemGroupRepositoryMock_Find_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *user.GroupQueryFilter
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *user.GroupQueryFilter
-		if args[2] != nil {
-			arg2 = args[2].(*user.GroupQueryFilter)
+			arg1 = args[1].(*user.GroupQueryFilter)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -314,14 +289,14 @@ func (_c *SystemGroupRepositoryMock_Find_Call) Return(systemGroups []*user.Syste
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_Find_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error)) *SystemGroupRepositoryMock_Find_Call {
+func (_c *SystemGroupRepositoryMock_Find_Call) RunAndReturn(run func(ctx context.Context, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error)) *SystemGroupRepositoryMock_Find_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindGIDsByUserSystemID provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) FindGIDsByUserSystemID(ctx context.Context, client *ent.Client, userSystemID int) ([]int, error) {
-	ret := _mock.Called(ctx, client, userSystemID)
+func (_mock *SystemGroupRepositoryMock) FindGIDsByUserSystemID(ctx context.Context, userSystemID int) ([]int, error) {
+	ret := _mock.Called(ctx, userSystemID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindGIDsByUserSystemID")
@@ -329,18 +304,18 @@ func (_mock *SystemGroupRepositoryMock) FindGIDsByUserSystemID(ctx context.Conte
 
 	var r0 []int
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, int) ([]int, error)); ok {
-		return returnFunc(ctx, client, userSystemID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) ([]int, error)); ok {
+		return returnFunc(ctx, userSystemID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, int) []int); ok {
-		r0 = returnFunc(ctx, client, userSystemID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) []int); ok {
+		r0 = returnFunc(ctx, userSystemID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]int)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, int) error); ok {
-		r1 = returnFunc(ctx, client, userSystemID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, userSystemID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -354,30 +329,24 @@ type SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call struct {
 
 // FindGIDsByUserSystemID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - userSystemID int
-func (_e *SystemGroupRepositoryMock_Expecter) FindGIDsByUserSystemID(ctx interface{}, client interface{}, userSystemID interface{}) *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call {
-	return &SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call{Call: _e.mock.On("FindGIDsByUserSystemID", ctx, client, userSystemID)}
+func (_e *SystemGroupRepositoryMock_Expecter) FindGIDsByUserSystemID(ctx interface{}, userSystemID interface{}) *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call {
+	return &SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call{Call: _e.mock.On("FindGIDsByUserSystemID", ctx, userSystemID)}
 }
 
-func (_c *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call) Run(run func(ctx context.Context, client *ent.Client, userSystemID int)) *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call {
+func (_c *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call) Run(run func(ctx context.Context, userSystemID int)) *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 int
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
+			arg1 = args[1].(int)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -388,14 +357,14 @@ func (_c *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call) Return(ints []i
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, userSystemID int) ([]int, error)) *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call {
+func (_c *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call) RunAndReturn(run func(ctx context.Context, userSystemID int) ([]int, error)) *SystemGroupRepositoryMock_FindGIDsByUserSystemID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindOne provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) FindOne(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter) (*user.SystemGroup, error) {
-	ret := _mock.Called(ctx, client, filter)
+func (_mock *SystemGroupRepositoryMock) FindOne(ctx context.Context, filter *user.GroupQueryFilter) (*user.SystemGroup, error) {
+	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindOne")
@@ -403,18 +372,18 @@ func (_mock *SystemGroupRepositoryMock) FindOne(ctx context.Context, client *ent
 
 	var r0 *user.SystemGroup
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *user.GroupQueryFilter) (*user.SystemGroup, error)); ok {
-		return returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *user.GroupQueryFilter) (*user.SystemGroup, error)); ok {
+		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *user.GroupQueryFilter) *user.SystemGroup); ok {
-		r0 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *user.GroupQueryFilter) *user.SystemGroup); ok {
+		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*user.SystemGroup)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *user.GroupQueryFilter) error); ok {
-		r1 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *user.GroupQueryFilter) error); ok {
+		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -428,30 +397,24 @@ type SystemGroupRepositoryMock_FindOne_Call struct {
 
 // FindOne is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - filter *user.GroupQueryFilter
-func (_e *SystemGroupRepositoryMock_Expecter) FindOne(ctx interface{}, client interface{}, filter interface{}) *SystemGroupRepositoryMock_FindOne_Call {
-	return &SystemGroupRepositoryMock_FindOne_Call{Call: _e.mock.On("FindOne", ctx, client, filter)}
+func (_e *SystemGroupRepositoryMock_Expecter) FindOne(ctx interface{}, filter interface{}) *SystemGroupRepositoryMock_FindOne_Call {
+	return &SystemGroupRepositoryMock_FindOne_Call{Call: _e.mock.On("FindOne", ctx, filter)}
 }
 
-func (_c *SystemGroupRepositoryMock_FindOne_Call) Run(run func(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter)) *SystemGroupRepositoryMock_FindOne_Call {
+func (_c *SystemGroupRepositoryMock_FindOne_Call) Run(run func(ctx context.Context, filter *user.GroupQueryFilter)) *SystemGroupRepositoryMock_FindOne_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *user.GroupQueryFilter
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *user.GroupQueryFilter
-		if args[2] != nil {
-			arg2 = args[2].(*user.GroupQueryFilter)
+			arg1 = args[1].(*user.GroupQueryFilter)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -462,14 +425,14 @@ func (_c *SystemGroupRepositoryMock_FindOne_Call) Return(systemGroup *user.Syste
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_FindOne_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, filter *user.GroupQueryFilter) (*user.SystemGroup, error)) *SystemGroupRepositoryMock_FindOne_Call {
+func (_c *SystemGroupRepositoryMock_FindOne_Call) RunAndReturn(run func(ctx context.Context, filter *user.GroupQueryFilter) (*user.SystemGroup, error)) *SystemGroupRepositoryMock_FindOne_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetByID provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) GetByID(ctx context.Context, client *ent.Client, id int) (*user.SystemGroup, error) {
-	ret := _mock.Called(ctx, client, id)
+func (_mock *SystemGroupRepositoryMock) GetByID(ctx context.Context, id int) (*user.SystemGroup, error) {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByID")
@@ -477,18 +440,18 @@ func (_mock *SystemGroupRepositoryMock) GetByID(ctx context.Context, client *ent
 
 	var r0 *user.SystemGroup
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, int) (*user.SystemGroup, error)); ok {
-		return returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) (*user.SystemGroup, error)); ok {
+		return returnFunc(ctx, id)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, int) *user.SystemGroup); ok {
-		r0 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) *user.SystemGroup); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*user.SystemGroup)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, int) error); ok {
-		r1 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -502,30 +465,24 @@ type SystemGroupRepositoryMock_GetByID_Call struct {
 
 // GetByID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - id int
-func (_e *SystemGroupRepositoryMock_Expecter) GetByID(ctx interface{}, client interface{}, id interface{}) *SystemGroupRepositoryMock_GetByID_Call {
-	return &SystemGroupRepositoryMock_GetByID_Call{Call: _e.mock.On("GetByID", ctx, client, id)}
+func (_e *SystemGroupRepositoryMock_Expecter) GetByID(ctx interface{}, id interface{}) *SystemGroupRepositoryMock_GetByID_Call {
+	return &SystemGroupRepositoryMock_GetByID_Call{Call: _e.mock.On("GetByID", ctx, id)}
 }
 
-func (_c *SystemGroupRepositoryMock_GetByID_Call) Run(run func(ctx context.Context, client *ent.Client, id int)) *SystemGroupRepositoryMock_GetByID_Call {
+func (_c *SystemGroupRepositoryMock_GetByID_Call) Run(run func(ctx context.Context, id int)) *SystemGroupRepositoryMock_GetByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 int
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
+			arg1 = args[1].(int)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -536,14 +493,14 @@ func (_c *SystemGroupRepositoryMock_GetByID_Call) Return(systemGroup *user.Syste
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_GetByID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, id int) (*user.SystemGroup, error)) *SystemGroupRepositoryMock_GetByID_Call {
+func (_c *SystemGroupRepositoryMock_GetByID_Call) RunAndReturn(run func(ctx context.Context, id int) (*user.SystemGroup, error)) *SystemGroupRepositoryMock_GetByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetNextGID provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) GetNextGID(ctx context.Context, client *ent.Client, systemID string) (int, error) {
-	ret := _mock.Called(ctx, client, systemID)
+func (_mock *SystemGroupRepositoryMock) GetNextGID(ctx context.Context, systemID string) (int, error) {
+	ret := _mock.Called(ctx, systemID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetNextGID")
@@ -551,16 +508,16 @@ func (_mock *SystemGroupRepositoryMock) GetNextGID(ctx context.Context, client *
 
 	var r0 int
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) (int, error)); ok {
-		return returnFunc(ctx, client, systemID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (int, error)); ok {
+		return returnFunc(ctx, systemID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) int); ok {
-		r0 = returnFunc(ctx, client, systemID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) int); ok {
+		r0 = returnFunc(ctx, systemID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, string) error); ok {
-		r1 = returnFunc(ctx, client, systemID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, systemID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -574,30 +531,24 @@ type SystemGroupRepositoryMock_GetNextGID_Call struct {
 
 // GetNextGID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - systemID string
-func (_e *SystemGroupRepositoryMock_Expecter) GetNextGID(ctx interface{}, client interface{}, systemID interface{}) *SystemGroupRepositoryMock_GetNextGID_Call {
-	return &SystemGroupRepositoryMock_GetNextGID_Call{Call: _e.mock.On("GetNextGID", ctx, client, systemID)}
+func (_e *SystemGroupRepositoryMock_Expecter) GetNextGID(ctx interface{}, systemID interface{}) *SystemGroupRepositoryMock_GetNextGID_Call {
+	return &SystemGroupRepositoryMock_GetNextGID_Call{Call: _e.mock.On("GetNextGID", ctx, systemID)}
 }
 
-func (_c *SystemGroupRepositoryMock_GetNextGID_Call) Run(run func(ctx context.Context, client *ent.Client, systemID string)) *SystemGroupRepositoryMock_GetNextGID_Call {
+func (_c *SystemGroupRepositoryMock_GetNextGID_Call) Run(run func(ctx context.Context, systemID string)) *SystemGroupRepositoryMock_GetNextGID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -608,22 +559,22 @@ func (_c *SystemGroupRepositoryMock_GetNextGID_Call) Return(n int, err error) *S
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_GetNextGID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, systemID string) (int, error)) *SystemGroupRepositoryMock_GetNextGID_Call {
+func (_c *SystemGroupRepositoryMock_GetNextGID_Call) RunAndReturn(run func(ctx context.Context, systemID string) (int, error)) *SystemGroupRepositoryMock_GetNextGID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // RemoveUserFromGroup provides a mock function for the type SystemGroupRepositoryMock
-func (_mock *SystemGroupRepositoryMock) RemoveUserFromGroup(ctx context.Context, client *ent.Client, userSystemID int, groupID int) error {
-	ret := _mock.Called(ctx, client, userSystemID, groupID)
+func (_mock *SystemGroupRepositoryMock) RemoveUserFromGroup(ctx context.Context, userSystemID int, groupID int) error {
+	ret := _mock.Called(ctx, userSystemID, groupID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveUserFromGroup")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, int, int) error); ok {
-		r0 = returnFunc(ctx, client, userSystemID, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, int) error); ok {
+		r0 = returnFunc(ctx, userSystemID, groupID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -637,36 +588,30 @@ type SystemGroupRepositoryMock_RemoveUserFromGroup_Call struct {
 
 // RemoveUserFromGroup is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - userSystemID int
 //   - groupID int
-func (_e *SystemGroupRepositoryMock_Expecter) RemoveUserFromGroup(ctx interface{}, client interface{}, userSystemID interface{}, groupID interface{}) *SystemGroupRepositoryMock_RemoveUserFromGroup_Call {
-	return &SystemGroupRepositoryMock_RemoveUserFromGroup_Call{Call: _e.mock.On("RemoveUserFromGroup", ctx, client, userSystemID, groupID)}
+func (_e *SystemGroupRepositoryMock_Expecter) RemoveUserFromGroup(ctx interface{}, userSystemID interface{}, groupID interface{}) *SystemGroupRepositoryMock_RemoveUserFromGroup_Call {
+	return &SystemGroupRepositoryMock_RemoveUserFromGroup_Call{Call: _e.mock.On("RemoveUserFromGroup", ctx, userSystemID, groupID)}
 }
 
-func (_c *SystemGroupRepositoryMock_RemoveUserFromGroup_Call) Run(run func(ctx context.Context, client *ent.Client, userSystemID int, groupID int)) *SystemGroupRepositoryMock_RemoveUserFromGroup_Call {
+func (_c *SystemGroupRepositoryMock_RemoveUserFromGroup_Call) Run(run func(ctx context.Context, userSystemID int, groupID int)) *SystemGroupRepositoryMock_RemoveUserFromGroup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 int
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
+			arg1 = args[1].(int)
 		}
 		var arg2 int
 		if args[2] != nil {
 			arg2 = args[2].(int)
 		}
-		var arg3 int
-		if args[3] != nil {
-			arg3 = args[3].(int)
-		}
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3,
 		)
 	})
 	return _c
@@ -677,7 +622,7 @@ func (_c *SystemGroupRepositoryMock_RemoveUserFromGroup_Call) Return(err error) 
 	return _c
 }
 
-func (_c *SystemGroupRepositoryMock_RemoveUserFromGroup_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, userSystemID int, groupID int) error) *SystemGroupRepositoryMock_RemoveUserFromGroup_Call {
+func (_c *SystemGroupRepositoryMock_RemoveUserFromGroup_Call) RunAndReturn(run func(ctx context.Context, userSystemID int, groupID int) error) *SystemGroupRepositoryMock_RemoveUserFromGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }

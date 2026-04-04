@@ -591,7 +591,7 @@ func (_c *ObjectServiceMock_GetByStorageKey_Call) RunAndReturn(run func(ctx cont
 }
 
 // GetDownloadURL provides a mock function for the type ObjectServiceMock
-func (_mock *ObjectServiceMock) GetDownloadURL(ctx context.Context, id string) (string, error) {
+func (_mock *ObjectServiceMock) GetDownloadURL(ctx context.Context, id string) (string, time.Time, error) {
 	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
@@ -599,8 +599,9 @@ func (_mock *ObjectServiceMock) GetDownloadURL(ctx context.Context, id string) (
 	}
 
 	var r0 string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+	var r1 time.Time
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, time.Time, error)); ok {
 		return returnFunc(ctx, id)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
@@ -608,12 +609,17 @@ func (_mock *ObjectServiceMock) GetDownloadURL(ctx context.Context, id string) (
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) time.Time); ok {
 		r1 = returnFunc(ctx, id)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(time.Time)
 	}
-	return r0, r1
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = returnFunc(ctx, id)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
 }
 
 // ObjectServiceMock_GetDownloadURL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDownloadURL'
@@ -646,12 +652,12 @@ func (_c *ObjectServiceMock_GetDownloadURL_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *ObjectServiceMock_GetDownloadURL_Call) Return(s string, err error) *ObjectServiceMock_GetDownloadURL_Call {
-	_c.Call.Return(s, err)
+func (_c *ObjectServiceMock_GetDownloadURL_Call) Return(s string, time1 time.Time, err error) *ObjectServiceMock_GetDownloadURL_Call {
+	_c.Call.Return(s, time1, err)
 	return _c
 }
 
-func (_c *ObjectServiceMock_GetDownloadURL_Call) RunAndReturn(run func(ctx context.Context, id string) (string, error)) *ObjectServiceMock_GetDownloadURL_Call {
+func (_c *ObjectServiceMock_GetDownloadURL_Call) RunAndReturn(run func(ctx context.Context, id string) (string, time.Time, error)) *ObjectServiceMock_GetDownloadURL_Call {
 	_c.Call.Return(run)
 	return _c
 }

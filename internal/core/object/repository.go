@@ -10,7 +10,6 @@ import (
 // ObjectRepository defines the interface for object data access.
 type ObjectRepository interface {
 	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Object, error)
-	CreateWithID(ctx context.Context, client *ent.Client, id string, params *CreateParams) (*Object, error)
 	GetByID(ctx context.Context, client *ent.Client, id string) (*Object, error)
 	GetByStorageKey(ctx context.Context, client *ent.Client, systemID string, provider string, bucket string, storageKey string) (*Object, error)
 	UpdateStatus(ctx context.Context, client *ent.Client, id string, status Status) error
@@ -22,6 +21,7 @@ type ObjectRepository interface {
 
 // CreateParams for creating a new object (repository layer).
 type CreateParams struct {
+	ID         string
 	Provider   Provider
 	Bucket     string
 	SystemID   string

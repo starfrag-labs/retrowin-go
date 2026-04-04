@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entinode "github.com/starfrag-lab/retrowin-go/ent/inode"
 	domain "github.com/starfrag-lab/retrowin-go/internal/core/inode"
@@ -27,7 +25,7 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	now := timeNow()
 
 	builder := client.Inode.Create().
-		SetID(uuid.New().String()).
+		SetID(params.ID).
 		SetSystemID(params.SystemID).
 		SetMode(params.Mode).
 		SetUID(params.UID).

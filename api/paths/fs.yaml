@@ -96,11 +96,11 @@
             schema:
               $ref: "../schemas/common.yaml#/Error"
 
-/fs/{systemId}/readdir:
+/fs/{systemId}/ls:
   get:
-    operationId: readDir
-    summary: Read directory contents
-    description: List contents of a directory
+    operationId: ls
+    summary: List directory contents
+    description: List contents of a directory (like Unix ls command)
     tags:
       - Fs
     security:
@@ -210,11 +210,11 @@
             schema:
               $ref: "../schemas/common.yaml#/Error"
 
-/fs/{systemId}/symlink:
+/fs/{systemId}/ln:
   post:
-    operationId: createSymlink
-    summary: Create symbolic link
-    description: Create a symbolic link
+    operationId: ln
+    summary: Create link
+    description: Create a symbolic link (like Unix ln -s command)
     tags:
       - Fs
     security:
@@ -319,6 +319,138 @@
               $ref: "../schemas/common.yaml#/Error"
       '404':
         description: Path not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+
+/fs/{systemId}/rename:
+  post:
+    operationId: rename
+    summary: Rename file or directory
+    description: Rename a file or directory within the same parent directory
+    tags:
+      - Fs
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: systemId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: System ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/inode.yaml#/RenameRequest"
+    responses:
+      '200':
+        description: Renamed successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/inode.yaml#/InodeResponse"
+      '400':
+        description: Invalid request
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '403':
+        description: Access denied
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '404':
+        description: Source path not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '409':
+        description: Destination already exists
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      default:
+        description: Error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+
+/fs/{systemId}/mv:
+  post:
+    operationId: mv
+    summary: Move file or directory
+    description: Move a file or directory to a different location (like Unix mv command)
+    tags:
+      - Fs
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: systemId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: System ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/inode.yaml#/MoveRequest"
+    responses:
+      '200':
+        description: Moved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/inode.yaml#/InodeResponse"
+      '400':
+        description: Invalid request
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '403':
+        description: Access denied
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '404':
+        description: Source path not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/Error"
+      '409':
+        description: Destination already exists
         content:
           application/json:
             schema:

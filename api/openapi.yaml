@@ -152,14 +152,18 @@ paths:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1root"
   /fs/{systemId}/stat:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1stat"
-  /fs/{systemId}/readdir:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1readdir"
+  /fs/{systemId}/ls:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1ls"
   /fs/{systemId}/mkdir:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1mkdir"
-  /fs/{systemId}/symlink:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1symlink"
+  /fs/{systemId}/ln:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1ln"
   /fs/{systemId}/chmod:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1chmod"
+  /fs/{systemId}/rename:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1rename"
+  /fs/{systemId}/mv:
+    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1mv"
   /fs/{systemId}/unlink:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1unlink"
 

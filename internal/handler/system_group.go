@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 
-	apiv1 "github.com/starfrag-lab/retrowin-go/pkg/api/v1"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 )
 
 // CreateSystemGroup implements POST /systems/{systemId}/groups.
-func (h *Handler) CreateSystemGroup(ctx context.Context, req *apiv1.CreateSystemGroupRequest, params apiv1.CreateSystemGroupParams) (apiv1.CreateSystemGroupRes, error) {
+func (h *Handler) CreateSystemGroup(ctx context.Context, req *api.CreateSystemGroupRequest, params api.CreateSystemGroupParams) (api.CreateSystemGroupRes, error) {
 	cmd := &coreuser.GroupCreateCommand{
 		SystemID: params.SystemId,
 		Name:     req.Name,
@@ -24,20 +24,20 @@ func (h *Handler) CreateSystemGroup(ctx context.Context, req *apiv1.CreateSystem
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.SystemGroupResponse{
+	return &api.SystemGroupResponse{
 		Group: *h.toSystemGroup(group),
 	}, nil
 }
 
 // ListSystemGroups implements GET /systems/{systemId}/groups.
-func (h *Handler) ListSystemGroups(ctx context.Context, params apiv1.ListSystemGroupsParams) (apiv1.ListSystemGroupsRes, error) {
+func (h *Handler) ListSystemGroups(ctx context.Context, params api.ListSystemGroupsParams) (api.ListSystemGroupsRes, error) {
 	groups, err := h.sysGroupSvc.Find(ctx, coreuser.GroupBySystemID(params.SystemId))
 	if err != nil {
 		return nil, h.domainError(err)
 	}
 
-	resp := &apiv1.SystemGroupListResponse{
-		Groups: make([]apiv1.SystemGroup, len(groups)),
+	resp := &api.SystemGroupListResponse{
+		Groups: make([]api.SystemGroup, len(groups)),
 	}
 	for i, g := range groups {
 		resp.Groups[i] = *h.toSystemGroup(g)
@@ -47,19 +47,19 @@ func (h *Handler) ListSystemGroups(ctx context.Context, params apiv1.ListSystemG
 }
 
 // GetSystemGroup implements GET /systems/{systemId}/groups/{gid}.
-func (h *Handler) GetSystemGroup(ctx context.Context, params apiv1.GetSystemGroupParams) (apiv1.GetSystemGroupRes, error) {
+func (h *Handler) GetSystemGroup(ctx context.Context, params api.GetSystemGroupParams) (api.GetSystemGroupRes, error) {
 	group, err := h.sysGroupSvc.FindOne(ctx, coreuser.GroupBySystemAndGID(params.SystemId, int(params.Gid)))
 	if err != nil {
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.SystemGroupResponse{
+	return &api.SystemGroupResponse{
 		Group: *h.toSystemGroup(group),
 	}, nil
 }
 
 // DeleteSystemGroup implements DELETE /systems/{systemId}/groups/{gid}.
-func (h *Handler) DeleteSystemGroup(ctx context.Context, params apiv1.DeleteSystemGroupParams) (apiv1.DeleteSystemGroupRes, error) {
+func (h *Handler) DeleteSystemGroup(ctx context.Context, params api.DeleteSystemGroupParams) (api.DeleteSystemGroupRes, error) {
 	// Find group first
 	group, err := h.sysGroupSvc.FindOne(ctx, coreuser.GroupBySystemAndGID(params.SystemId, int(params.Gid)))
 	if err != nil {
@@ -70,11 +70,11 @@ func (h *Handler) DeleteSystemGroup(ctx context.Context, params apiv1.DeleteSyst
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.DeleteSystemGroupNoContent{}, nil
+	return &api.DeleteSystemGroupNoContent{}, nil
 }
 
 // AddGroupMember implements POST /systems/{systemId}/groups/{gid}/members/{uid}.
-func (h *Handler) AddGroupMember(ctx context.Context, params apiv1.AddGroupMemberParams) (apiv1.AddGroupMemberRes, error) {
+func (h *Handler) AddGroupMember(ctx context.Context, params api.AddGroupMemberParams) (api.AddGroupMemberRes, error) {
 	// Find group first
 	group, err := h.sysGroupSvc.FindOne(ctx, coreuser.GroupBySystemAndGID(params.SystemId, int(params.Gid)))
 	if err != nil {
@@ -91,11 +91,11 @@ func (h *Handler) AddGroupMember(ctx context.Context, params apiv1.AddGroupMembe
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.AddGroupMemberNoContent{}, nil
+	return &api.AddGroupMemberNoContent{}, nil
 }
 
 // RemoveGroupMember implements DELETE /systems/{systemId}/groups/{gid}/members/{uid}.
-func (h *Handler) RemoveGroupMember(ctx context.Context, params apiv1.RemoveGroupMemberParams) (apiv1.RemoveGroupMemberRes, error) {
+func (h *Handler) RemoveGroupMember(ctx context.Context, params api.RemoveGroupMemberParams) (api.RemoveGroupMemberRes, error) {
 	// Find group first
 	group, err := h.sysGroupSvc.FindOne(ctx, coreuser.GroupBySystemAndGID(params.SystemId, int(params.Gid)))
 	if err != nil {
@@ -112,11 +112,11 @@ func (h *Handler) RemoveGroupMember(ctx context.Context, params apiv1.RemoveGrou
 		return nil, h.domainError(err)
 	}
 
-	return &apiv1.RemoveGroupMemberNoContent{}, nil
+	return &api.RemoveGroupMemberNoContent{}, nil
 }
 
-func (h *Handler) toSystemGroup(g *coreuser.SystemGroup) *apiv1.SystemGroup {
-	return &apiv1.SystemGroup{
+func (h *Handler) toSystemGroup(g *coreuser.SystemGroup) *api.SystemGroup {
+	return &api.SystemGroup{
 		ID:       int64(g.ID()),
 		SystemId: g.SystemID(),
 		Name:     g.Name(),

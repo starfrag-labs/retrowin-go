@@ -4,29 +4,29 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
-
 	"github.com/starfrag-lab/retrowin-go/ent"
 	entsystem "github.com/starfrag-lab/retrowin-go/ent/system"
 	domain "github.com/starfrag-lab/retrowin-go/internal/system"
 )
 
 // EntRepository implements domain.SystemRepository using Ent.
-type EntRepository struct{}
-
-// NewRepository creates a new EntRepository.
-func NewRepository() domain.SystemRepository {
-	return &EntRepository{}
+type EntRepository struct {
+	client *ent.Client
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.System, error) {
-	builder := client.System.Create().
-		SetID(uuid.New().String()).
-		SetName(params.Name).
-		SetStatus(entsystem.Status(params.Status))
+// NewRepository creates a new EntRepository.
+func NewRepository(client *ent.Client) domain.SystemRepository {
+	return &EntRepository{client: client}
+}
 
-	if params.Description != nil {
-		builder.SetDescription(*params.Description)
+func (r *EntRepository) Create(ctx context.Context, system *domain.System) (*domain.System, error) {
+	builder := r.client.System.Create().
+		SetID(system.ID()).
+		SetName(system.Name()).
+		SetStatus(entsystem.Status(system.Status()))
+
+	if system.Description() != nil {
+		builder.SetDescription(*system.Description())
 	}
 
 	entSystem, err := builder.Save(ctx)
@@ -36,8 +36,8 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return systemFromEnt(entSystem), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*domain.System, error) {
-	entSystem, err := client.System.Query().
+func (r *EntRepository) GetByID(ctx context.Context, id string) (*domain.System, error) {
+	entSystem, err := r.client.System.Query().
 		Where(entsystem.ID(id)).
 		Only(ctx)
 	if err != nil {
@@ -49,8 +49,8 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id stri
 	return systemFromEnt(entSystem), nil
 }
 
-func (r *EntRepository) GetByName(ctx context.Context, client *ent.Client, name string) (*domain.System, error) {
-	entSystem, err := client.System.Query().
+func (r *EntRepository) GetByName(ctx context.Context, name string) (*domain.System, error) {
+	entSystem, err := r.client.System.Query().
 		Where(entsystem.Name(name)).
 		Only(ctx)
 	if err != nil {
@@ -62,28 +62,26 @@ func (r *EntRepository) GetByName(ctx context.Context, client *ent.Client, name 
 	return systemFromEnt(entSystem), nil
 }
 
-func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *domain.UpdateParams) error {
-	builder := client.System.UpdateOneID(params.ID)
+func (r *EntRepository) Update(ctx context.Context, system *domain.System) error {
+	builder := r.client.System.UpdateOneID(system.ID())
 
-	if params.Name != nil {
-		builder.SetName(*params.Name)
+	if system.Name() != "" {
+		builder.SetName(system.Name())
 	}
-	if params.Description != nil {
-		builder.SetDescription(*params.Description)
+	if system.Description() != nil {
+		builder.SetDescription(*system.Description())
 	}
-	if params.Status != nil {
-		builder.SetStatus(entsystem.Status(*params.Status))
-	}
+	builder.SetStatus(entsystem.Status(system.Status()))
 
 	return builder.Exec(ctx)
 }
 
-func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id string) error {
-	return client.System.DeleteOneID(id).Exec(ctx)
+func (r *EntRepository) Delete(ctx context.Context, id string) error {
+	return r.client.System.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) ([]*domain.System, error) {
-	query := client.System.Query()
+func (r *EntRepository) Find(ctx context.Context, filter *domain.QueryFilter) ([]*domain.System, error) {
+	query := r.client.System.Query()
 	query = applySystemFilter(query, filter)
 
 	entSystems, err := query.All(ctx)
@@ -93,8 +91,8 @@ func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *do
 	return systemFromEntSlice(entSystems), nil
 }
 
-func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) (*domain.System, error) {
-	query := client.System.Query()
+func (r *EntRepository) FindOne(ctx context.Context, filter *domain.QueryFilter) (*domain.System, error) {
+	query := r.client.System.Query()
 	query = applySystemFilter(query, filter)
 
 	entSystem, err := query.Only(ctx)
@@ -107,8 +105,8 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 	return systemFromEnt(entSystem), nil
 }
 
-func (r *EntRepository) Exists(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) (bool, error) {
-	query := client.System.Query()
+func (r *EntRepository) Exists(ctx context.Context, filter *domain.QueryFilter) (bool, error) {
+	query := r.client.System.Query()
 	query = applySystemFilter(query, filter)
 	return query.Exist(ctx)
 }

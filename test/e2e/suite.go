@@ -246,6 +246,17 @@ func (s *Suite) Start(ctx context.Context) error {
 				CookieName: "session_id",
 			},
 		},
+		CORS: config.CORSConfig{
+			Enabled: true,
+			AllowedOrigins: []string{
+				"http://localhost:3000",
+				"https://retrowin.starship.co",
+			},
+			AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+			AllowedHeaders: []string{"Content-Type", "Authorization", "X-Requested-With"},
+			ExposedHeaders: []string{"Content-Length", "Content-Type"},
+			MaxAge:         86400,
+		},
 	}
 
 	s.baseURL = fmt.Sprintf("http://%s:%d", s.Config.HTTP.Host, s.Config.HTTP.Port)
@@ -273,7 +284,7 @@ func (s *Suite) StartServer(ctx context.Context) error {
 	}
 
 	// Start the actual fx app
-	s.app = retrowinserver.NewFXApp(s.cfgFile, s.Config.HTTP.Port)
+	s.app = retrowinserver.NewFXApp(s.cfgFile, s.Config.HTTP.Port, "../../api/openapi.yaml")
 
 	go func() {
 		s.app.Run()

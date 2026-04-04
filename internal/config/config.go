@@ -15,6 +15,7 @@ type Config struct {
 	Cache    CacheConfig    `mapstructure:"cache" yaml:"cache"`
 	Storage  StorageConfig  `mapstructure:"storage" yaml:"storage"`
 	Auth     AuthConfig     `mapstructure:"auth" yaml:"auth"`
+	CORS     CORSConfig     `mapstructure:"cors" yaml:"cors"`
 }
 
 // AppConfig holds application-level configuration.
@@ -26,9 +27,8 @@ type AppConfig struct {
 
 // HTTPConfig holds HTTP server configuration.
 type HTTPConfig struct {
-	Host        string `mapstructure:"host" yaml:"host"`
-	Port        int    `mapstructure:"port" yaml:"port"`
-	OpenAPIPath string `mapstructure:"openapi_path" yaml:"openapi_path"`
+	Host string `mapstructure:"host" yaml:"host"`
+	Port int    `mapstructure:"port" yaml:"port"`
 }
 
 // DatabaseConfig holds database connection configuration.
@@ -39,7 +39,7 @@ type DatabaseConfig struct {
 	Name     string `mapstructure:"name" yaml:"name"`
 	User     string `mapstructure:"user" yaml:"user"`
 	Password string `mapstructure:"password" yaml:"password"`
-	SSLMode  string `mapstructure:"sslmode" yaml:"sslmode"`
+	SSLMode  string `mapstructure:"sslMode" yaml:"sslMode"`
 }
 
 // DSN returns the database connection string.
@@ -60,7 +60,7 @@ type CacheConfig struct {
 type ValkeyConfig struct {
 	Addr     string `mapstructure:"addr" yaml:"addr"`
 	DB       int    `mapstructure:"db" yaml:"db"`
-	PoolSize int    `mapstructure:"pool_size" yaml:"pool_size"`
+	PoolSize int    `mapstructure:"poolSize" yaml:"poolSize"`
 	Password string `mapstructure:"password" yaml:"password"`
 }
 
@@ -69,10 +69,10 @@ type StorageConfig struct {
 	Provider  string `mapstructure:"provider" yaml:"provider"`
 	Region    string `mapstructure:"region" yaml:"region"`
 	Endpoint  string `mapstructure:"endpoint" yaml:"endpoint"`
-	AccessKey string `mapstructure:"access_key" yaml:"access_key"`
-	SecretKey string `mapstructure:"secret_key" yaml:"secret_key"`
+	AccessKey string `mapstructure:"accessKey" yaml:"accessKey"`
+	SecretKey string `mapstructure:"secretKey" yaml:"secretKey"`
 	Bucket    string `mapstructure:"bucket" yaml:"bucket"`
-	UseSSL    bool   `mapstructure:"use_ssl" yaml:"use_ssl"`
+	UseSSL    bool   `mapstructure:"useSSL" yaml:"useSSL"`
 }
 
 // AuthConfig holds authentication configuration.
@@ -83,20 +83,34 @@ type AuthConfig struct {
 
 // KeycloakConfig holds Keycloak configuration.
 type KeycloakConfig struct {
-	BaseURL      string `mapstructure:"base_url" yaml:"base_url"`
+	BaseURL      string `mapstructure:"baseURL" yaml:"baseURL"`
 	Realm        string `mapstructure:"realm" yaml:"realm"`
-	ClientID     string `mapstructure:"client_id" yaml:"client_id"`
-	ClientSecret string `mapstructure:"client_secret" yaml:"client_secret"`
-	RedirectURI  string `mapstructure:"redirect_uri" yaml:"redirect_uri"`
+	ClientID     string `mapstructure:"clientID" yaml:"clientID"`
+	ClientSecret string `mapstructure:"clientSecret" yaml:"clientSecret"`
+	RedirectURI  string `mapstructure:"redirectURI" yaml:"redirectURI"`
 }
 
 // SessionConfig holds session configuration.
 type SessionConfig struct {
-	TTL        int    `mapstructure:"ttl" yaml:"ttl"`                 // Session TTL in seconds
-	Secure     bool   `mapstructure:"secure" yaml:"secure"`           // Set Secure flag on cookie
-	StateTTL   int    `mapstructure:"state_ttl" yaml:"state_ttl"`     // OAuth state TTL in seconds
-	RedisKey   string `mapstructure:"redis_key" yaml:"redis_key"`     // Redis key prefix
-	CookieName string `mapstructure:"cookie_name" yaml:"cookie_name"` // Session cookie name
+	TTL         int    `mapstructure:"ttl" yaml:"ttl"`                 // Session TTL in seconds
+	Secure      bool   `mapstructure:"secure" yaml:"secure"`           // Set Secure flag on cookie
+	StateTTL    int    `mapstructure:"stateTTL" yaml:"stateTTL"`       // OAuth state TTL in seconds
+	RedisKey    string `mapstructure:"redisKey" yaml:"redisKey"`       // Redis key prefix
+	CookieName  string `mapstructure:"cookieName" yaml:"cookieName"`   // Session cookie name
+	FrontendURL string `mapstructure:"frontendURL" yaml:"frontendURL"` // Frontend URL for redirect after login
+	Domain      string `mapstructure:"domain" yaml:"domain"`           // Cookie domain (e.g., ".starfrag.co" for cross-subdomain)
+	SameSite    string `mapstructure:"sameSite" yaml:"sameSite"`       // SameSite policy: "lax", "strict", "none"
+}
+
+// CORSConfig holds CORS configuration.
+type CORSConfig struct {
+	Enabled          bool     `mapstructure:"enabled" yaml:"enabled"`
+	AllowedOrigins   []string `mapstructure:"allowedOrigins" yaml:"allowedOrigins"`
+	AllowedMethods   []string `mapstructure:"allowedMethods" yaml:"allowedMethods"`
+	AllowedHeaders   []string `mapstructure:"allowedHeaders" yaml:"allowedHeaders"`
+	ExposedHeaders   []string `mapstructure:"exposedHeaders" yaml:"exposedHeaders"`
+	AllowCredentials bool     `mapstructure:"allowCredentials" yaml:"allowCredentials"`
+	MaxAge           int      `mapstructure:"maxAge" yaml:"maxAge"` // in seconds
 }
 
 // OIDCRedirectURI returns the OIDC redirect URI.
@@ -156,23 +170,25 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.env", "development")
 	v.SetDefault("http.host", "0.0.0.0")
 	v.SetDefault("http.port", 8080)
-	v.SetDefault("http.openapi_path", "api/openapi.yaml")
 	v.SetDefault("database.driver", "postgres")
-	v.SetDefault("database.sslmode", "disable")
+	v.SetDefault("database.sslMode", "disable")
 	v.SetDefault("cache.provider", "valkey")
 	v.SetDefault("cache.valkey.addr", "localhost:6379")
 	v.SetDefault("cache.valkey.db", 0)
-	v.SetDefault("cache.valkey.pool_size", 10)
+	v.SetDefault("cache.valkey.poolSize", 10)
 	v.SetDefault("cache.valkey.password", "")
 	v.SetDefault("storage.provider", "s3")
 	v.SetDefault("storage.region", "us-east-1")
-	v.SetDefault("storage.use_ssl", false)
+	v.SetDefault("storage.useSSL", false)
 	v.SetDefault("auth.session.ttl", 86400) // 24 hours
 	v.SetDefault("auth.session.secure", false)
-	v.SetDefault("auth.session.state_ttl", 300) // 5 minutes
-	v.SetDefault("auth.session.redis_key", "retrowin")
-	v.SetDefault("auth.session.cookie_name", "session_id")
-	v.SetDefault("auth.keycloak.redirect_uri", "http://localhost:8080/auth/callback")
+	v.SetDefault("auth.session.stateTTL", 300) // 5 minutes
+	v.SetDefault("auth.session.redisKey", "retrowin")
+	v.SetDefault("auth.session.cookieName", "session_id")
+	v.SetDefault("auth.session.frontendURL", "http://localhost:5173")
+	v.SetDefault("auth.session.domain", "")      // Empty means current host only
+	v.SetDefault("auth.session.sameSite", "lax") // lax, strict, or none
+	v.SetDefault("auth.keycloak.redirectURI", "http://localhost:8080/auth/callback")
 }
 
 func bindEnvVars(v *viper.Viper) {
@@ -180,10 +196,10 @@ func bindEnvVars(v *viper.Viper) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	// Explicitly bind common secrets
+	// Explicitly bind common secrets (camelCase config keys)
 	_ = v.BindEnv("database.password", "DATABASE_PASSWORD")
 	_ = v.BindEnv("cache.valkey.password", "CACHE_VALKEY_PASSWORD")
-	_ = v.BindEnv("storage.access_key", "STORAGE_ACCESS_KEY")
-	_ = v.BindEnv("storage.secret_key", "STORAGE_SECRET_KEY")
-	_ = v.BindEnv("auth.keycloak.client_secret", "AUTH_KEYCLOAK_CLIENT_SECRET")
+	_ = v.BindEnv("storage.accessKey", "STORAGE_ACCESS_KEY")
+	_ = v.BindEnv("storage.secretKey", "STORAGE_SECRET_KEY")
+	_ = v.BindEnv("auth.keycloak.clientSecret", "AUTH_KEYCLOAK_CLIENT_SECRET")
 }
