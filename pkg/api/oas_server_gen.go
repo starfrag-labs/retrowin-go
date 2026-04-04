@@ -114,8 +114,8 @@ type Handler interface {
 	//
 	// Handle OAuth callback from Keycloak.
 	//
-	// POST /auth/callback
-	HandleCallback(ctx context.Context, req *CallbackRequest) (HandleCallbackRes, error)
+	// GET /auth/callback
+	HandleCallback(ctx context.Context, params HandleCallbackParams) (HandleCallbackRes, error)
 	// InitiateLogin implements initiateLogin operation.
 	//
 	// Start OIDC login flow and return authorization URL.

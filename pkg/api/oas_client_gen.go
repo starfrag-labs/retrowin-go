@@ -134,8 +134,8 @@ type Invoker interface {
 	//
 	// Handle OAuth callback from Keycloak.
 	//
-	// POST /auth/callback
-	HandleCallback(ctx context.Context, request *CallbackRequest) (HandleCallbackRes, error)
+	// GET /auth/callback
+	HandleCallback(ctx context.Context, params HandleCallbackParams) (HandleCallbackRes, error)
 	// InitiateLogin invokes initiateLogin operation.
 	//
 	// Start OIDC login flow and return authorization URL.
@@ -2348,16 +2348,16 @@ func (c *Client) sendGetUser(ctx context.Context) (res GetUserRes, err error) {
 //
 // Handle OAuth callback from Keycloak.
 //
-// POST /auth/callback
-func (c *Client) HandleCallback(ctx context.Context, request *CallbackRequest) (HandleCallbackRes, error) {
-	res, err := c.sendHandleCallback(ctx, request)
+// GET /auth/callback
+func (c *Client) HandleCallback(ctx context.Context, params HandleCallbackParams) (HandleCallbackRes, error) {
+	res, err := c.sendHandleCallback(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendHandleCallback(ctx context.Context, request *CallbackRequest) (res HandleCallbackRes, err error) {
+func (c *Client) sendHandleCallback(ctx context.Context, params HandleCallbackParams) (res HandleCallbackRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("handleCallback"),
-		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.URLTemplateKey.String("/auth/callback"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
@@ -2395,13 +2395,76 @@ func (c *Client) sendHandleCallback(ctx context.Context, request *CallbackReques
 	pathParts[0] = "/auth/callback"
 	uri.AddPathParts(u, pathParts[:]...)
 
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "code" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "code",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.Code))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "state" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "state",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.State))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "session_state" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "session_state",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.SessionState.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "iss" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "iss",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.Iss.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "POST", u)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-	if err := encodeHandleCallbackRequest(request, r); err != nil {
-		return res, errors.Wrap(err, "encode request")
 	}
 
 	stage = "SendRequest"

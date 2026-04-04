@@ -3030,13 +3030,13 @@ func (s *Server) handleGetUserRequest(args [0]string, argsEscaped bool, w http.R
 //
 // Handle OAuth callback from Keycloak.
 //
-// POST /auth/callback
+// GET /auth/callback
 func (s *Server) handleHandleCallbackRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("handleCallback"),
-		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/auth/callback"),
 	}
 	// Add attributes from config.
@@ -3102,23 +3102,18 @@ func (s *Server) handleHandleCallbackRequest(args [0]string, argsEscaped bool, w
 			ID:   "handleCallback",
 		}
 	)
-
-	var rawBody []byte
-	request, rawBody, close, err := s.decodeHandleCallbackRequest(r)
+	params, err := decodeHandleCallbackParams(args, argsEscaped, r)
 	if err != nil {
-		err = &ogenerrors.DecodeRequestError{
+		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
 			Err:              err,
 		}
-		defer recordError("DecodeRequest", err)
+		defer recordError("DecodeParams", err)
 		s.cfg.ErrorHandler(ctx, w, r, err)
 		return
 	}
-	defer func() {
-		if err := close(); err != nil {
-			recordError("CloseRequest", err)
-		}
-	}()
+
+	var rawBody []byte
 
 	var response HandleCallbackRes
 	if m := s.cfg.Middleware; m != nil {
@@ -3127,15 +3122,32 @@ func (s *Server) handleHandleCallbackRequest(args [0]string, argsEscaped bool, w
 			OperationName:    HandleCallbackOperation,
 			OperationSummary: "Handle OAuth callback",
 			OperationID:      "handleCallback",
-			Body:             request,
+			Body:             nil,
 			RawBody:          rawBody,
-			Params:           middleware.Parameters{},
-			Raw:              r,
+			Params: middleware.Parameters{
+				{
+					Name: "code",
+					In:   "query",
+				}: params.Code,
+				{
+					Name: "state",
+					In:   "query",
+				}: params.State,
+				{
+					Name: "session_state",
+					In:   "query",
+				}: params.SessionState,
+				{
+					Name: "iss",
+					In:   "query",
+				}: params.Iss,
+			},
+			Raw: r,
 		}
 
 		type (
-			Request  = *CallbackRequest
-			Params   = struct{}
+			Request  = struct{}
+			Params   = HandleCallbackParams
 			Response = HandleCallbackRes
 		)
 		response, err = middleware.HookMiddleware[
@@ -3145,14 +3157,14 @@ func (s *Server) handleHandleCallbackRequest(args [0]string, argsEscaped bool, w
 		](
 			m,
 			mreq,
-			nil,
+			unpackHandleCallbackParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.HandleCallback(ctx, request)
+				response, err = s.h.HandleCallback(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.HandleCallback(ctx, request)
+		response, err = s.h.HandleCallback(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)

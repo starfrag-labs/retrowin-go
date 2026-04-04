@@ -167,8 +167,8 @@ func (UnimplementedHandler) GetUser(ctx context.Context) (r GetUserRes, _ error)
 //
 // Handle OAuth callback from Keycloak.
 //
-// POST /auth/callback
-func (UnimplementedHandler) HandleCallback(ctx context.Context, req *CallbackRequest) (r HandleCallbackRes, _ error) {
+// GET /auth/callback
+func (UnimplementedHandler) HandleCallback(ctx context.Context, params HandleCallbackParams) (r HandleCallbackRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

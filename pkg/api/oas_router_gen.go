@@ -11,9 +11,6 @@ import (
 )
 
 var (
-	rn23AllowedHeaders = map[string]string{
-		"POST": "Content-Type",
-	}
 	rn10AllowedHeaders = map[string]string{
 		"PATCH": "Content-Type",
 	}
@@ -120,13 +117,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					if len(elem) == 0 {
 						// Leaf node.
 						switch r.Method {
-						case "POST":
+						case "GET":
 							s.handleHandleCallbackRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, notAllowedParams{
-								allowedMethods: "POST",
-								allowedHeaders: rn23AllowedHeaders,
-								acceptPost:     "application/json",
+								allowedMethods: "GET",
+								allowedHeaders: nil,
+								acceptPost:     "",
 								acceptPatch:    "",
 							})
 						}
@@ -1078,7 +1075,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					if len(elem) == 0 {
 						// Leaf node.
 						switch method {
-						case "POST":
+						case "GET":
 							r.name = HandleCallbackOperation
 							r.summary = "Handle OAuth callback"
 							r.operationID = "handleCallback"

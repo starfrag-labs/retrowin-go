@@ -26,20 +26,6 @@ func (s *AddGroupMemberUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *CallbackRequest) SetFake() {
-	{
-		{
-			s.Code = "string"
-		}
-	}
-	{
-		{
-			s.State = "string"
-		}
-	}
-}
-
-// SetFake set fake values.
 func (s *CallbackResponse) SetFake() {
 	{
 		{

@@ -29,11 +29,11 @@ func (h *Handler) InitiateLogin(ctx context.Context) (api.InitiateLoginRes, erro
 	}, nil
 }
 
-// HandleCallback implements POST /auth/callback.
-func (h *Handler) HandleCallback(ctx context.Context, req *api.CallbackRequest) (api.HandleCallbackRes, error) {
+// HandleCallback implements GET /auth/callback.
+func (h *Handler) HandleCallback(ctx context.Context, params api.HandleCallbackParams) (api.HandleCallbackRes, error) {
 	callbackReq := &auth.CallbackRequest{
-		Code:  req.Code,
-		State: req.State,
+		Code:  params.Code,
+		State: params.State,
 	}
 
 	resp, err := h.authSvc.HandleCallback(ctx, callbackReq)

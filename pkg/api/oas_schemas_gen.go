@@ -22,34 +22,6 @@ type AddGroupMemberUnauthorized Error
 
 func (*AddGroupMemberUnauthorized) addGroupMemberRes() {}
 
-// Ref: #/components/schemas/CallbackRequest
-type CallbackRequest struct {
-	// Authorization code from Keycloak.
-	Code string `json:"code"`
-	// OAuth state parameter.
-	State string `json:"state"`
-}
-
-// GetCode returns the value of Code.
-func (s *CallbackRequest) GetCode() string {
-	return s.Code
-}
-
-// GetState returns the value of State.
-func (s *CallbackRequest) GetState() string {
-	return s.State
-}
-
-// SetCode sets the value of Code.
-func (s *CallbackRequest) SetCode(val string) {
-	s.Code = val
-}
-
-// SetState sets the value of State.
-func (s *CallbackRequest) SetState(val string) {
-	s.State = val
-}
-
 // Ref: #/components/schemas/CallbackResponse
 type CallbackResponse struct {
 	// Session ID for the authenticated user.

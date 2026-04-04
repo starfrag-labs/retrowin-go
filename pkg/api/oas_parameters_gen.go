@@ -1176,6 +1176,213 @@ func decodeGetSystemUserParams(args [2]string, argsEscaped bool, r *http.Request
 	return params, nil
 }
 
+// HandleCallbackParams is parameters of handleCallback operation.
+type HandleCallbackParams struct {
+	// Authorization code from Keycloak.
+	Code string
+	// OAuth state parameter for CSRF protection.
+	State string
+	// Session state from Keycloak.
+	SessionState OptString `json:",omitempty,omitzero"`
+	// Issuer URL.
+	Iss OptString `json:",omitempty,omitzero"`
+}
+
+func unpackHandleCallbackParams(packed middleware.Parameters) (params HandleCallbackParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "code",
+			In:   "query",
+		}
+		params.Code = packed[key].(string)
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "state",
+			In:   "query",
+		}
+		params.State = packed[key].(string)
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "session_state",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.SessionState = v.(OptString)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "iss",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.Iss = v.(OptString)
+		}
+	}
+	return params
+}
+
+func decodeHandleCallbackParams(args [0]string, argsEscaped bool, r *http.Request) (params HandleCallbackParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: code.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "code",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Code = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "code",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: state.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "state",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.State = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "state",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: session_state.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "session_state",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotSessionStateVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotSessionStateVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.SessionState.SetTo(paramsDotSessionStateVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "session_state",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: iss.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "iss",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotIssVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotIssVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.Iss.SetTo(paramsDotIssVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "iss",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // InitiateUploadParams is parameters of initiateUpload operation.
 type InitiateUploadParams struct {
 	// System ID.
