@@ -41,6 +41,7 @@ var operationRolesSessionAuth = map[string][]string{
 	CreateSystemOperation:      []string{},
 	CreateSystemGroupOperation: []string{},
 	CreateSystemUserOperation:  []string{},
+	DeleteSystemOperation:      []string{},
 	DeleteSystemGroupOperation: []string{},
 	DeleteSystemUserOperation:  []string{},
 	DeleteUserOperation:        []string{},

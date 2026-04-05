@@ -79,6 +79,11 @@ func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id strin
 	return client.Object.DeleteOneID(id).Exec(ctx)
 }
 
+func (r *EntRepository) DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error {
+	_, err := client.Object.Delete().Where(entobject.SystemIDEQ(systemID)).Exec(ctx)
+	return err
+}
+
 func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) ([]*domain.Object, error) {
 	query := client.Object.Query()
 	query = applyFilter(query, filter)

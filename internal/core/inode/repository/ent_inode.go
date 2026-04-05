@@ -100,6 +100,11 @@ func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id strin
 	return client.Inode.DeleteOneID(id).Exec(ctx)
 }
 
+func (r *EntRepository) DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error {
+	_, err := client.Inode.Delete().Where(entinode.SystemIDEQ(systemID)).Exec(ctx)
+	return err
+}
+
 func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) ([]*domain.Inode, error) {
 	query := client.Inode.Query()
 	query = applyFilter(query, filter)

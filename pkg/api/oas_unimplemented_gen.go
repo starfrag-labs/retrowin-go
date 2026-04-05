@@ -73,6 +73,15 @@ func (UnimplementedHandler) CreateSystemUser(ctx context.Context, req *CreateSys
 	return r, ht.ErrNotImplemented
 }
 
+// DeleteSystem implements deleteSystem operation.
+//
+// Delete a system and all associated data (inodes, objects, users, groups).
+//
+// DELETE /systems/{systemId}
+func (UnimplementedHandler) DeleteSystem(ctx context.Context, params DeleteSystemParams) (r DeleteSystemRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // DeleteSystemGroup implements deleteSystemGroup operation.
 //
 // Delete a group from a system.

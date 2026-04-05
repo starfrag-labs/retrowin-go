@@ -226,6 +226,63 @@ func (_c *SystemGroupRepositoryMock_Delete_Call) RunAndReturn(run func(ctx conte
 	return _c
 }
 
+// DeleteBySystemID provides a mock function for the type SystemGroupRepositoryMock
+func (_mock *SystemGroupRepositoryMock) DeleteBySystemID(ctx context.Context, systemID string) error {
+	ret := _mock.Called(ctx, systemID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteBySystemID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, systemID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// SystemGroupRepositoryMock_DeleteBySystemID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteBySystemID'
+type SystemGroupRepositoryMock_DeleteBySystemID_Call struct {
+	*mock.Call
+}
+
+// DeleteBySystemID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - systemID string
+func (_e *SystemGroupRepositoryMock_Expecter) DeleteBySystemID(ctx interface{}, systemID interface{}) *SystemGroupRepositoryMock_DeleteBySystemID_Call {
+	return &SystemGroupRepositoryMock_DeleteBySystemID_Call{Call: _e.mock.On("DeleteBySystemID", ctx, systemID)}
+}
+
+func (_c *SystemGroupRepositoryMock_DeleteBySystemID_Call) Run(run func(ctx context.Context, systemID string)) *SystemGroupRepositoryMock_DeleteBySystemID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *SystemGroupRepositoryMock_DeleteBySystemID_Call) Return(err error) *SystemGroupRepositoryMock_DeleteBySystemID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *SystemGroupRepositoryMock_DeleteBySystemID_Call) RunAndReturn(run func(ctx context.Context, systemID string) error) *SystemGroupRepositoryMock_DeleteBySystemID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Find provides a mock function for the type SystemGroupRepositoryMock
 func (_mock *SystemGroupRepositoryMock) Find(ctx context.Context, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error) {
 	ret := _mock.Called(ctx, filter)

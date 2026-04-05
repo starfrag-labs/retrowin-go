@@ -6,6 +6,9 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
+	"github.com/starfrag-lab/retrowin-go/internal/core/object"
+	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -111,12 +114,28 @@ func (f Filter) toQueryFilter() *QueryFilter {
 }
 
 type service struct {
-	repo SystemRepository
+	repo        SystemRepository
+	inodeSvc   inode.InodeService
+	objectSvc  object.ObjectService
+	sysUserSvc  coreuser.UserService
+	sysGroupSvc coreuser.GroupService
 }
 
 // NewService creates a new SystemService.
-func NewService(repo SystemRepository) SystemService {
-	return &service{repo: repo}
+func NewService(
+	repo SystemRepository,
+	inodeSvc inode.InodeService,
+	objectSvc object.ObjectService,
+	sysUserSvc coreuser.UserService,
+	sysGroupSvc coreuser.GroupService,
+) SystemService {
+	return &service{
+		repo:        repo,
+		inodeSvc:   inodeSvc,
+		objectSvc:  objectSvc,
+		sysUserSvc:  sysUserSvc,
+		sysGroupSvc: sysGroupSvc,
+	}
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*System, error) {
@@ -211,6 +230,39 @@ func coalesceStatus(new *Status, existing Status) Status {
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
+	// Verify system exists
+	sys, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if sys == nil {
+		return errors.NotFound("system not found")
+	}
+
+	// Cleanup S3 objects (best-effort)
+	_ = s.objectSvc.CleanupStorageBySystemID(ctx, id)
+
+	// Delete inodes
+	if err := s.inodeSvc.DeleteBySystemID(ctx, id); err != nil {
+		return errors.WrapInternal(err, "failed to delete system inodes")
+	}
+
+	// Delete objects from DB
+	if err := s.objectSvc.DeleteBySystemID(ctx, id); err != nil {
+		return errors.WrapInternal(err, "failed to delete system objects")
+	}
+
+	// Delete system groups
+	if err := s.sysGroupSvc.DeleteBySystemID(ctx, id); err != nil {
+		return errors.WrapInternal(err, "failed to delete system groups")
+	}
+
+	// Delete system users
+	if err := s.sysUserSvc.DeleteBySystemID(ctx, id); err != nil {
+		return errors.WrapInternal(err, "failed to delete system users")
+	}
+
+	// Delete system record
 	return s.repo.Delete(ctx, id)
 }
 

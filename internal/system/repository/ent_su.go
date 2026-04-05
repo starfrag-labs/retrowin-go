@@ -49,6 +49,11 @@ func (r *EntSystemUserRepository) Delete(ctx context.Context, id int) error {
 	return r.client.UserSystem.DeleteOneID(id).Exec(ctx)
 }
 
+func (r *EntSystemUserRepository) DeleteBySystemID(ctx context.Context, systemID string) error {
+	_, err := r.client.UserSystem.Delete().Where(entusersystem.SystemIDEQ(systemID)).Exec(ctx)
+	return err
+}
+
 func (r *EntSystemUserRepository) Find(ctx context.Context, filter *user.QueryFilter) ([]*user.SystemUser, error) {
 	query := r.client.UserSystem.Query()
 	query = applySystemUserFilter(query, filter)

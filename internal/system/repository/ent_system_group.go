@@ -48,6 +48,11 @@ func (r *EntSystemGroupRepository) Delete(ctx context.Context, id int) error {
 	return r.client.SystemGroup.DeleteOneID(id).Exec(ctx)
 }
 
+func (r *EntSystemGroupRepository) DeleteBySystemID(ctx context.Context, systemID string) error {
+	_, err := r.client.SystemGroup.Delete().Where(entsystemgroup.SystemIDEQ(systemID)).Exec(ctx)
+	return err
+}
+
 func (r *EntSystemGroupRepository) Find(ctx context.Context, filter *user.GroupQueryFilter) ([]*user.SystemGroup, error) {
 	query := r.client.SystemGroup.Query()
 	query = applySystemGroupFilter(query, filter)

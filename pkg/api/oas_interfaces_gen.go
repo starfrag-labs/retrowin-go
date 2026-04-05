@@ -29,6 +29,10 @@ type DeleteSystemGroupRes interface {
 	deleteSystemGroupRes()
 }
 
+type DeleteSystemRes interface {
+	deleteSystemRes()
+}
+
 type DeleteSystemUserRes interface {
 	deleteSystemUserRes()
 }

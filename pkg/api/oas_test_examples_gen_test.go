@@ -335,6 +335,30 @@ func TestDeleteSystemGroupUnauthorized_EncodeDecode(t *testing.T) {
 	var typ2 DeleteSystemGroupUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestDeleteSystemNotFound_EncodeDecode(t *testing.T) {
+	var typ DeleteSystemNotFound
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 DeleteSystemNotFound
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestDeleteSystemUnauthorized_EncodeDecode(t *testing.T) {
+	var typ DeleteSystemUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 DeleteSystemUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestDeleteSystemUserNotFound_EncodeDecode(t *testing.T) {
 	var typ DeleteSystemUserNotFound
 	typ.SetFake()

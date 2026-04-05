@@ -84,6 +84,18 @@ func (h *Handler) GetSystem(ctx context.Context, params api.GetSystemParams) (ap
 	}, nil
 }
 
+func (h *Handler) DeleteSystem(ctx context.Context, params api.DeleteSystemParams) (api.DeleteSystemRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	if err := h.systemSvc.Delete(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
+	return &api.DeleteSystemNoContent{}, nil
+}
+
 func (h *Handler) toSystem(sys *system.System) *api.System {
 	resp := &api.System{
 		ID:        sys.ID(),

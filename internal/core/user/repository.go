@@ -9,6 +9,7 @@ type SystemUserRepository interface {
 	Create(ctx context.Context, systemUser *SystemUser) (*SystemUser, error)
 	GetByID(ctx context.Context, id int) (*SystemUser, error)
 	Delete(ctx context.Context, id int) error
+	DeleteBySystemID(ctx context.Context, systemID string) error
 	Find(ctx context.Context, filter *QueryFilter) ([]*SystemUser, error)
 	FindOne(ctx context.Context, filter *QueryFilter) (*SystemUser, error)
 	// GetNextUID returns the next available UID for the system.
@@ -20,6 +21,7 @@ type SystemGroupRepository interface {
 	Create(ctx context.Context, group *SystemGroup) (*SystemGroup, error)
 	GetByID(ctx context.Context, id int) (*SystemGroup, error)
 	Delete(ctx context.Context, id int) error
+	DeleteBySystemID(ctx context.Context, systemID string) error
 	Find(ctx context.Context, filter *GroupQueryFilter) ([]*SystemGroup, error)
 	FindOne(ctx context.Context, filter *GroupQueryFilter) (*SystemGroup, error)
 	// GetNextGID returns the next available GID for the system.

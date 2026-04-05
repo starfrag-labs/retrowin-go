@@ -452,6 +452,72 @@ func decodeCreateSystemUserParams(args [1]string, argsEscaped bool, r *http.Requ
 	return params, nil
 }
 
+// DeleteSystemParams is parameters of deleteSystem operation.
+type DeleteSystemParams struct {
+	// System ID.
+	SystemId string
+}
+
+func unpackDeleteSystemParams(packed middleware.Parameters) (params DeleteSystemParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeDeleteSystemParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteSystemParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // DeleteSystemGroupParams is parameters of deleteSystemGroup operation.
 type DeleteSystemGroupParams struct {
 	// System ID.

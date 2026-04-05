@@ -176,6 +176,69 @@ func (_c *InodeRepositoryMock_Delete_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
+// DeleteBySystemID provides a mock function for the type InodeRepositoryMock
+func (_mock *InodeRepositoryMock) DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error {
+	ret := _mock.Called(ctx, client, systemID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteBySystemID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) error); ok {
+		r0 = returnFunc(ctx, client, systemID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// InodeRepositoryMock_DeleteBySystemID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteBySystemID'
+type InodeRepositoryMock_DeleteBySystemID_Call struct {
+	*mock.Call
+}
+
+// DeleteBySystemID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - client *ent.Client
+//   - systemID string
+func (_e *InodeRepositoryMock_Expecter) DeleteBySystemID(ctx interface{}, client interface{}, systemID interface{}) *InodeRepositoryMock_DeleteBySystemID_Call {
+	return &InodeRepositoryMock_DeleteBySystemID_Call{Call: _e.mock.On("DeleteBySystemID", ctx, client, systemID)}
+}
+
+func (_c *InodeRepositoryMock_DeleteBySystemID_Call) Run(run func(ctx context.Context, client *ent.Client, systemID string)) *InodeRepositoryMock_DeleteBySystemID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *ent.Client
+		if args[1] != nil {
+			arg1 = args[1].(*ent.Client)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *InodeRepositoryMock_DeleteBySystemID_Call) Return(err error) *InodeRepositoryMock_DeleteBySystemID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *InodeRepositoryMock_DeleteBySystemID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, systemID string) error) *InodeRepositoryMock_DeleteBySystemID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Find provides a mock function for the type InodeRepositoryMock
 func (_mock *InodeRepositoryMock) Find(ctx context.Context, client *ent.Client, filter *inode.QueryFilter) ([]*inode.Inode, error) {
 	ret := _mock.Called(ctx, client, filter)
