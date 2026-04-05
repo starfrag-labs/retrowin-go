@@ -154,6 +154,7 @@ type InodeService interface {
 	GetByID(ctx context.Context, id string) (*Inode, error)
 	Update(ctx context.Context, cmd *UpdateCommand) error
 	Delete(ctx context.Context, id string) error
+	DeleteBySystemID(ctx context.Context, systemID string) error
 	Find(ctx context.Context, filter Filter) ([]*Inode, error)
 	FindOne(ctx context.Context, filter Filter) (*Inode, error)
 	UpdateLinkCount(ctx context.Context, id string, delta int) error
@@ -231,6 +232,10 @@ func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
 
 func (s *service) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, s.client, id)
+}
+
+func (s *service) DeleteBySystemID(ctx context.Context, systemID string) error {
+	return s.repo.DeleteBySystemID(ctx, s.client, systemID)
 }
 
 func (s *service) Find(ctx context.Context, filter Filter) ([]*Inode, error) {

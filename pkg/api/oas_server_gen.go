@@ -50,6 +50,12 @@ type Handler interface {
 	//
 	// POST /systems/{systemId}/users
 	CreateSystemUser(ctx context.Context, req *CreateSystemUserRequest, params CreateSystemUserParams) (CreateSystemUserRes, error)
+	// DeleteSystem implements deleteSystem operation.
+	//
+	// Delete a system and all associated data (inodes, objects, users, groups).
+	//
+	// DELETE /systems/{systemId}
+	DeleteSystem(ctx context.Context, params DeleteSystemParams) (DeleteSystemRes, error)
 	// DeleteSystemGroup implements deleteSystemGroup operation.
 	//
 	// Delete a group from a system.

@@ -318,6 +318,19 @@ type DeleteSystemGroupUnauthorized Error
 
 func (*DeleteSystemGroupUnauthorized) deleteSystemGroupRes() {}
 
+// DeleteSystemNoContent is response for DeleteSystem operation.
+type DeleteSystemNoContent struct{}
+
+func (*DeleteSystemNoContent) deleteSystemRes() {}
+
+type DeleteSystemNotFound Error
+
+func (*DeleteSystemNotFound) deleteSystemRes() {}
+
+type DeleteSystemUnauthorized Error
+
+func (*DeleteSystemUnauthorized) deleteSystemRes() {}
+
 // DeleteSystemUserNoContent is response for DeleteSystemUser operation.
 type DeleteSystemUserNoContent struct{}
 
@@ -522,6 +535,7 @@ func (*ErrorStatusCode) createSystemGroupRes() {}
 func (*ErrorStatusCode) createSystemRes()      {}
 func (*ErrorStatusCode) createSystemUserRes()  {}
 func (*ErrorStatusCode) deleteSystemGroupRes() {}
+func (*ErrorStatusCode) deleteSystemRes()      {}
 func (*ErrorStatusCode) deleteSystemUserRes()  {}
 func (*ErrorStatusCode) deleteUserRes()        {}
 func (*ErrorStatusCode) getDownloadUrlRes()    {}

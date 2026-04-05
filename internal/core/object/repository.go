@@ -14,6 +14,7 @@ type ObjectRepository interface {
 	GetByStorageKey(ctx context.Context, client *ent.Client, systemID string, provider string, bucket string, storageKey string) (*Object, error)
 	UpdateStatus(ctx context.Context, client *ent.Client, id string, status Status) error
 	Delete(ctx context.Context, client *ent.Client, id string) error
+	DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error
 	Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Object, error)
 	FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Object, error)
 	FindPendingOlderThan(ctx context.Context, client *ent.Client, olderThan time.Duration) ([]*Object, error)

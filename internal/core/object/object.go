@@ -3,6 +3,7 @@ package object
 import (
 	"context"
 	"io"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -94,6 +95,12 @@ type ObjectService interface {
 
 	// Delete atomically removes from external storage and DB.
 	Delete(ctx context.Context, id string) error
+
+	// DeleteBySystemID removes all objects for a system from DB (use CleanupStorageBySystemID first for S3 cleanup).
+	DeleteBySystemID(ctx context.Context, systemID string) error
+
+	// CleanupStorageBySystemID deletes all objects for a system from external storage (best-effort).
+	CleanupStorageBySystemID(ctx context.Context, systemID string) error
 
 	Find(ctx context.Context, filter Filter) ([]*Object, error)
 	FindOne(ctx context.Context, filter Filter) (*Object, error)
@@ -299,6 +306,26 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	}
 
 	return s.repo.Delete(ctx, s.client, id)
+}
+
+func (s *service) DeleteBySystemID(ctx context.Context, systemID string) error {
+	return s.repo.DeleteBySystemID(ctx, s.client, systemID)
+}
+
+func (s *service) CleanupStorageBySystemID(ctx context.Context, systemID string) error {
+	objects, err := s.repo.Find(ctx, s.client, &QueryFilter{SystemID: &systemID})
+	if err != nil {
+		return err
+	}
+	for _, obj := range objects {
+		if err := s.storage.DeleteObject(ctx, obj.Bucket(), obj.StorageKey()); err != nil {
+			slog.Warn("failed to delete object from storage, skipping",
+				"object_id", obj.ID(),
+				"error", err,
+			)
+		}
+	}
+	return nil
 }
 
 func (s *service) Find(ctx context.Context, filter Filter) ([]*Object, error) {

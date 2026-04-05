@@ -296,6 +296,24 @@ func (s *DeleteSystemGroupUnauthorized) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *DeleteSystemNotFound) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSystemNotFound(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *DeleteSystemUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = DeleteSystemUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
 func (s *DeleteSystemUserNotFound) SetFake() {
 	var unwrapped Error
 	{

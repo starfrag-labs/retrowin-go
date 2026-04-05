@@ -698,13 +698,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 					if len(elem) == 0 {
 						switch r.Method {
+						case "DELETE":
+							s.handleDeleteSystemRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
 						case "GET":
 							s.handleGetSystemRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, notAllowedParams{
-								allowedMethods: "GET",
+								allowedMethods: "DELETE,GET",
 								allowedHeaders: nil,
 								acceptPost:     "",
 								acceptPatch:    "",
@@ -1639,6 +1643,15 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 					if len(elem) == 0 {
 						switch method {
+						case "DELETE":
+							r.name = DeleteSystemOperation
+							r.summary = "Delete a system"
+							r.operationID = "deleteSystem"
+							r.operationGroup = ""
+							r.pathPattern = "/systems/{systemId}"
+							r.args = args
+							r.count = 1
+							return r, true
 						case "GET":
 							r.name = GetSystemOperation
 							r.summary = "Get system by ID"

@@ -68,6 +68,9 @@ type UserService interface {
 	// Delete removes a system user.
 	Delete(ctx context.Context, id int) error
 
+	// DeleteBySystemID removes all system users for a given system.
+	DeleteBySystemID(ctx context.Context, systemID string) error
+
 	// Find retrieves system users matching the filter.
 	Find(ctx context.Context, filter Filter) ([]*SystemUser, error)
 
@@ -286,6 +289,9 @@ func (s *service) Delete(ctx context.Context, id int) error {
 	return s.repo.Delete(ctx, id)
 }
 
+func (s *service) DeleteBySystemID(ctx context.Context, systemID string) error {
+	return s.repo.DeleteBySystemID(ctx, systemID)
+}
 func (s *service) Find(ctx context.Context, filter Filter) ([]*SystemUser, error) {
 	return s.repo.Find(ctx, &filter)
 }
