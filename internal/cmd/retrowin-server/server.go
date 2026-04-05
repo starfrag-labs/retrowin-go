@@ -4,14 +4,11 @@ package retrowinserver
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime/debug"
-	"strings"
 	"syscall"
 	"time"
 
@@ -36,6 +33,7 @@ import (
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 	"github.com/starfrag-lab/retrowin-go/internal/handler"
+	"github.com/starfrag-lab/retrowin-go/internal/middleware"
 	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
 	"github.com/starfrag-lab/retrowin-go/internal/session"
 	sessionRepo "github.com/starfrag-lab/retrowin-go/internal/session/repository"
@@ -197,178 +195,13 @@ func ProvideHTTPMux(
 	return mux
 }
 
-// parseSameSite parses the SameSite configuration string.
-func parseSameSite(sameSite string) http.SameSite {
-	switch strings.ToLower(sameSite) {
-	case "strict":
-		return http.SameSiteStrictMode
-	case "none", "":
-		return http.SameSiteNoneMode
-	default:
-		return http.SameSiteLaxMode
-	}
-}
-
-// sessionMiddleware wraps the handler to manage session cookies:
-// - On callback: captures the response body to extract session ID and sets the cookie, then redirects to frontend.
-// - On logout: clears the session cookie.
-func sessionMiddleware(next http.Handler, secure bool, ttl int, cookieName string, frontendURL string, domain string, sameSite string) http.Handler {
-	parsedSameSite := parseSameSite(sameSite)
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Logout: clear session cookie before the handler runs
-		if r.Method == http.MethodPost && r.URL.Path == "/auth/logout" {
-			cookie := &http.Cookie{
-				Name:     cookieName,
-				Value:    "",
-				Path:     "/",
-				HttpOnly: true,
-				Secure:   secure,
-				MaxAge:   -1,
-				SameSite: parsedSameSite,
-			}
-			if domain != "" {
-				cookie.Domain = domain
-			}
-			http.SetCookie(w, cookie)
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		// Callback: capture response to extract session ID, set cookie, and redirect to frontend
-		if r.Method == http.MethodGet && r.URL.Path == "/auth/callback" {
-			rec := &responseRecorder{ResponseWriter: w}
-			next.ServeHTTP(rec, r)
-
-			// Only set cookie on successful callback (200 status) and redirect
-			if rec.statusCode == http.StatusOK && len(rec.body) > 0 {
-				var resp struct {
-					SessionID string `json:"sessionId"`
-				}
-				if err := json.Unmarshal(rec.body, &resp); err == nil && resp.SessionID != "" {
-					cookie := &http.Cookie{
-						Name:     cookieName,
-						Value:    resp.SessionID,
-						Path:     "/",
-						HttpOnly: true,
-						Secure:   secure,
-						MaxAge:   ttl,
-						SameSite: parsedSameSite,
-					}
-					if domain != "" {
-						cookie.Domain = domain
-					}
-					http.SetCookie(w, cookie)
-					// Redirect to frontend after successful login
-					http.Redirect(w, r, frontendURL, http.StatusFound)
-					return
-				}
-			}
-			// On error, return the original response
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(rec.statusCode)
-			_, _ = w.Write(rec.body)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-// responseRecorder captures the response body and status code.
-type responseRecorder struct {
-	http.ResponseWriter
-	statusCode int
-	body       []byte
-}
-
-func (r *responseRecorder) WriteHeader(code int) {
-	r.statusCode = code
-	r.ResponseWriter.WriteHeader(code)
-}
-
-func (r *responseRecorder) Write(b []byte) (int, error) {
-	if r.statusCode == 0 {
-		r.statusCode = http.StatusOK
-	}
-	r.body = append(r.body, b...)
-	return r.ResponseWriter.Write(b)
-}
-
-// panicRecoveryMiddleware recovers from panics and logs them.
-func panicRecoveryMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if rv := recover(); rv != nil {
-				fmt.Printf("PANIC recovered: %v\n", rv)
-				fmt.Printf("Stack: %s\n", debug.Stack())
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			}
-		}()
-		next.ServeHTTP(w, r)
-	})
-}
-
-// corsMiddleware adds CORS headers to responses.
-func corsMiddleware(next http.Handler, cfg *config.Config) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// If CORS is disabled, just pass through
-		if !cfg.CORS.Enabled {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		// Set CORS headers
-		origin := r.Header.Get("Origin")
-		allowedOrigin := ""
-
-		// Check if origin is in allowed list
-		for _, allowed := range cfg.CORS.AllowedOrigins {
-			if allowed == "*" || allowed == origin {
-				allowedOrigin = allowed
-				break
-			}
-		}
-
-		if allowedOrigin != "" {
-			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
-		}
-
-		if cfg.CORS.AllowCredentials {
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
-		}
-
-		if len(cfg.CORS.ExposedHeaders) > 0 {
-			w.Header().Set("Access-Control-Expose-Headers", strings.Join(cfg.CORS.ExposedHeaders, ", "))
-		}
-
-		// Handle preflight requests
-		if r.Method == "OPTIONS" {
-			w.Header().Set("Access-Control-Allow-Methods", strings.Join(cfg.CORS.AllowedMethods, ", "))
-			w.Header().Set("Access-Control-Allow-Headers", strings.Join(cfg.CORS.AllowedHeaders, ", "))
-			if cfg.CORS.MaxAge > 0 {
-				w.Header().Set("Access-Control-Max-Age", fmt.Sprintf("%d", cfg.CORS.MaxAge))
-			}
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-// ProvideHTTPHandler provides the HTTP handler.
-func ProvideHTTPHandler(mux *http.ServeMux, cfg *config.Config) http.Handler {
-	handler := sessionMiddleware(
-		mux,
-		cfg.Auth.Session.Secure,
-		cfg.Auth.Session.TTL,
-		cfg.Auth.Session.CookieName,
-		cfg.Auth.Session.FrontendURL,
-		cfg.Auth.Session.Domain,
-		cfg.Auth.Session.SameSite,
-	)
-	handler = corsMiddleware(handler, cfg)
-	return panicRecoveryMiddleware(handler)
+// ProvideHTTPHandler provides the HTTP handler with middleware chain.
+func ProvideHTTPHandler(mux *http.ServeMux, callbackCfg *middleware.CallbackConfig, cfg *config.Config) http.Handler {
+	var handler http.Handler = mux
+	handler = middleware.CallbackMiddleware(callbackCfg)(handler)
+	handler = middleware.CORSMiddleware(cfg)(handler)
+	handler = middleware.RecoveryMiddleware()(handler)
+	return handler
 }
 
 // ProvideHTTPServer provides the HTTP server.
@@ -500,6 +333,7 @@ func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 			// HTTP layer
 			handler.NewHandler,
 			ProvideOgenServer,
+			middleware.ProvideCallbackConfig,
 			fx.Annotate(ProvideHTTPMux, fx.ParamTags(``, ``, `name:"openAPIPath"`)),
 			ProvideHTTPHandler,
 			ProvideHTTPServer,
