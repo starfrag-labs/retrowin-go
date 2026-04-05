@@ -291,7 +291,8 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 		r.statusCode = http.StatusOK
 	}
 	r.body = append(r.body, b...)
-	return r.ResponseWriter.Write(b)
+
+	return len(b), nil
 }
 
 // panicRecoveryMiddleware recovers from panics and logs them.
