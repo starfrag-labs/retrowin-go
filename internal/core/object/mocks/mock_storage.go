@@ -386,6 +386,50 @@ func (_c *StorageMock_GetPresignedUploadURL_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// KeyPrefix provides a mock function for the type StorageMock
+func (_mock *StorageMock) KeyPrefix() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for KeyPrefix")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// StorageMock_KeyPrefix_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'KeyPrefix'
+type StorageMock_KeyPrefix_Call struct {
+	*mock.Call
+}
+
+// KeyPrefix is a helper method to define mock.On call
+func (_e *StorageMock_Expecter) KeyPrefix() *StorageMock_KeyPrefix_Call {
+	return &StorageMock_KeyPrefix_Call{Call: _e.mock.On("KeyPrefix")}
+}
+
+func (_c *StorageMock_KeyPrefix_Call) Run(run func()) *StorageMock_KeyPrefix_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *StorageMock_KeyPrefix_Call) Return(s string) *StorageMock_KeyPrefix_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *StorageMock_KeyPrefix_Call) RunAndReturn(run func() string) *StorageMock_KeyPrefix_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ObjectExists provides a mock function for the type StorageMock
 func (_mock *StorageMock) ObjectExists(ctx context.Context, bucket string, key string) (bool, error) {
 	ret := _mock.Called(ctx, bucket, key)

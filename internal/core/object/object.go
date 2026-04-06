@@ -214,7 +214,7 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 
 	// Generate object ID and storage key
 	objectID := uuid.New().String()
-	storageKey := objectID // Use object ID as storage key
+	storageKey := s.storage.KeyPrefix() + objectID
 
 	// Resolve actual bucket name so it's stored explicitly in DB
 	bucket := s.storage.DefaultBucket()

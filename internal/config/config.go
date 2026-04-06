@@ -72,7 +72,16 @@ type StorageConfig struct {
 	AccessKey string `mapstructure:"accessKey" yaml:"accessKey"`
 	SecretKey string `mapstructure:"secretKey" yaml:"secretKey"`
 	Bucket    string `mapstructure:"bucket" yaml:"bucket"`
+	Prefix    string `mapstructure:"prefix" yaml:"prefix"`
 	UseSSL    bool   `mapstructure:"useSSL" yaml:"useSSL"`
+}
+
+// StorageKeyPrefix returns the configured prefix with trailing slash, or empty string.
+func (s *StorageConfig) StorageKeyPrefix() string {
+	if s.Prefix == "" {
+		return ""
+	}
+	return strings.TrimRight(s.Prefix, "/") + "/"
 }
 
 // AuthConfig holds authentication configuration.

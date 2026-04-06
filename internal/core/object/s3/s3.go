@@ -22,6 +22,7 @@ type S3Storage struct {
 	client        *s3.Client
 	presigner     *s3.PresignClient
 	defaultBucket string
+	keyPrefix     string
 }
 
 // New creates a new S3 storage instance.
@@ -57,12 +58,18 @@ func New(cfg *appconfig.StorageConfig) (object.Storage, error) {
 		client:        client,
 		presigner:     presigner,
 		defaultBucket: cfg.Bucket,
+		keyPrefix:     cfg.StorageKeyPrefix(),
 	}, nil
 }
 
 // DefaultBucket returns the configured default bucket name.
 func (s *S3Storage) DefaultBucket() string {
 	return s.defaultBucket
+}
+
+// KeyPrefix returns the configured prefix for storage keys.
+func (s *S3Storage) KeyPrefix() string {
+	return s.keyPrefix
 }
 
 func (s *S3Storage) resolveBucket(bucket string) string {
