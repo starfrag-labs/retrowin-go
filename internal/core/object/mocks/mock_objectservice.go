@@ -705,8 +705,8 @@ func (_c *ObjectServiceMock_GetByStorageKey_Call) RunAndReturn(run func(ctx cont
 }
 
 // GetDownloadURL provides a mock function for the type ObjectServiceMock
-func (_mock *ObjectServiceMock) GetDownloadURL(ctx context.Context, id string) (string, time.Time, error) {
-	ret := _mock.Called(ctx, id)
+func (_mock *ObjectServiceMock) GetDownloadURL(ctx context.Context, id string, size int64) (string, time.Time, error) {
+	ret := _mock.Called(ctx, id, size)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDownloadURL")
@@ -715,21 +715,21 @@ func (_mock *ObjectServiceMock) GetDownloadURL(ctx context.Context, id string) (
 	var r0 string
 	var r1 time.Time
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, time.Time, error)); ok {
-		return returnFunc(ctx, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int64) (string, time.Time, error)); ok {
+		return returnFunc(ctx, id, size)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = returnFunc(ctx, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int64) string); ok {
+		r0 = returnFunc(ctx, id, size)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) time.Time); ok {
-		r1 = returnFunc(ctx, id)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, int64) time.Time); ok {
+		r1 = returnFunc(ctx, id, size)
 	} else {
 		r1 = ret.Get(1).(time.Time)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = returnFunc(ctx, id)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, int64) error); ok {
+		r2 = returnFunc(ctx, id, size)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -744,11 +744,12 @@ type ObjectServiceMock_GetDownloadURL_Call struct {
 // GetDownloadURL is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *ObjectServiceMock_Expecter) GetDownloadURL(ctx interface{}, id interface{}) *ObjectServiceMock_GetDownloadURL_Call {
-	return &ObjectServiceMock_GetDownloadURL_Call{Call: _e.mock.On("GetDownloadURL", ctx, id)}
+//   - size int64
+func (_e *ObjectServiceMock_Expecter) GetDownloadURL(ctx interface{}, id interface{}, size interface{}) *ObjectServiceMock_GetDownloadURL_Call {
+	return &ObjectServiceMock_GetDownloadURL_Call{Call: _e.mock.On("GetDownloadURL", ctx, id, size)}
 }
 
-func (_c *ObjectServiceMock_GetDownloadURL_Call) Run(run func(ctx context.Context, id string)) *ObjectServiceMock_GetDownloadURL_Call {
+func (_c *ObjectServiceMock_GetDownloadURL_Call) Run(run func(ctx context.Context, id string, size int64)) *ObjectServiceMock_GetDownloadURL_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -758,9 +759,14 @@ func (_c *ObjectServiceMock_GetDownloadURL_Call) Run(run func(ctx context.Contex
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 int64
+		if args[2] != nil {
+			arg2 = args[2].(int64)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -771,7 +777,7 @@ func (_c *ObjectServiceMock_GetDownloadURL_Call) Return(s string, time1 time.Tim
 	return _c
 }
 
-func (_c *ObjectServiceMock_GetDownloadURL_Call) RunAndReturn(run func(ctx context.Context, id string) (string, time.Time, error)) *ObjectServiceMock_GetDownloadURL_Call {
+func (_c *ObjectServiceMock_GetDownloadURL_Call) RunAndReturn(run func(ctx context.Context, id string, size int64) (string, time.Time, error)) *ObjectServiceMock_GetDownloadURL_Call {
 	_c.Call.Return(run)
 	return _c
 }

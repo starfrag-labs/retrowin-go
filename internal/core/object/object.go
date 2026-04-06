@@ -104,7 +104,7 @@ type ObjectService interface {
 
 	Find(ctx context.Context, filter Filter) ([]*Object, error)
 	FindOne(ctx context.Context, filter Filter) (*Object, error)
-	GetDownloadURL(ctx context.Context, id string) (string, time.Time, error)
+	GetDownloadURL(ctx context.Context, id string, size int64) (string, time.Time, error)
 
 	// GC: Find pending objects older than threshold.
 	FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error)
@@ -225,8 +225,9 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 		return nil, errors.WrapInternal(err, "failed to create pending object")
 	}
 
-	// Generate presigned upload URL
-	uploadURL, err := s.storage.GetPresignedUploadURL(ctx, bucket, storageKey, cmd.ContentType, cmd.Size, DefaultUploadExpiry)
+	// Generate presigned upload URL with size-based expiry
+	expiry := ExpiryForSize(cmd.Size)
+	uploadURL, err := s.storage.GetPresignedUploadURL(ctx, bucket, storageKey, cmd.ContentType, cmd.Size, expiry)
 	if err != nil {
 		// Cleanup on failure
 		_ = s.repo.Delete(ctx, s.client, objectID)
@@ -236,7 +237,7 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 	return &UploadSession{
 		ObjectID:  objectID,
 		UploadURL: uploadURL,
-		ExpiresAt: time.Now().Add(DefaultUploadExpiry),
+		ExpiresAt: time.Now().Add(expiry),
 	}, nil
 }
 
@@ -343,7 +344,7 @@ func (s *service) FindOne(ctx context.Context, filter Filter) (*Object, error) {
 	return obj, nil
 }
 
-func (s *service) GetDownloadURL(ctx context.Context, id string) (string, time.Time, error) {
+func (s *service) GetDownloadURL(ctx context.Context, id string, size int64) (string, time.Time, error) {
 	obj, err := s.repo.GetByID(ctx, s.client, id)
 	if err != nil {
 		return "", time.Time{}, err
@@ -352,11 +353,12 @@ func (s *service) GetDownloadURL(ctx context.Context, id string) (string, time.T
 		return "", time.Time{}, errors.NotFound("object not found")
 	}
 
-	downloadURL, err := s.storage.GetPresignedDownloadURL(ctx, obj.Bucket(), obj.StorageKey(), DefaultDownloadExpiry)
+	expiry := ExpiryForSize(size)
+	downloadURL, err := s.storage.GetPresignedDownloadURL(ctx, obj.Bucket(), obj.StorageKey(), expiry)
 	if err != nil {
 		return "", time.Time{}, errors.WrapInternal(err, "failed to generate download URL")
 	}
-	return downloadURL, time.Now().Add(DefaultDownloadExpiry), nil
+	return downloadURL, time.Now().Add(expiry), nil
 }
 
 // FindPendingOlderThan finds pending objects older than threshold for GC.
