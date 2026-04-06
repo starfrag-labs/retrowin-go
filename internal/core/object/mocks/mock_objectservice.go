@@ -346,6 +346,63 @@ func (_c *ObjectServiceMock_DeleteBySystemID_Call) RunAndReturn(run func(ctx con
 	return _c
 }
 
+// DeleteFromDB provides a mock function for the type ObjectServiceMock
+func (_mock *ObjectServiceMock) DeleteFromDB(ctx context.Context, id string) error {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteFromDB")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// ObjectServiceMock_DeleteFromDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteFromDB'
+type ObjectServiceMock_DeleteFromDB_Call struct {
+	*mock.Call
+}
+
+// DeleteFromDB is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ObjectServiceMock_Expecter) DeleteFromDB(ctx interface{}, id interface{}) *ObjectServiceMock_DeleteFromDB_Call {
+	return &ObjectServiceMock_DeleteFromDB_Call{Call: _e.mock.On("DeleteFromDB", ctx, id)}
+}
+
+func (_c *ObjectServiceMock_DeleteFromDB_Call) Run(run func(ctx context.Context, id string)) *ObjectServiceMock_DeleteFromDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *ObjectServiceMock_DeleteFromDB_Call) Return(err error) *ObjectServiceMock_DeleteFromDB_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *ObjectServiceMock_DeleteFromDB_Call) RunAndReturn(run func(ctx context.Context, id string) error) *ObjectServiceMock_DeleteFromDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Find provides a mock function for the type ObjectServiceMock
 func (_mock *ObjectServiceMock) Find(ctx context.Context, filter object.Filter) ([]*object.Object, error) {
 	ret := _mock.Called(ctx, filter)
@@ -410,6 +467,68 @@ func (_c *ObjectServiceMock_Find_Call) Return(objects []*object.Object, err erro
 }
 
 func (_c *ObjectServiceMock_Find_Call) RunAndReturn(run func(ctx context.Context, filter object.Filter) ([]*object.Object, error)) *ObjectServiceMock_Find_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindActive provides a mock function for the type ObjectServiceMock
+func (_mock *ObjectServiceMock) FindActive(ctx context.Context) ([]*object.Object, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindActive")
+	}
+
+	var r0 []*object.Object
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*object.Object, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []*object.Object); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*object.Object)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// ObjectServiceMock_FindActive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindActive'
+type ObjectServiceMock_FindActive_Call struct {
+	*mock.Call
+}
+
+// FindActive is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *ObjectServiceMock_Expecter) FindActive(ctx interface{}) *ObjectServiceMock_FindActive_Call {
+	return &ObjectServiceMock_FindActive_Call{Call: _e.mock.On("FindActive", ctx)}
+}
+
+func (_c *ObjectServiceMock_FindActive_Call) Run(run func(ctx context.Context)) *ObjectServiceMock_FindActive_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *ObjectServiceMock_FindActive_Call) Return(objects []*object.Object, err error) *ObjectServiceMock_FindActive_Call {
+	_c.Call.Return(objects, err)
+	return _c
+}
+
+func (_c *ObjectServiceMock_FindActive_Call) RunAndReturn(run func(ctx context.Context) ([]*object.Object, error)) *ObjectServiceMock_FindActive_Call {
 	_c.Call.Return(run)
 	return _c
 }

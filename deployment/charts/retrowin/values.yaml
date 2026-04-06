@@ -212,3 +212,19 @@ migration:
   baseline: ""           # Baseline version for existing databases (versioned mode only)
   clean: false           # Drop all tables before applying migrations
   allowDirty: false      # Allow applying versioned migrations to a non-clean database
+
+# Garbage collector CronJob settings
+gc:
+  enabled: true
+  schedule: "0 3 * * *"
+  pendingExpiry: "24h"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
