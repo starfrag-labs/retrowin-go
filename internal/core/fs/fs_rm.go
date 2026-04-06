@@ -45,7 +45,9 @@ func (s *service) deleteObjectRef(ctx context.Context, raw []byte) error {
 		return nil
 	}
 	if err := s.objectSvc.Delete(ctx, c.ObjectID); err != nil {
-		slog.Warn("failed to delete object, skipping", "object_id", c.ObjectID, "error", err)
+		if !errors.IsNotFound(err) {
+			slog.Warn("failed to delete object, skipping", "object_id", c.ObjectID, "error", err)
+		}
 	}
 	return nil
 }

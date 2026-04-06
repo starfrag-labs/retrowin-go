@@ -250,10 +250,7 @@ func (h *Handler) Unlink(ctx context.Context, params api.UnlinkParams) (api.Unli
 		return nil, h.domainError(err)
 	}
 
-	// Clean up S3 object if this is an object inode (best-effort)
-	_ = h.storageSvc.DeleteObjectByInode(ctx, targetEntry.InodeID)
-
-	// Delete the inode (may already be gone for dangling entries)
+	// Delete the inode (handles object cleanup internally; may already be gone for dangling entries)
 	if err := h.fsSvc.Delete(ctx, targetEntry.InodeID); err != nil && !errors.IsNotFound(err) {
 		return nil, h.domainError(err)
 	}
