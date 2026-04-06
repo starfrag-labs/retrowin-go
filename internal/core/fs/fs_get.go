@@ -54,5 +54,6 @@ func (s *service) ReadDir(ctx context.Context, id string) ([]content.DirEntry, e
 	if err := json.Unmarshal(in.Content(), &c); err != nil {
 		return nil, errors.WrapInternal(err, "failed to parse directory content")
 	}
+
 	return c.Entries, nil
 }
