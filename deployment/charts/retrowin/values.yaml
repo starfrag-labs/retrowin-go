@@ -138,6 +138,7 @@ config:
     region: us-east-1
     endpoint: ""          # Empty for AWS S3, or "http://minio:9000" for MinIO
     bucket: retrowin
+    prefix: ""            # Key prefix (e.g. "storage" to store objects under storage/)
 
   # Authentication settings
   auth:
@@ -212,3 +213,19 @@ migration:
   baseline: ""           # Baseline version for existing databases (versioned mode only)
   clean: false           # Drop all tables before applying migrations
   allowDirty: false      # Allow applying versioned migrations to a non-clean database
+
+# Garbage collector CronJob settings
+gc:
+  enabled: true
+  schedule: "0 3 * * *"
+  pendingExpiry: "24h"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

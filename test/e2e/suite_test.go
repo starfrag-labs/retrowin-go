@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
-	retrowinserver "github.com/starfrag-lab/retrowin-go/internal/cmd/retrowin-server"
+	"github.com/starfrag-lab/retrowin-go/internal/cmd/serve"
 )
 
 func TestSuite_Start(t *testing.T) {
@@ -188,7 +188,7 @@ func TestSuite_FullServerStartup(t *testing.T) {
 
 	// Start the actual fx app with test config
 	// This test verifies that the real server starts and responds to health checks
-	app := retrowinserver.NewFXApp(cfgFile, cfg.HTTP.Port, "../../api/openapi.yaml")
+	app := serve.NewFXApp(cfgFile, cfg.HTTP.Port, "../../api/openapi.yaml")
 
 	// Start app in background
 	appDone := make(chan struct{})

@@ -108,6 +108,13 @@ type ObjectService interface {
 
 	// GC: Find pending objects older than threshold.
 	FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error)
+
+	// GC: Find all active objects.
+	FindActive(ctx context.Context) ([]*Object, error)
+
+	// DeleteFromDB removes the object record from DB only (no S3 call).
+	// Used by GC for orphan cleanup where S3 data is already gone.
+	DeleteFromDB(ctx context.Context, id string) error
 }
 
 // CreateCommand for creating a new object (service layer).
@@ -207,7 +214,7 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 
 	// Generate object ID and storage key
 	objectID := uuid.New().String()
-	storageKey := objectID // Use object ID as storage key
+	storageKey := s.storage.KeyPrefix() + objectID
 
 	// Resolve actual bucket name so it's stored explicitly in DB
 	bucket := s.storage.DefaultBucket()
@@ -364,4 +371,14 @@ func (s *service) GetDownloadURL(ctx context.Context, id string, size int64) (st
 // FindPendingOlderThan finds pending objects older than threshold for GC.
 func (s *service) FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error) {
 	return s.repo.FindPendingOlderThan(ctx, s.client, olderThan)
+}
+
+// FindActive finds all active objects for GC orphan detection.
+func (s *service) FindActive(ctx context.Context) ([]*Object, error) {
+	return s.repo.FindActive(ctx, s.client)
+}
+
+// DeleteFromDB removes the object record from DB only (no S3 call).
+func (s *service) DeleteFromDB(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, s.client, id)
 }

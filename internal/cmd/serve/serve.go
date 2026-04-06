@@ -1,5 +1,5 @@
-// Package server implements the retrowin-server command
-package retrowinserver
+// Package serve implements the serve command
+package serve
 
 import (
 	"context"
@@ -327,7 +327,6 @@ func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 			// Application services
 			corefs.NewService,
 			storage.NewService,
-			ProvideGarbageCollector,
 			// Storage
 			ProvideStorage,
 			// HTTP layer
@@ -340,7 +339,6 @@ func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 		),
 
 		fx.Invoke(RegisterShutdownHooks),
-		fx.Invoke(RegisterGC),
 		fx.Invoke(WaitForShutdown),
 		fx.StartTimeout(30 * time.Second),
 		fx.StopTimeout(30 * time.Second),
@@ -386,22 +384,6 @@ func ProvideKeycloak(cfg *config.Config) *auth.Keycloak {
 		ClientID:     cfg.Auth.Keycloak.ClientID,
 		ClientSecret: cfg.Auth.Keycloak.ClientSecret,
 		RedirectURI:  cfg.Auth.Keycloak.RedirectURI,
-	})
-}
-
-// ProvideGarbageCollector provides a storage garbage collector with default expiry.
-func ProvideGarbageCollector(objectSvc object.ObjectService) *storage.GarbageCollector {
-	return storage.NewGarbageCollector(objectSvc, 0) // uses DefaultPendingExpiry
-}
-
-// RegisterGC schedules periodic garbage collection.
-func RegisterGC(lc fx.Lifecycle, gc *storage.GarbageCollector, logger *zap.Logger) {
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			go gc.RunPeriodically(ctx, 1*time.Hour)
-			logger.Info("garbage collector started", zap.String("interval", "1h"))
-			return nil
-		},
 	})
 }
 

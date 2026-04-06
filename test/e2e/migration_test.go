@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	retrowinserver "github.com/starfrag-lab/retrowin-go/internal/cmd/retrowin-server"
+	"github.com/starfrag-lab/retrowin-go/internal/cmd/migrate"
 )
 
 func TestMigration_AutoMode(t *testing.T) {
@@ -27,7 +27,7 @@ func TestMigration_AutoMode(t *testing.T) {
 	cfg := suite.GetConfig()
 
 	t.Run("applies auto migrations to empty database", func(t *testing.T) {
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Mode: "auto"})
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Mode: "auto"})
 		require.NoError(t, err, "Auto migration should succeed")
 
 		// Verify core tables exist
@@ -44,7 +44,7 @@ func TestMigration_AutoMode(t *testing.T) {
 	})
 
 	t.Run("idempotent auto migration", func(t *testing.T) {
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Mode: "auto"})
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Mode: "auto"})
 		require.NoError(t, err, "Running auto migration again should succeed")
 	})
 }
@@ -67,7 +67,7 @@ func TestMigration_VersionedMode(t *testing.T) {
 	// suite.Start() already ran auto-migrations, so the database has tables.
 	// Use baseline to skip the init migration that would conflict.
 	t.Run("applies versioned migrations with baseline on existing database", func(t *testing.T) {
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{
 			Mode:     "versioned",
 			Baseline: "20260402012402",
 		})
@@ -75,7 +75,7 @@ func TestMigration_VersionedMode(t *testing.T) {
 	})
 
 	t.Run("no pending migrations on reapply", func(t *testing.T) {
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Mode: "versioned"})
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Mode: "versioned"})
 		require.NoError(t, err, "Reapplying versioned migrations should succeed")
 	})
 }
@@ -97,7 +97,7 @@ func TestMigration_VersionedOnCleanDB(t *testing.T) {
 
 	t.Run("clean then versioned migration on fresh database", func(t *testing.T) {
 		// Clean drops all tables (including ones created by suite.Start auto-migration)
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{
 			Mode:  "versioned",
 			Clean: true,
 		})
@@ -117,7 +117,7 @@ func TestMigration_VersionedOnCleanDB(t *testing.T) {
 	})
 
 	t.Run("no pending migrations on reapply", func(t *testing.T) {
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Mode: "versioned"})
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Mode: "versioned"})
 		require.NoError(t, err, "Reapplying versioned migrations should succeed")
 	})
 }
@@ -138,7 +138,7 @@ func TestMigration_CleanAndReapply(t *testing.T) {
 	cfg := suite.GetConfig()
 
 	// First apply to create tables
-	err = retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Mode: "auto"})
+	err = migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Mode: "auto"})
 	require.NoError(t, err, "Initial migration should succeed")
 
 	// Verify tables exist
@@ -150,7 +150,7 @@ func TestMigration_CleanAndReapply(t *testing.T) {
 	require.True(t, tableCount > 0, "Should have tables after initial migration")
 
 	t.Run("clean drops all tables", func(t *testing.T) {
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Mode: "auto", Clean: true})
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Mode: "auto", Clean: true})
 		require.NoError(t, err, "Clean migration should succeed")
 
 		// Verify tables were recreated
@@ -164,11 +164,11 @@ func TestMigration_CleanAndReapply(t *testing.T) {
 
 	t.Run("clean on empty database is safe", func(t *testing.T) {
 		// Drop everything first
-		err := retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Clean: true})
+		err := migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Clean: true})
 		require.NoError(t, err, "Clean on empty database should not error")
 
 		// Re-apply
-		err = retrowinserver.ApplyMigrations(cfg, retrowinserver.MigrateOptions{Mode: "auto"})
+		err = migrate.ApplyMigrations(cfg, migrate.MigrateOptions{Mode: "auto"})
 		require.NoError(t, err)
 	})
 }

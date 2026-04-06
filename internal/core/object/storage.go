@@ -11,6 +11,9 @@ type Storage interface {
 	// DefaultBucket returns the default bucket name from config.
 	DefaultBucket() string
 
+	// KeyPrefix returns the configured prefix for storage keys.
+	KeyPrefix() string
+
 	// PutObject streams data directly to storage. Returns the uploaded size.
 	PutObject(ctx context.Context, bucket string, key string, reader io.Reader, size int64) error
 

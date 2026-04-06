@@ -1,4 +1,5 @@
-package retrowinserver
+// Package migrate implements the migrate command
+package migrate
 
 import (
 	"context"
@@ -63,9 +64,9 @@ func dropAllTables(cfg *config.Config) error {
 	switch cfg.Database.Driver {
 	case "postgres":
 		query = `
-			SELECT COALESCE(string_agg('DROP TABLE IF EXISTS ' || quote_ident(table_schema) || '.' || quote_ident(table_name) || ' CASCADE', E';\n'), '')
-			FROM information_schema.tables
-			WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`
+				SELECT COALESCE(string_agg('DROP TABLE IF EXISTS ' || quote_ident(table_schema) || '.' || quote_ident(table_name) || ' CASCADE', E';\n'), '')
+				FROM information_schema.tables
+				WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`
 	default:
 		return fmt.Errorf("unsupported database driver for clean: %s", cfg.Database.Driver)
 	}
