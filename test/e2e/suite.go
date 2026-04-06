@@ -32,7 +32,7 @@ import (
 	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/ent/object"
 	"github.com/starfrag-lab/retrowin-go/ent/system"
-	retrowinserver "github.com/starfrag-lab/retrowin-go/internal/cmd/retrowin-server"
+	"github.com/starfrag-lab/retrowin-go/internal/cmd/serve"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
 	domainsession "github.com/starfrag-lab/retrowin-go/internal/session"
 	"github.com/starfrag-lab/retrowin-go/internal/session/repository"
@@ -284,7 +284,7 @@ func (s *Suite) StartServer(ctx context.Context) error {
 	}
 
 	// Start the actual fx app
-	s.app = retrowinserver.NewFXApp(s.cfgFile, s.Config.HTTP.Port, "../../api/openapi.yaml")
+	s.app = serve.NewFXApp(s.cfgFile, s.Config.HTTP.Port, "../../api/openapi.yaml")
 
 	go func() {
 		s.app.Run()

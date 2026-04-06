@@ -124,6 +124,16 @@ func (r *EntRepository) FindPendingOlderThan(ctx context.Context, client *ent.Cl
 	return fromEntSlice(entObjects), nil
 }
 
+func (r *EntRepository) FindActive(ctx context.Context, client *ent.Client) ([]*domain.Object, error) {
+	entObjects, err := client.Object.Query().
+		Where(entobject.StatusEQ(entobject.StatusActive)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find active objects: %w", err)
+	}
+	return fromEntSlice(entObjects), nil
+}
+
 func applyFilter(query *ent.ObjectQuery, filter *domain.QueryFilter) *ent.ObjectQuery {
 	if filter == nil {
 		return query

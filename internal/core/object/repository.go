@@ -18,6 +18,7 @@ type ObjectRepository interface {
 	Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Object, error)
 	FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Object, error)
 	FindPendingOlderThan(ctx context.Context, client *ent.Client, olderThan time.Duration) ([]*Object, error)
+	FindActive(ctx context.Context, client *ent.Client) ([]*Object, error)
 }
 
 // CreateParams for creating a new object (repository layer).
