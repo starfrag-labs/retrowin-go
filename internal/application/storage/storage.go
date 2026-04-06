@@ -149,7 +149,7 @@ func (s *service) GetDownloadURL(ctx context.Context, id string) (string, time.T
 		return "", time.Time{}, errors.BadRequest("inode has no object reference")
 	}
 
-	return s.objectSvc.GetDownloadURL(ctx, c.ObjectID)
+	return s.objectSvc.GetDownloadURL(ctx, c.ObjectID, in.Size())
 }
 
 // DeleteObjectByInode deletes the S3 object referenced by the given inode.
