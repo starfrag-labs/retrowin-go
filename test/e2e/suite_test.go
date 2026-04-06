@@ -159,20 +159,12 @@ func TestSuite_FullServerStartup(t *testing.T) {
 	require.NoError(t, err, "Failed to start test suite")
 	t.Cleanup(func() { _ = suite.Stop(ctx) })
 
-	// Create a temporary config file with testcontainers connection details
+	// Create a temporary config file with shared container connection details
 	tmpDir := t.TempDir()
 	cfgFile := tmpDir + "/config.yaml"
 
-	// Get postgres connection info and update config
+	// Get config (already populated with shared container details by Start())
 	cfg := suite.GetConfig()
-	pgContainer := suite.GetPgContainer()
-
-	pgHost, err := pgContainer.Host(ctx)
-	require.NoError(t, err, "Failed to get postgres host")
-	pgPort, err := pgContainer.MappedPort(ctx, "5432")
-	require.NoError(t, err, "Failed to get postgres port")
-	cfg.Database.Host = pgHost
-	cfg.Database.Port = pgPort.Int()
 
 	// Disable services that require external dependencies for e2e testing
 	cfg.Auth.Keycloak.BaseURL = "http://localhost:9999" // Invalid URL to prevent actual OIDC calls

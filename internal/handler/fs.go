@@ -217,12 +217,6 @@ func (h *Handler) Unlink(ctx context.Context, params api.UnlinkParams) (api.Unli
 		return nil, h.domainError(err)
 	}
 
-	// Resolve path to get inode and parent
-	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
-	if err != nil {
-		return nil, h.domainError(err)
-	}
-
 	// Parse path to get parent directory and entry name
 	dirPath := path.Dir(params.Path)
 	entryName := path.Base(params.Path)
@@ -233,16 +227,34 @@ func (h *Handler) Unlink(ctx context.Context, params api.UnlinkParams) (api.Unli
 		return nil, h.domainError(err)
 	}
 
-	// Unlink from parent directory first
+	// Read dir entries (triggers lazy cleanup of dangling entries)
+	entries, err := h.fsSvc.ReadDir(ctx, parentDir.ID())
+	if err != nil {
+		return nil, h.domainError(err)
+	}
+
+	// Find target entry by name
+	var targetEntry *content.DirEntry
+	for i := range entries {
+		if entries[i].Name == entryName {
+			targetEntry = &entries[i]
+			break
+		}
+	}
+	if targetEntry == nil {
+		return nil, h.domainError(errors.NotFound("path not found: " + params.Path))
+	}
+
+	// Unlink from parent directory
 	if err := h.fsSvc.Unlink(ctx, parentDir.ID(), entryName); err != nil {
 		return nil, h.domainError(err)
 	}
 
 	// Clean up S3 object if this is an object inode (best-effort)
-	_ = h.storageSvc.DeleteObjectByInode(ctx, in.ID())
+	_ = h.storageSvc.DeleteObjectByInode(ctx, targetEntry.InodeID)
 
-	// Delete the inode
-	if err := h.fsSvc.Delete(ctx, in.ID()); err != nil {
+	// Delete the inode (may already be gone for dangling entries)
+	if err := h.fsSvc.Delete(ctx, targetEntry.InodeID); err != nil && !errors.IsNotFound(err) {
 		return nil, h.domainError(err)
 	}
 
