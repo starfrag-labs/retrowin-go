@@ -39,6 +39,50 @@ func (_m *StorageMock) EXPECT() *StorageMock_Expecter {
 	return &StorageMock_Expecter{mock: &_m.Mock}
 }
 
+// DefaultBucket provides a mock function for the type StorageMock
+func (_mock *StorageMock) DefaultBucket() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DefaultBucket")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// StorageMock_DefaultBucket_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DefaultBucket'
+type StorageMock_DefaultBucket_Call struct {
+	*mock.Call
+}
+
+// DefaultBucket is a helper method to define mock.On call
+func (_e *StorageMock_Expecter) DefaultBucket() *StorageMock_DefaultBucket_Call {
+	return &StorageMock_DefaultBucket_Call{Call: _e.mock.On("DefaultBucket")}
+}
+
+func (_c *StorageMock_DefaultBucket_Call) Run(run func()) *StorageMock_DefaultBucket_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *StorageMock_DefaultBucket_Call) Return(s string) *StorageMock_DefaultBucket_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *StorageMock_DefaultBucket_Call) RunAndReturn(run func() string) *StorageMock_DefaultBucket_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteObject provides a mock function for the type StorageMock
 func (_mock *StorageMock) DeleteObject(ctx context.Context, bucket string, key string) error {
 	ret := _mock.Called(ctx, bucket, key)

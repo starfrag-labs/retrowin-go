@@ -209,8 +209,8 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 	objectID := uuid.New().String()
 	storageKey := objectID // Use object ID as storage key
 
-	// Get default bucket from storage config (or use system default)
-	bucket := "" // Will use default bucket
+	// Resolve actual bucket name so it's stored explicitly in DB
+	bucket := s.storage.DefaultBucket()
 
 	// Create pending object in DB
 	params := &CreateParams{

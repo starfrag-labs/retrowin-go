@@ -60,6 +60,11 @@ func New(cfg *appconfig.StorageConfig) (object.Storage, error) {
 	}, nil
 }
 
+// DefaultBucket returns the configured default bucket name.
+func (s *S3Storage) DefaultBucket() string {
+	return s.defaultBucket
+}
+
 func (s *S3Storage) resolveBucket(bucket string) string {
 	if bucket != "" {
 		return bucket
