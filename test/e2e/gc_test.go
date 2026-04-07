@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
+	gcapp "github.com/starfrag-lab/retrowin-go/internal/application/gc"
 	objectdomain "github.com/starfrag-lab/retrowin-go/internal/core/object"
 	objectrepo "github.com/starfrag-lab/retrowin-go/internal/core/object/repository"
 	s3storage "github.com/starfrag-lab/retrowin-go/internal/core/object/s3"
@@ -68,7 +68,7 @@ func TestGC_PendingCleanup(t *testing.T) {
 	objectSvc := objectdomain.NewService(objectrepo.NewRepository(), objStorage, suite.GetEntClient())
 
 	// Run GC with default expiry (24h) — our backdated object should be cleaned
-	gc := storage.NewGarbageCollector(objectSvc, objStorage, 0)
+	gc := gcapp.NewGarbageCollector(objectSvc, objStorage, 0)
 	result, err := gc.Run(ctx)
 	require.NoError(t, err, "GC run failed")
 
@@ -154,7 +154,7 @@ func TestGC_OrphanCleanup(t *testing.T) {
 	objectSvc := objectdomain.NewService(objectrepo.NewRepository(), objStorage, suite.GetEntClient())
 
 	// Run GC
-	gc := storage.NewGarbageCollector(objectSvc, objStorage, 0)
+	gc := gcapp.NewGarbageCollector(objectSvc, objStorage, 0)
 	result, err := gc.Run(ctx)
 	require.NoError(t, err, "GC run failed")
 
@@ -224,7 +224,7 @@ func TestGC_NoOrphans(t *testing.T) {
 	objectSvc := objectdomain.NewService(objectrepo.NewRepository(), objStorage, suite.GetEntClient())
 
 	// Run GC
-	gc := storage.NewGarbageCollector(objectSvc, objStorage, 0)
+	gc := gcapp.NewGarbageCollector(objectSvc, objStorage, 0)
 	result, err := gc.Run(ctx)
 	require.NoError(t, err, "GC run failed")
 

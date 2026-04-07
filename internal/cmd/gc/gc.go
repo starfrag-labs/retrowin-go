@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
-	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
+	gcapp "github.com/starfrag-lab/retrowin-go/internal/application/gc"
+
 	"github.com/starfrag-lab/retrowin-go/internal/config"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	objectrepo "github.com/starfrag-lab/retrowin-go/internal/core/object/repository"
@@ -35,10 +36,10 @@ func runGC(cfg *config.Config, pendingExpiry time.Duration) error {
 	objectSvc := object.NewService(objectrepo.NewRepository(), objStorage, entClient)
 
 	// Run GC
-	gc := storage.NewGarbageCollector(objectSvc, objStorage, pendingExpiry)
+	collector := gcapp.NewGarbageCollector(objectSvc, objStorage, pendingExpiry)
 
 	fmt.Println("Running garbage collection...")
-	result, err := gc.Run(ctx)
+	result, err := collector.Run(ctx)
 	if err != nil {
 		return fmt.Errorf("garbage collection failed: %w", err)
 	}
