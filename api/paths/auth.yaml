@@ -82,10 +82,14 @@
   post:
     operationId: logout
     summary: Logout
-    description: Logout and delete session (idempotent - always returns 204)
+    description: Logout and delete session. Returns Keycloak logout URL for RP-initiated logout.
     tags:
       - Auth
     security: []
     responses:
-      '204':
+      '200':
         description: Logout successful
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/auth.yaml#/LogoutResponse"

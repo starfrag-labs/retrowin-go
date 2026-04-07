@@ -43,6 +43,8 @@ components:
       $ref: "./schemas/auth.yaml#/CallbackRequest"
     CallbackResponse:
       $ref: "./schemas/auth.yaml#/CallbackResponse"
+    LogoutResponse:
+      $ref: "./schemas/auth.yaml#/LogoutResponse"
 
     # User schemas
     User:

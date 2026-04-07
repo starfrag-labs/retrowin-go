@@ -145,6 +145,7 @@ func (s *Suite) CreateTestSession(ctx context.Context, userID string) (string, e
 		userID,
 		expiresAt,
 		now,
+		"", // no id_token in test sessions
 	)
 
 	if err := sessionRepo.Save(ctx, session); err != nil {

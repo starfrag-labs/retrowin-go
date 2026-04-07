@@ -18,15 +18,17 @@ type Session struct {
 	userID    string
 	expiresAt time.Time
 	createdAt time.Time
+	idToken   string
 }
 
 // NewSession creates a new session.
-func NewSession(id SessionID, userID string, expiresAt, createdAt time.Time) *Session {
+func NewSession(id SessionID, userID string, expiresAt, createdAt time.Time, idToken string) *Session {
 	return &Session{
 		id:        id,
 		userID:    userID,
 		expiresAt: expiresAt,
 		createdAt: createdAt,
+		idToken:   idToken,
 	}
 }
 
@@ -50,6 +52,11 @@ func (s *Session) CreatedAt() time.Time {
 	return s.createdAt
 }
 
+// IDToken returns the stored OIDC ID token.
+func (s *Session) IDToken() string {
+	return s.idToken
+}
+
 // IsExpired checks if the session is expired.
 func (s *Session) IsExpired() bool {
 	return time.Now().After(s.expiresAt)
@@ -58,7 +65,7 @@ func (s *Session) IsExpired() bool {
 // SessionService defines the session service interface.
 type SessionService interface {
 	// Create creates a new session for a user.
-	Create(ctx context.Context, userID string) (*Session, error)
+	Create(ctx context.Context, userID string, idToken string) (*Session, error)
 
 	// Get retrieves a session by ID.
 	Get(ctx context.Context, id SessionID) (*Session, error)
@@ -87,10 +94,10 @@ func NewSessionService(repo SessionRepository, ttl time.Duration) SessionService
 }
 
 // Create creates a new session for a user.
-func (s *sessionService) Create(ctx context.Context, userID string) (*Session, error) {
+func (s *sessionService) Create(ctx context.Context, userID string, idToken string) (*Session, error) {
 	now := time.Now()
 	id := SessionID(generateSessionID())
-	session := NewSession(id, userID, now.Add(s.ttl), now)
+	session := NewSession(id, userID, now.Add(s.ttl), now, idToken)
 
 	if err := s.repo.Save(ctx, session); err != nil {
 		return nil, err

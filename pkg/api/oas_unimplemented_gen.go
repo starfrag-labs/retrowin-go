@@ -237,11 +237,11 @@ func (UnimplementedHandler) Ln(ctx context.Context, req *SymlinkRequest, params 
 
 // Logout implements logout operation.
 //
-// Logout and delete session (idempotent - always returns 204).
+// Logout and delete session. Returns Keycloak logout URL for RP-initiated logout.
 //
 // POST /auth/logout
-func (UnimplementedHandler) Logout(ctx context.Context) error {
-	return ht.ErrNotImplemented
+func (UnimplementedHandler) Logout(ctx context.Context) (r *LogoutResponse, _ error) {
+	return r, ht.ErrNotImplemented
 }
 
 // Ls implements ls operation.

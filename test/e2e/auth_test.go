@@ -62,16 +62,20 @@ func TestAuth_Logout(t *testing.T) {
 	err = suite.StartServer(ctx)
 	require.NoError(t, err, "Failed to start server")
 
-	t.Run("returns 204 without session", func(t *testing.T) {
+	t.Run("returns 200 with empty logoutUrl without session", func(t *testing.T) {
 		suite.ClearCookies()
 
 		resp, err := suite.Post("/auth/logout", nil)
 		require.NoError(t, err, "Failed to make logout request")
 		defer func() { _ = resp.Body.Close() }()
 
-		// Logout should be idempotent
-		assert.True(t, resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusOK,
-			"Expected success status, got %d", resp.StatusCode)
+		assert.Equal(t, http.StatusOK, resp.StatusCode,
+			"Expected 200 OK, got %d", resp.StatusCode)
+
+		var body map[string]any
+		err = suite.ReadJSON(resp, &body)
+		require.NoError(t, err)
+		assert.Equal(t, "", body["logoutUrl"], "logoutUrl should be empty without session")
 	})
 
 	t.Run("deletes session and clears cookie", func(t *testing.T) {
@@ -92,8 +96,14 @@ func TestAuth_Logout(t *testing.T) {
 		require.NoError(t, err, "Failed to make logout request")
 		defer func() { _ = logoutResp.Body.Close() }()
 
-		assert.Equal(t, http.StatusNoContent, logoutResp.StatusCode,
-			"Expected 204 No Content, got %d", logoutResp.StatusCode)
+		assert.Equal(t, http.StatusOK, logoutResp.StatusCode,
+			"Expected 200 OK, got %d", logoutResp.StatusCode)
+
+		// Verify response contains logoutUrl (empty since test sessions have no id_token)
+		var logoutBody map[string]any
+		err = suite.ReadJSON(logoutResp, &logoutBody)
+		require.NoError(t, err)
+		assert.Equal(t, "", logoutBody["logoutUrl"], "logoutUrl should be empty for test sessions")
 
 		// Verify session cookie is cleared
 		var sessionCleared bool
@@ -124,8 +134,8 @@ func TestAuth_Logout(t *testing.T) {
 		require.NoError(t, err, "Failed to make logout request")
 		defer func() { _ = logoutResp.Body.Close() }()
 
-		assert.Equal(t, http.StatusNoContent, logoutResp.StatusCode,
-			"Expected 204 No Content, got %d", logoutResp.StatusCode)
+		assert.Equal(t, http.StatusOK, logoutResp.StatusCode,
+			"Expected 200 OK, got %d", logoutResp.StatusCode)
 
 		// Verify session_id cookie is cleared
 		var sessionCleared bool

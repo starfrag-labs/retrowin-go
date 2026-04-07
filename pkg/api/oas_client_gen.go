@@ -180,10 +180,10 @@ type Invoker interface {
 	Ln(ctx context.Context, request *SymlinkRequest, params LnParams) (LnRes, error)
 	// Logout invokes logout operation.
 	//
-	// Logout and delete session (idempotent - always returns 204).
+	// Logout and delete session. Returns Keycloak logout URL for RP-initiated logout.
 	//
 	// POST /auth/logout
-	Logout(ctx context.Context) error
+	Logout(ctx context.Context) (*LogoutResponse, error)
 	// Ls invokes ls operation.
 	//
 	// List contents of a directory (like Unix ls command, getdents64).
@@ -3325,15 +3325,15 @@ func (c *Client) sendLn(ctx context.Context, request *SymlinkRequest, params LnP
 
 // Logout invokes logout operation.
 //
-// Logout and delete session (idempotent - always returns 204).
+// Logout and delete session. Returns Keycloak logout URL for RP-initiated logout.
 //
 // POST /auth/logout
-func (c *Client) Logout(ctx context.Context) error {
-	_, err := c.sendLogout(ctx)
-	return err
+func (c *Client) Logout(ctx context.Context) (*LogoutResponse, error) {
+	res, err := c.sendLogout(ctx)
+	return res, err
 }
 
-func (c *Client) sendLogout(ctx context.Context) (res *LogoutNoContent, err error) {
+func (c *Client) sendLogout(ctx context.Context) (res *LogoutResponse, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("logout"),
 		semconv.HTTPRequestMethodKey.String("POST"),

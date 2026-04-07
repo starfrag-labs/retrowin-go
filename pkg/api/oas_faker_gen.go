@@ -790,6 +790,15 @@ func (s *LoginResponse) SetFake() {
 }
 
 // SetFake set fake values.
+func (s *LogoutResponse) SetFake() {
+	{
+		{
+			s.LogoutUrl = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
 func (s *LsForbidden) SetFake() {
 	var unwrapped Error
 	{

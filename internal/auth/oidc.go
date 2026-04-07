@@ -160,3 +160,17 @@ func GenerateCodeChallenge(verifier string) string {
 	h := sha256.Sum256([]byte(verifier))
 	return base64.RawURLEncoding.EncodeToString(h[:])
 }
+
+// EndSessionEndpoint returns the OIDC end_session_endpoint URL from the discovery document.
+func (c *Client) EndSessionEndpoint() (string, error) {
+	var claims struct {
+		EndSessionEndpoint string `json:"end_session_endpoint"`
+	}
+	if err := c.oidcProvider.Claims(&claims); err != nil {
+		return "", fmt.Errorf("failed to get end_session_endpoint: %w", err)
+	}
+	if claims.EndSessionEndpoint == "" {
+		return "", fmt.Errorf("end_session_endpoint not available in OIDC discovery")
+	}
+	return claims.EndSessionEndpoint, nil
+}

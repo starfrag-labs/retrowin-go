@@ -398,5 +398,5 @@ func ProvideOIDCService(
 	cfg *config.Config,
 ) (auth.AuthService, error) {
 	stateTTL := time.Duration(cfg.Auth.Session.StateTTL) * time.Second
-	return auth.NewService(keycloak, sessionSvc, userSvc, client, cfg.Auth.Session.RedisKey, stateTTL)
+	return auth.NewService(keycloak, sessionSvc, userSvc, client, cfg.Auth.Session.RedisKey, stateTTL, cfg.Auth.Session.FrontendURL)
 }
