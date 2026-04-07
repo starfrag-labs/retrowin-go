@@ -22,7 +22,7 @@ func TestSessionService_Create(t *testing.T) {
 
 		repo.EXPECT().Save(mock.Anything, mock.AnythingOfType("*session.Session")).Return(nil)
 
-		session, err := svc.Create(ctx, userID)
+		session, err := svc.Create(ctx, userID, "")
 
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
@@ -37,7 +37,7 @@ func TestSessionService_Create(t *testing.T) {
 
 		repo.EXPECT().Save(mock.Anything, mock.AnythingOfType("*session.Session")).Return(assert.AnError)
 
-		session, err := svc.Create(ctx, userID)
+		session, err := svc.Create(ctx, userID, "")
 
 		assert.Error(t, err)
 		assert.Nil(t, session)
@@ -54,7 +54,7 @@ func TestSessionService_Get(t *testing.T) {
 		repo := sessionMocks.NewSessionRepositoryMock(t)
 		svc := session.NewSessionService(repo, ttl)
 
-		expectedSession := session.NewSession(sessionID, userID, time.Now().Add(ttl), time.Now())
+		expectedSession := session.NewSession(sessionID, userID, time.Now().Add(ttl), time.Now(), "")
 		repo.EXPECT().Get(mock.Anything, sessionID).Return(expectedSession, nil)
 
 		session, err := svc.Get(ctx, sessionID)
@@ -86,7 +86,7 @@ func TestSessionService_Validate(t *testing.T) {
 		repo := sessionMocks.NewSessionRepositoryMock(t)
 		svc := session.NewSessionService(repo, ttl)
 
-		validSession := session.NewSession(sessionID, userID, time.Now().Add(ttl), time.Now())
+		validSession := session.NewSession(sessionID, userID, time.Now().Add(ttl), time.Now(), "")
 		repo.EXPECT().Get(mock.Anything, sessionID).Return(validSession, nil)
 
 		session, err := svc.Validate(ctx, sessionID)
@@ -111,7 +111,7 @@ func TestSessionService_Validate(t *testing.T) {
 		repo := sessionMocks.NewSessionRepositoryMock(t)
 		svc := session.NewSessionService(repo, ttl)
 
-		expiredSession := session.NewSession(sessionID, userID, time.Now().Add(-1*time.Hour), time.Now())
+		expiredSession := session.NewSession(sessionID, userID, time.Now().Add(-1*time.Hour), time.Now(), "")
 		repo.EXPECT().Get(mock.Anything, sessionID).Return(expiredSession, nil)
 
 		session, err := svc.Validate(ctx, sessionID)

@@ -39,3 +39,12 @@ CallbackResponse:
       description: User ID
     expiresAt:
       $ref: './common.yaml#/Timestamp'
+
+LogoutResponse:
+  type: object
+  required:
+    - logoutUrl
+  properties:
+    logoutUrl:
+      type: string
+      description: Keycloak logout URL for RP-initiated logout. Empty if no SSO session exists.

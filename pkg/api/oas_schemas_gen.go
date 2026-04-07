@@ -998,8 +998,21 @@ func (s *LoginResponse) SetState(val string) {
 
 func (*LoginResponse) initiateLoginRes() {}
 
-// LogoutNoContent is response for Logout operation.
-type LogoutNoContent struct{}
+// Ref: #/components/schemas/LogoutResponse
+type LogoutResponse struct {
+	// Keycloak logout URL for RP-initiated logout. Empty if no SSO session exists.
+	LogoutUrl string `json:"logoutUrl"`
+}
+
+// GetLogoutUrl returns the value of LogoutUrl.
+func (s *LogoutResponse) GetLogoutUrl() string {
+	return s.LogoutUrl
+}
+
+// SetLogoutUrl sets the value of LogoutUrl.
+func (s *LogoutResponse) SetLogoutUrl(val string) {
+	s.LogoutUrl = val
+}
 
 type LsForbidden Error
 

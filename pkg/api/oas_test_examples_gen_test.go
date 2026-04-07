@@ -863,6 +863,18 @@ func TestLoginResponse_EncodeDecode(t *testing.T) {
 	var typ2 LoginResponse
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
+func TestLogoutResponse_EncodeDecode(t *testing.T) {
+	var typ LogoutResponse
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 LogoutResponse
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
 func TestLsForbidden_EncodeDecode(t *testing.T) {
 	var typ LsForbidden
 	typ.SetFake()

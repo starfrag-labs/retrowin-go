@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
@@ -41,6 +42,11 @@ type CallbackResponse struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 }
 
+// LogoutResponse contains the Keycloak logout URL.
+type LogoutResponse struct {
+	LogoutURL string `json:"logoutUrl"`
+}
+
 // AuthService defines the authentication service interface.
 type AuthService interface {
 	// GetKeycloak returns the Keycloak provider.
@@ -58,8 +64,8 @@ type AuthService interface {
 	// ValidateState validates the OAuth state parameter.
 	ValidateState(ctx context.Context, state string) (*LoginRequest, error)
 
-	// Logout deletes the session.
-	Logout(ctx context.Context, sessionID string) error
+	// Logout deletes the session and returns a Keycloak logout URL.
+	Logout(ctx context.Context, sessionID string) (*LogoutResponse, error)
 }
 
 type authService struct {
@@ -72,6 +78,7 @@ type authService struct {
 	valkey       valkey.Client
 	valkeyPrefix string
 	stateTTL     time.Duration
+	frontendURL  string // for post_logout_redirect_uri
 }
 
 // NewService creates a new authentication service.
@@ -84,6 +91,7 @@ func NewService(
 	valkey valkey.Client,
 	valkeyPrefix string,
 	stateTTL time.Duration,
+	frontendURL string,
 ) (AuthService, error) {
 	return &authService{
 		keycloak:     keycloak,
@@ -92,6 +100,7 @@ func NewService(
 		valkey:       valkey,
 		valkeyPrefix: valkeyPrefix,
 		stateTTL:     stateTTL,
+		frontendURL:  frontendURL,
 	}, nil
 }
 
@@ -169,6 +178,9 @@ func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) 
 		return nil, errors.Unauthorized(fmt.Sprintf("failed to exchange code: %v", err))
 	}
 
+	// Extract raw ID token for RP-initiated logout
+	rawIDToken, _ := token.Extra("id_token").(string)
+
 	userInfo, err := client.GetUserInfo(ctx, token)
 	if err != nil {
 		return nil, errors.Internal(fmt.Sprintf("failed to get user info: %v", err))
@@ -185,7 +197,7 @@ func (s *authService) HandleCallback(ctx context.Context, req *CallbackRequest) 
 		return nil, err
 	}
 
-	sess, err := s.sessionSvc.Create(ctx, userID)
+	sess, err := s.sessionSvc.Create(ctx, userID, rawIDToken)
 	if err != nil {
 		return nil, errors.Internal(fmt.Sprintf("failed to create session: %v", err))
 	}
@@ -208,9 +220,37 @@ func (s *authService) ValidateState(ctx context.Context, state string) (*LoginRe
 	return loginReq, nil
 }
 
-// Logout deletes the session.
-func (s *authService) Logout(ctx context.Context, sessionID string) error {
-	return s.sessionSvc.Delete(ctx, session.SessionID(sessionID))
+// Logout deletes the session and returns a Keycloak logout URL for RP-initiated logout.
+func (s *authService) Logout(ctx context.Context, sessionID string) (*LogoutResponse, error) {
+	// Get session to extract id_token before deleting it
+	sess, _ := s.sessionSvc.Get(ctx, session.SessionID(sessionID))
+
+	// Always delete local session
+	_ = s.sessionSvc.Delete(ctx, session.SessionID(sessionID))
+
+	if sess == nil || sess.IDToken() == "" {
+		// No session or no id_token (legacy) — can't build Keycloak logout URL
+		return &LogoutResponse{LogoutURL: ""}, nil
+	}
+
+	client, err := s.getClient(ctx)
+	if err != nil {
+		return &LogoutResponse{LogoutURL: ""}, nil
+	}
+
+	endSessionEndpoint, err := client.EndSessionEndpoint()
+	if err != nil {
+		return &LogoutResponse{LogoutURL: ""}, nil
+	}
+
+	logoutURL := fmt.Sprintf(
+		"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
+		endSessionEndpoint,
+		url.QueryEscape(sess.IDToken()),
+		url.QueryEscape(s.frontendURL),
+	)
+
+	return &LogoutResponse{LogoutURL: logoutURL}, nil
 }
 
 func (s *authService) storeLoginRequest(ctx context.Context, req *LoginRequest) error {

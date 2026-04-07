@@ -80,19 +80,16 @@ func (h *Handler) HandleCallback(ctx context.Context, params api.HandleCallbackP
 }
 
 // Logout implements POST /auth/logout.
-func (h *Handler) Logout(ctx context.Context) error {
+func (h *Handler) Logout(ctx context.Context) (*api.LogoutResponse, error) {
 	sessionID := middleware.GetSessionID(ctx)
 	if sessionID == "" {
-		// No session - return success (idempotent logout)
-		return nil
+		return &api.LogoutResponse{LogoutUrl: ""}, nil
 	}
 
-	err := h.authSvc.Logout(ctx, sessionID)
+	resp, err := h.authSvc.Logout(ctx, sessionID)
 	if err != nil {
-		// Log error but still return success (idempotent logout)
-		// The session might have already been deleted or expired
-		return nil
+		return &api.LogoutResponse{LogoutUrl: ""}, nil
 	}
 
-	return nil
+	return &api.LogoutResponse{LogoutUrl: resp.LogoutURL}, nil
 }

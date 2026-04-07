@@ -4444,7 +4444,7 @@ func (s *Server) handleLnRequest(args [1]string, argsEscaped bool, w http.Respon
 
 // handleLogoutRequest handles logout operation.
 //
-// Logout and delete session (idempotent - always returns 204).
+// Logout and delete session. Returns Keycloak logout URL for RP-initiated logout.
 //
 // POST /auth/logout
 func (s *Server) handleLogoutRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
@@ -4517,7 +4517,7 @@ func (s *Server) handleLogoutRequest(args [0]string, argsEscaped bool, w http.Re
 
 	var rawBody []byte
 
-	var response *LogoutNoContent
+	var response *LogoutResponse
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
@@ -4533,7 +4533,7 @@ func (s *Server) handleLogoutRequest(args [0]string, argsEscaped bool, w http.Re
 		type (
 			Request  = struct{}
 			Params   = struct{}
-			Response = *LogoutNoContent
+			Response = *LogoutResponse
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -4544,12 +4544,12 @@ func (s *Server) handleLogoutRequest(args [0]string, argsEscaped bool, w http.Re
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				err = s.h.Logout(ctx)
+				response, err = s.h.Logout(ctx)
 				return response, err
 			},
 		)
 	} else {
-		err = s.h.Logout(ctx)
+		response, err = s.h.Logout(ctx)
 	}
 	if err != nil {
 		defer recordError("Internal", err)

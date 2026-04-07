@@ -15,6 +15,7 @@ type sessionData struct {
 	UserID    string    `json:"user_id"`
 	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
+	IDToken   string    `json:"id_token,omitempty"`
 }
 
 // toSessionData converts Session to sessionData.
@@ -23,6 +24,7 @@ func toSessionData(s *domain.Session) *sessionData {
 		UserID:    s.UserID(),
 		ExpiresAt: s.ExpiresAt(),
 		CreatedAt: s.CreatedAt(),
+		IDToken:   s.IDToken(),
 	}
 }
 
@@ -97,7 +99,7 @@ func (r *ValkeySessionRepository) Get(ctx context.Context, id domain.SessionID) 
 		return nil, fmt.Errorf("unmarshal session: %w", err)
 	}
 
-	return domain.NewSession(id, sd.UserID, sd.ExpiresAt, sd.CreatedAt), nil
+	return domain.NewSession(id, sd.UserID, sd.ExpiresAt, sd.CreatedAt, sd.IDToken), nil
 }
 
 // Delete deletes a session by ID.

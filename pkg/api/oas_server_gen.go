@@ -160,10 +160,10 @@ type Handler interface {
 	Ln(ctx context.Context, req *SymlinkRequest, params LnParams) (LnRes, error)
 	// Logout implements logout operation.
 	//
-	// Logout and delete session (idempotent - always returns 204).
+	// Logout and delete session. Returns Keycloak logout URL for RP-initiated logout.
 	//
 	// POST /auth/logout
-	Logout(ctx context.Context) error
+	Logout(ctx context.Context) (*LogoutResponse, error)
 	// Ls implements ls operation.
 	//
 	// List contents of a directory (like Unix ls command, getdents64).

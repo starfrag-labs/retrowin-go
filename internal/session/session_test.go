@@ -13,12 +13,13 @@ func TestNewSession(t *testing.T) {
 	expiresAt := time.Now().Add(24 * time.Hour)
 	createdAt := time.Now()
 
-	session := NewSession(id, userID, expiresAt, createdAt)
+	session := NewSession(id, userID, expiresAt, createdAt, "test-id-token")
 
 	assert.Equal(t, id, session.ID())
 	assert.Equal(t, userID, session.UserID())
 	assert.Equal(t, expiresAt.Unix(), session.ExpiresAt().Unix())
 	assert.Equal(t, createdAt.Unix(), session.CreatedAt().Unix())
+	assert.Equal(t, "test-id-token", session.IDToken())
 }
 
 func TestSession_IsExpired_NotExpired(t *testing.T) {
@@ -27,6 +28,7 @@ func TestSession_IsExpired_NotExpired(t *testing.T) {
 		"user-123",
 		time.Now().Add(1*time.Hour),
 		time.Now(),
+		"",
 	)
 
 	assert.False(t, session.IsExpired())
@@ -38,6 +40,7 @@ func TestSession_IsExpired_Expired(t *testing.T) {
 		"user-123",
 		time.Now().Add(-1*time.Hour),
 		time.Now(),
+		"",
 	)
 
 	assert.True(t, session.IsExpired())
@@ -50,6 +53,7 @@ func TestSession_IsExpired_ExactlyNow(t *testing.T) {
 		"user-123",
 		time.Now().Add(-1*time.Millisecond),
 		time.Now(),
+		"",
 	)
 
 	// Small delay to ensure time has passed
