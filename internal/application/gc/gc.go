@@ -1,4 +1,4 @@
-package storage
+package gc
 
 import (
 	"context"
