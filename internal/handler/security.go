@@ -30,8 +30,9 @@ func (h *SecurityHandler) HandleSessionAuth(ctx context.Context, operationName a
 		return ctx, ogenerrors.ErrSkipServerSecurity
 	}
 
-	// Add user ID to context
+	// Add user ID and session ID to context
 	ctx = utils.ContextWithUserID(ctx, sess.UserID())
+	ctx = utils.ContextWithSession(ctx, string(t.APIKey))
 
 	return ctx, nil
 }
