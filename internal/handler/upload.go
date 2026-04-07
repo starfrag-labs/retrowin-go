@@ -8,8 +8,8 @@ import (
 	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
+	"github.com/starfrag-lab/retrowin-go/internal/core/dentry"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -78,12 +78,12 @@ func (h *Handler) CompleteUpload(ctx context.Context, req *api.CompleteUploadReq
 	}
 
 	// Atomically replace or add the directory entry (reduces race window)
-	entry := content.DirEntry{
+	entry := dentry.DirEntry{
 		Name:     fileName,
 		InodeID:  result.Inode.ID(),
 		FileType: uint8(inode.ModeObject >> 12),
 	}
-	prevInodeID, err := h.fsSvc.ReplaceLink(ctx, parentDir.ID(), entry)
+	prevInodeID, err := h.dentrySvc.RenameAt(ctx, parentDir.ID(), entry)
 	if err != nil {
 		return nil, h.domainError(err)
 	}

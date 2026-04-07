@@ -876,15 +876,6 @@ func (s *MvBadRequest) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *MvConflict) SetFake() {
-	var unwrapped Error
-	{
-		unwrapped.SetFake()
-	}
-	*s = MvConflict(unwrapped)
-}
-
-// SetFake set fake values.
 func (s *MvForbidden) SetFake() {
 	var unwrapped Error
 	{
@@ -894,16 +885,56 @@ func (s *MvForbidden) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *MvNotFound) SetFake() {
-	var unwrapped Error
+func (s *MvRequest) SetFake() {
 	{
-		unwrapped.SetFake()
+		{
+			s.Sources = nil
+			for i := 0; i < 1; i++ {
+				var elem string
+				{
+					elem = "string"
+				}
+				s.Sources = append(s.Sources, elem)
+			}
+		}
 	}
-	*s = MvNotFound(unwrapped)
+	{
+		{
+			s.Destination = "string"
+		}
+	}
 }
 
 // SetFake set fake values.
-func (s *MvReq) SetFake() {
+func (s *MvResult) SetFake() {
+	{
+		{
+			s.Moved = nil
+			for i := 0; i < 0; i++ {
+				var elem string
+				{
+					elem = "string"
+				}
+				s.Moved = append(s.Moved, elem)
+			}
+		}
+	}
+	{
+		{
+			s.Errors = nil
+			for i := 0; i < 0; i++ {
+				var elem MvResultErrorsItem
+				{
+					elem.SetFake()
+				}
+				s.Errors = append(s.Errors, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *MvResultErrorsItem) SetFake() {
 	{
 		{
 			s.Path = "string"
@@ -911,7 +942,7 @@ func (s *MvReq) SetFake() {
 	}
 	{
 		{
-			s.Destination = "string"
+			s.Error = "string"
 		}
 	}
 }
@@ -1018,7 +1049,7 @@ func (s *RenameNotFound) SetFake() {
 }
 
 // SetFake set fake values.
-func (s *RenameReq) SetFake() {
+func (s *RenameRequest) SetFake() {
 	{
 		{
 			s.Path = "string"
@@ -1038,6 +1069,91 @@ func (s *RenameUnauthorized) SetFake() {
 		unwrapped.SetFake()
 	}
 	*s = RenameUnauthorized(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RmBadRequest) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RmBadRequest(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RmForbidden) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RmForbidden(unwrapped)
+}
+
+// SetFake set fake values.
+func (s *RmRequest) SetFake() {
+	{
+		{
+			s.Paths = nil
+			for i := 0; i < 1; i++ {
+				var elem string
+				{
+					elem = "string"
+				}
+				s.Paths = append(s.Paths, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *RmResult) SetFake() {
+	{
+		{
+			s.Deleted = nil
+			for i := 0; i < 0; i++ {
+				var elem string
+				{
+					elem = "string"
+				}
+				s.Deleted = append(s.Deleted, elem)
+			}
+		}
+	}
+	{
+		{
+			s.Errors = nil
+			for i := 0; i < 0; i++ {
+				var elem RmResultErrorsItem
+				{
+					elem.SetFake()
+				}
+				s.Errors = append(s.Errors, elem)
+			}
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *RmResultErrorsItem) SetFake() {
+	{
+		{
+			s.Path = "string"
+		}
+	}
+	{
+		{
+			s.Error = "string"
+		}
+	}
+}
+
+// SetFake set fake values.
+func (s *RmUnauthorized) SetFake() {
+	var unwrapped Error
+	{
+		unwrapped.SetFake()
+	}
+	*s = RmUnauthorized(unwrapped)
 }
 
 // SetFake set fake values.

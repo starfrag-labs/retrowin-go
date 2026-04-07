@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 )
 
 func TestAccessType_Constants(t *testing.T) {

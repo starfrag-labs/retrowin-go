@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"

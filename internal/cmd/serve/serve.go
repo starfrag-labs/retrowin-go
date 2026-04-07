@@ -22,10 +22,11 @@ import (
 	"github.com/valkey-io/valkey-go"
 
 	"github.com/starfrag-lab/retrowin-go/ent"
+	corefs "github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
 	"github.com/starfrag-lab/retrowin-go/internal/config"
-	corefs "github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/core/dentry"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	inoderepo "github.com/starfrag-lab/retrowin-go/internal/core/inode/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
@@ -325,6 +326,7 @@ func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 			system.NewService,        // system management
 			sysinit.NewService,       // system initialization
 			// Application services
+			dentry.NewService,
 			corefs.NewService,
 			storage.NewService,
 			// Storage

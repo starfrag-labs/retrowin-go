@@ -557,6 +557,7 @@ func (*ErrorStatusCode) mkdirRes()             {}
 func (*ErrorStatusCode) mvRes()                {}
 func (*ErrorStatusCode) removeGroupMemberRes() {}
 func (*ErrorStatusCode) renameRes()            {}
+func (*ErrorStatusCode) rmRes()                {}
 func (*ErrorStatusCode) statPathRes()          {}
 func (*ErrorStatusCode) unlinkRes()            {}
 
@@ -932,7 +933,6 @@ func (*InodeResponse) completeUploadRes()   {}
 func (*InodeResponse) getRootDirectoryRes() {}
 func (*InodeResponse) lnRes()               {}
 func (*InodeResponse) mkdirRes()            {}
-func (*InodeResponse) mvRes()               {}
 func (*InodeResponse) renameRes()           {}
 func (*InodeResponse) statPathRes()         {}
 
@@ -1066,45 +1066,92 @@ type MvBadRequest Error
 
 func (*MvBadRequest) mvRes() {}
 
-type MvConflict Error
-
-func (*MvConflict) mvRes() {}
-
 type MvForbidden Error
 
 func (*MvForbidden) mvRes() {}
 
-type MvNotFound Error
-
-func (*MvNotFound) mvRes() {}
-
-type MvReq struct {
-	// Current path of the file/directory to move.
-	Path string `json:"path"`
+// Ref: #/components/schemas/MvRequest
+type MvRequest struct {
+	// List of source paths to move.
+	Sources []string `json:"sources"`
 	// Destination path. Can be:
-	// - A directory path (file keeps its name): /home/user/docs
-	// - A full new path (file gets renamed): /home/user/docs/new.txt.
+	// - A directory path (files keep their names): /home/user/docs
+	// - A full new path (single source only): /home/user/docs/new.txt.
 	Destination string `json:"destination"`
 }
 
-// GetPath returns the value of Path.
-func (s *MvReq) GetPath() string {
-	return s.Path
+// GetSources returns the value of Sources.
+func (s *MvRequest) GetSources() []string {
+	return s.Sources
 }
 
 // GetDestination returns the value of Destination.
-func (s *MvReq) GetDestination() string {
+func (s *MvRequest) GetDestination() string {
 	return s.Destination
 }
 
-// SetPath sets the value of Path.
-func (s *MvReq) SetPath(val string) {
-	s.Path = val
+// SetSources sets the value of Sources.
+func (s *MvRequest) SetSources(val []string) {
+	s.Sources = val
 }
 
 // SetDestination sets the value of Destination.
-func (s *MvReq) SetDestination(val string) {
+func (s *MvRequest) SetDestination(val string) {
 	s.Destination = val
+}
+
+// Ref: #/components/schemas/MvResult
+type MvResult struct {
+	// Successfully moved paths.
+	Moved  []string             `json:"moved"`
+	Errors []MvResultErrorsItem `json:"errors"`
+}
+
+// GetMoved returns the value of Moved.
+func (s *MvResult) GetMoved() []string {
+	return s.Moved
+}
+
+// GetErrors returns the value of Errors.
+func (s *MvResult) GetErrors() []MvResultErrorsItem {
+	return s.Errors
+}
+
+// SetMoved sets the value of Moved.
+func (s *MvResult) SetMoved(val []string) {
+	s.Moved = val
+}
+
+// SetErrors sets the value of Errors.
+func (s *MvResult) SetErrors(val []MvResultErrorsItem) {
+	s.Errors = val
+}
+
+func (*MvResult) mvRes() {}
+
+type MvResultErrorsItem struct {
+	Path  string `json:"path"`
+	Error string `json:"error"`
+}
+
+// GetPath returns the value of Path.
+func (s *MvResultErrorsItem) GetPath() string {
+	return s.Path
+}
+
+// GetError returns the value of Error.
+func (s *MvResultErrorsItem) GetError() string {
+	return s.Error
+}
+
+// SetPath sets the value of Path.
+func (s *MvResultErrorsItem) SetPath(val string) {
+	s.Path = val
+}
+
+// SetError sets the value of Error.
+func (s *MvResultErrorsItem) SetError(val string) {
+	s.Error = val
 }
 
 type MvUnauthorized Error
@@ -1384,7 +1431,8 @@ type RenameNotFound Error
 
 func (*RenameNotFound) renameRes() {}
 
-type RenameReq struct {
+// Ref: #/components/schemas/RenameRequest
+type RenameRequest struct {
 	// Current path of the file/directory to rename.
 	Path string `json:"path"`
 	// New name (without path, just the filename).
@@ -1392,28 +1440,110 @@ type RenameReq struct {
 }
 
 // GetPath returns the value of Path.
-func (s *RenameReq) GetPath() string {
+func (s *RenameRequest) GetPath() string {
 	return s.Path
 }
 
 // GetNewName returns the value of NewName.
-func (s *RenameReq) GetNewName() string {
+func (s *RenameRequest) GetNewName() string {
 	return s.NewName
 }
 
 // SetPath sets the value of Path.
-func (s *RenameReq) SetPath(val string) {
+func (s *RenameRequest) SetPath(val string) {
 	s.Path = val
 }
 
 // SetNewName sets the value of NewName.
-func (s *RenameReq) SetNewName(val string) {
+func (s *RenameRequest) SetNewName(val string) {
 	s.NewName = val
 }
 
 type RenameUnauthorized Error
 
 func (*RenameUnauthorized) renameRes() {}
+
+type RmBadRequest Error
+
+func (*RmBadRequest) rmRes() {}
+
+type RmForbidden Error
+
+func (*RmForbidden) rmRes() {}
+
+// Ref: #/components/schemas/RmRequest
+type RmRequest struct {
+	// List of paths to remove.
+	Paths []string `json:"paths"`
+}
+
+// GetPaths returns the value of Paths.
+func (s *RmRequest) GetPaths() []string {
+	return s.Paths
+}
+
+// SetPaths sets the value of Paths.
+func (s *RmRequest) SetPaths(val []string) {
+	s.Paths = val
+}
+
+// Ref: #/components/schemas/RmResult
+type RmResult struct {
+	// Successfully deleted paths.
+	Deleted []string             `json:"deleted"`
+	Errors  []RmResultErrorsItem `json:"errors"`
+}
+
+// GetDeleted returns the value of Deleted.
+func (s *RmResult) GetDeleted() []string {
+	return s.Deleted
+}
+
+// GetErrors returns the value of Errors.
+func (s *RmResult) GetErrors() []RmResultErrorsItem {
+	return s.Errors
+}
+
+// SetDeleted sets the value of Deleted.
+func (s *RmResult) SetDeleted(val []string) {
+	s.Deleted = val
+}
+
+// SetErrors sets the value of Errors.
+func (s *RmResult) SetErrors(val []RmResultErrorsItem) {
+	s.Errors = val
+}
+
+func (*RmResult) rmRes() {}
+
+type RmResultErrorsItem struct {
+	Path  string `json:"path"`
+	Error string `json:"error"`
+}
+
+// GetPath returns the value of Path.
+func (s *RmResultErrorsItem) GetPath() string {
+	return s.Path
+}
+
+// GetError returns the value of Error.
+func (s *RmResultErrorsItem) GetError() string {
+	return s.Error
+}
+
+// SetPath sets the value of Path.
+func (s *RmResultErrorsItem) SetPath(val string) {
+	s.Path = val
+}
+
+// SetError sets the value of Error.
+func (s *RmResultErrorsItem) SetError(val string) {
+	s.Error = val
+}
+
+type RmUnauthorized Error
+
+func (*RmUnauthorized) rmRes() {}
 
 type SessionAuth struct {
 	APIKey string

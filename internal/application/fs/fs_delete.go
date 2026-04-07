@@ -9,6 +9,8 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
+// Delete removes an inode by ID.
+// Handles object cleanup and directory emptiness checks.
 func (s *service) Delete(ctx context.Context, id string) error {
 	in, err := s.inodeSvc.GetByID(ctx, id)
 	if err != nil {

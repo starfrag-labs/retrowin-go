@@ -95,6 +95,18 @@ components:
       $ref: "./schemas/inode.yaml#/SymlinkRequest"
     ChmodRequest:
       $ref: "./schemas/inode.yaml#/ChmodRequest"
+    RenameRequest:
+      $ref: "./schemas/inode.yaml#/RenameRequest"
+    MoveRequest:
+      $ref: "./schemas/inode.yaml#/MoveRequest"
+    RmRequest:
+      $ref: "./schemas/inode.yaml#/RmRequest"
+    RmResult:
+      $ref: "./schemas/inode.yaml#/RmResult"
+    MvRequest:
+      $ref: "./schemas/inode.yaml#/MvRequest"
+    MvResult:
+      $ref: "./schemas/inode.yaml#/MvResult"
 
     # Upload schemas
     InitiateUploadRequest:
@@ -147,25 +159,29 @@ paths:
   /systems/{systemId}/groups/{gid}/members/{uid}:
     $ref: "./paths/system_group.yaml#/~1systems~1{systemId}~1groups~1{gid}~1members~1{uid}"
 
-  # Fs endpoints
+  # Fs endpoints (inode queries and attributes)
   /fs/{systemId}/root:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1root"
   /fs/{systemId}/stat:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1stat"
-  /fs/{systemId}/ls:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1ls"
-  /fs/{systemId}/mkdir:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1mkdir"
-  /fs/{systemId}/ln:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1ln"
   /fs/{systemId}/chmod:
     $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1chmod"
-  /fs/{systemId}/rename:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1rename"
-  /fs/{systemId}/mv:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1mv"
-  /fs/{systemId}/unlink:
-    $ref: "./paths/fs.yaml#/~1fs~1{systemId}~1unlink"
+
+  # Syscall endpoints (dentry manipulation)
+  /syscall/{systemId}/ls:
+    $ref: "./paths/syscall.yaml#/~1syscall~1{systemId}~1ls"
+  /syscall/{systemId}/mkdir:
+    $ref: "./paths/syscall.yaml#/~1syscall~1{systemId}~1mkdir"
+  /syscall/{systemId}/ln:
+    $ref: "./paths/syscall.yaml#/~1syscall~1{systemId}~1ln"
+  /syscall/{systemId}/rename:
+    $ref: "./paths/syscall.yaml#/~1syscall~1{systemId}~1rename"
+  /syscall/{systemId}/unlink:
+    $ref: "./paths/syscall.yaml#/~1syscall~1{systemId}~1unlink"
+  /syscall/{systemId}/rm:
+    $ref: "./paths/syscall.yaml#/~1syscall~1{systemId}~1rm"
+  /syscall/{systemId}/mv:
+    $ref: "./paths/syscall.yaml#/~1syscall~1{systemId}~1mv"
 
   # Upload endpoints
   /fs/{systemId}/upload/initiate:

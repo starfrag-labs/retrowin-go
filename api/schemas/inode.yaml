@@ -198,3 +198,82 @@ MoveRequest:
         Destination path. Can be:
         - A directory path (file keeps its name): /home/user/docs
         - A full new path (file gets renamed): /home/user/docs/new.txt
+
+RmRequest:
+  type: object
+  required:
+    - paths
+  properties:
+    paths:
+      type: array
+      items:
+        type: string
+      description: List of paths to remove
+      minItems: 1
+
+RmResult:
+  type: object
+  properties:
+    deleted:
+      type: array
+      items:
+        type: string
+      description: Successfully deleted paths
+    errors:
+      type: array
+      items:
+        $ref: '#/RmError'
+
+RmError:
+  type: object
+  required:
+    - path
+    - error
+  properties:
+    path:
+      type: string
+    error:
+      type: string
+
+MvRequest:
+  type: object
+  required:
+    - sources
+    - destination
+  properties:
+    sources:
+      type: array
+      items:
+        type: string
+      description: List of source paths to move
+      minItems: 1
+    destination:
+      type: string
+      description: |
+        Destination path. Can be:
+        - A directory path (files keep their names): /home/user/docs
+        - A full new path (single source only): /home/user/docs/new.txt
+
+MvResult:
+  type: object
+  properties:
+    moved:
+      type: array
+      items:
+        type: string
+      description: Successfully moved paths
+    errors:
+      type: array
+      items:
+        $ref: '#/MvError'
+
+MvError:
+  type: object
+  required:
+    - path
+    - error
+  properties:
+    path:
+      type: string
+    error:
+      type: string

@@ -7,7 +7,7 @@ package fsMocks
 import (
 	"context"
 
-	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	mock "github.com/stretchr/testify/mock"

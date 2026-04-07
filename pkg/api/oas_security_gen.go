@@ -61,6 +61,7 @@ var operationRolesSessionAuth = map[string][]string{
 	MvOperation:                []string{},
 	RemoveGroupMemberOperation: []string{},
 	RenameOperation:            []string{},
+	RmOperation:                []string{},
 	StatPathOperation:          []string{},
 	UnlinkOperation:            []string{},
 }

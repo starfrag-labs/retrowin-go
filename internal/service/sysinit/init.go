@@ -3,9 +3,9 @@ package sysinit
 import (
 	"context"
 
-	"github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/core/dentry"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/core/user"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
@@ -40,13 +40,15 @@ type service struct {
 	systemSvc system.SystemService
 	userSvc   user.UserService
 	fsSvc     fs.FsService
+	dentrySvc dentry.DentryService
 }
 
-func NewService(systemSvc system.SystemService, userSvc user.UserService, fsSvc fs.FsService) InitService {
+func NewService(systemSvc system.SystemService, userSvc user.UserService, fsSvc fs.FsService, dentrySvc dentry.DentryService) InitService {
 	return &service{
 		systemSvc: systemSvc,
 		userSvc:   userSvc,
 		fsSvc:     fsSvc,
+		dentrySvc: dentrySvc,
 	}
 }
 
@@ -141,7 +143,7 @@ func (s *service) createHomeDirectory(ctx context.Context, systemID string, root
 	}
 
 	// Link home to root directory
-	if err := s.fsSvc.Link(ctx, rootDirID, content.DirEntry{
+	if err := s.dentrySvc.Link(ctx, rootDirID, dentry.DirEntry{
 		Name:     "home",
 		InodeID:  homeDir.ID(),
 		FileType: uint8(inode.ModeDirectory >> 8),
@@ -163,7 +165,7 @@ func (s *service) createTrashDirectory(ctx context.Context, systemID string, hom
 	}
 
 	// Link .trash to home directory
-	if err := s.fsSvc.Link(ctx, homeDirID, content.DirEntry{
+	if err := s.dentrySvc.Link(ctx, homeDirID, dentry.DirEntry{
 		Name:     ".trash",
 		InodeID:  trashDir.ID(),
 		FileType: uint8(inode.ModeDirectory >> 8),
