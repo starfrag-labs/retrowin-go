@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/starfrag-lab/retrowin-go/internal/config"
+	"github.com/starfrag-lab/retrowin-go/internal/utils"
 )
 
 type CallbackConfig struct {
@@ -23,6 +24,12 @@ func CallbackMiddleware(cfg *CallbackConfig) func(next http.Handler) http.Handle
 		parsedSameSite := parseSameSite(cfg.SameSite)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodPost && r.URL.Path == "/auth/logout" {
+				// Extract session_id from cookie into context
+				// (security handler doesn't run for this endpoint)
+				if c, err := r.Cookie(cfg.CookieName); err == nil && c.Value != "" {
+					r = r.WithContext(utils.ContextWithSession(r.Context(), c.Value))
+				}
+
 				cookie := &http.Cookie{
 					Name:     cfg.CookieName,
 					Value:    "",
