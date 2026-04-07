@@ -228,9 +228,9 @@ func (UnimplementedHandler) ListSystems(ctx context.Context) (r ListSystemsRes, 
 
 // Ln implements ln operation.
 //
-// Create a symbolic link (like Unix ln -s command).
+// Create a symbolic link (symlinkat).
 //
-// POST /fs/{systemId}/ln
+// POST /syscall/{systemId}/ln
 func (UnimplementedHandler) Ln(ctx context.Context, req *SymlinkRequest, params LnParams) (r LnRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -246,28 +246,30 @@ func (UnimplementedHandler) Logout(ctx context.Context) error {
 
 // Ls implements ls operation.
 //
-// List contents of a directory (like Unix ls command).
+// List contents of a directory (like Unix ls command, getdents64).
 //
-// GET /fs/{systemId}/ls
+// GET /syscall/{systemId}/ls
 func (UnimplementedHandler) Ls(ctx context.Context, params LsParams) (r LsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // Mkdir implements mkdir operation.
 //
-// Create a new directory at the specified path.
+// Create a new directory at the specified path (mkdirat).
 //
-// POST /fs/{systemId}/mkdir
+// POST /syscall/{systemId}/mkdir
 func (UnimplementedHandler) Mkdir(ctx context.Context, req *MkdirRequest, params MkdirParams) (r MkdirRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // Mv implements mv operation.
 //
-// Move a file or directory to a different location (like Unix mv command).
+// Move files or directories (like Unix mv). Accepts multiple sources with a single destination.
+// If destination is a directory, all sources are moved into it.
+// If destination is a new path, source is renamed/moved.
 //
-// POST /fs/{systemId}/mv
-func (UnimplementedHandler) Mv(ctx context.Context, req *MvReq, params MvParams) (r MvRes, _ error) {
+// POST /syscall/{systemId}/mv
+func (UnimplementedHandler) Mv(ctx context.Context, req *MvRequest, params MvParams) (r MvRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -282,10 +284,19 @@ func (UnimplementedHandler) RemoveGroupMember(ctx context.Context, params Remove
 
 // Rename implements rename operation.
 //
-// Rename a file or directory within the same parent directory.
+// Rename a file or directory within the same parent directory (renameat).
 //
-// POST /fs/{systemId}/rename
-func (UnimplementedHandler) Rename(ctx context.Context, req *RenameReq, params RenameParams) (r RenameRes, _ error) {
+// POST /syscall/{systemId}/rename
+func (UnimplementedHandler) Rename(ctx context.Context, req *RenameRequest, params RenameParams) (r RenameRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// Rm implements rm operation.
+//
+// Remove files or directories (like Unix rm). Accepts multiple paths for bulk deletion.
+//
+// POST /syscall/{systemId}/rm
+func (UnimplementedHandler) Rm(ctx context.Context, req *RmRequest, params RmParams) (r RmRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -300,9 +311,9 @@ func (UnimplementedHandler) StatPath(ctx context.Context, params StatPathParams)
 
 // Unlink implements unlink operation.
 //
-// Delete a file or directory at the specified path.
+// Delete a file or directory at the specified path (unlinkat).
 //
-// DELETE /fs/{systemId}/unlink
+// DELETE /syscall/{systemId}/unlink
 func (UnimplementedHandler) Unlink(ctx context.Context, params UnlinkParams) (r UnlinkRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

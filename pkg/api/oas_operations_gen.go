@@ -36,6 +36,7 @@ const (
 	MvOperation                OperationName = "Mv"
 	RemoveGroupMemberOperation OperationName = "RemoveGroupMember"
 	RenameOperation            OperationName = "Rename"
+	RmOperation                OperationName = "Rm"
 	StatPathOperation          OperationName = "StatPath"
 	UnlinkOperation            OperationName = "Unlink"
 )

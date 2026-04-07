@@ -174,9 +174,9 @@ type Invoker interface {
 	ListSystems(ctx context.Context) (ListSystemsRes, error)
 	// Ln invokes ln operation.
 	//
-	// Create a symbolic link (like Unix ln -s command).
+	// Create a symbolic link (symlinkat).
 	//
-	// POST /fs/{systemId}/ln
+	// POST /syscall/{systemId}/ln
 	Ln(ctx context.Context, request *SymlinkRequest, params LnParams) (LnRes, error)
 	// Logout invokes logout operation.
 	//
@@ -186,22 +186,24 @@ type Invoker interface {
 	Logout(ctx context.Context) error
 	// Ls invokes ls operation.
 	//
-	// List contents of a directory (like Unix ls command).
+	// List contents of a directory (like Unix ls command, getdents64).
 	//
-	// GET /fs/{systemId}/ls
+	// GET /syscall/{systemId}/ls
 	Ls(ctx context.Context, params LsParams) (LsRes, error)
 	// Mkdir invokes mkdir operation.
 	//
-	// Create a new directory at the specified path.
+	// Create a new directory at the specified path (mkdirat).
 	//
-	// POST /fs/{systemId}/mkdir
+	// POST /syscall/{systemId}/mkdir
 	Mkdir(ctx context.Context, request *MkdirRequest, params MkdirParams) (MkdirRes, error)
 	// Mv invokes mv operation.
 	//
-	// Move a file or directory to a different location (like Unix mv command).
+	// Move files or directories (like Unix mv). Accepts multiple sources with a single destination.
+	// If destination is a directory, all sources are moved into it.
+	// If destination is a new path, source is renamed/moved.
 	//
-	// POST /fs/{systemId}/mv
-	Mv(ctx context.Context, request *MvReq, params MvParams) (MvRes, error)
+	// POST /syscall/{systemId}/mv
+	Mv(ctx context.Context, request *MvRequest, params MvParams) (MvRes, error)
 	// RemoveGroupMember invokes removeGroupMember operation.
 	//
 	// Remove a user from a group.
@@ -210,10 +212,16 @@ type Invoker interface {
 	RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (RemoveGroupMemberRes, error)
 	// Rename invokes rename operation.
 	//
-	// Rename a file or directory within the same parent directory.
+	// Rename a file or directory within the same parent directory (renameat).
 	//
-	// POST /fs/{systemId}/rename
-	Rename(ctx context.Context, request *RenameReq, params RenameParams) (RenameRes, error)
+	// POST /syscall/{systemId}/rename
+	Rename(ctx context.Context, request *RenameRequest, params RenameParams) (RenameRes, error)
+	// Rm invokes rm operation.
+	//
+	// Remove files or directories (like Unix rm). Accepts multiple paths for bulk deletion.
+	//
+	// POST /syscall/{systemId}/rm
+	Rm(ctx context.Context, request *RmRequest, params RmParams) (RmRes, error)
 	// StatPath invokes statPath operation.
 	//
 	// Get inode metadata for a given path.
@@ -222,9 +230,9 @@ type Invoker interface {
 	StatPath(ctx context.Context, params StatPathParams) (StatPathRes, error)
 	// Unlink invokes unlink operation.
 	//
-	// Delete a file or directory at the specified path.
+	// Delete a file or directory at the specified path (unlinkat).
 	//
-	// DELETE /fs/{systemId}/unlink
+	// DELETE /syscall/{systemId}/unlink
 	Unlink(ctx context.Context, params UnlinkParams) (UnlinkRes, error)
 }
 
@@ -3188,9 +3196,9 @@ func (c *Client) sendListSystems(ctx context.Context) (res ListSystemsRes, err e
 
 // Ln invokes ln operation.
 //
-// Create a symbolic link (like Unix ln -s command).
+// Create a symbolic link (symlinkat).
 //
-// POST /fs/{systemId}/ln
+// POST /syscall/{systemId}/ln
 func (c *Client) Ln(ctx context.Context, request *SymlinkRequest, params LnParams) (LnRes, error) {
 	res, err := c.sendLn(ctx, request, params)
 	return res, err
@@ -3200,7 +3208,7 @@ func (c *Client) sendLn(ctx context.Context, request *SymlinkRequest, params LnP
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("ln"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/fs/{systemId}/ln"),
+		semconv.URLTemplateKey.String("/syscall/{systemId}/ln"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -3234,7 +3242,7 @@ func (c *Client) sendLn(ctx context.Context, request *SymlinkRequest, params LnP
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/fs/"
+	pathParts[0] = "/syscall/"
 	{
 		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3391,9 +3399,9 @@ func (c *Client) sendLogout(ctx context.Context) (res *LogoutNoContent, err erro
 
 // Ls invokes ls operation.
 //
-// List contents of a directory (like Unix ls command).
+// List contents of a directory (like Unix ls command, getdents64).
 //
-// GET /fs/{systemId}/ls
+// GET /syscall/{systemId}/ls
 func (c *Client) Ls(ctx context.Context, params LsParams) (LsRes, error) {
 	res, err := c.sendLs(ctx, params)
 	return res, err
@@ -3403,7 +3411,7 @@ func (c *Client) sendLs(ctx context.Context, params LsParams) (res LsRes, err er
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("ls"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/fs/{systemId}/ls"),
+		semconv.URLTemplateKey.String("/syscall/{systemId}/ls"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -3437,7 +3445,7 @@ func (c *Client) sendLs(ctx context.Context, params LsParams) (res LsRes, err er
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/fs/"
+	pathParts[0] = "/syscall/"
 	{
 		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3535,9 +3543,9 @@ func (c *Client) sendLs(ctx context.Context, params LsParams) (res LsRes, err er
 
 // Mkdir invokes mkdir operation.
 //
-// Create a new directory at the specified path.
+// Create a new directory at the specified path (mkdirat).
 //
-// POST /fs/{systemId}/mkdir
+// POST /syscall/{systemId}/mkdir
 func (c *Client) Mkdir(ctx context.Context, request *MkdirRequest, params MkdirParams) (MkdirRes, error) {
 	res, err := c.sendMkdir(ctx, request, params)
 	return res, err
@@ -3547,7 +3555,7 @@ func (c *Client) sendMkdir(ctx context.Context, request *MkdirRequest, params Mk
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("mkdir"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/fs/{systemId}/mkdir"),
+		semconv.URLTemplateKey.String("/syscall/{systemId}/mkdir"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -3581,7 +3589,7 @@ func (c *Client) sendMkdir(ctx context.Context, request *MkdirRequest, params Mk
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/fs/"
+	pathParts[0] = "/syscall/"
 	{
 		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3664,19 +3672,30 @@ func (c *Client) sendMkdir(ctx context.Context, request *MkdirRequest, params Mk
 
 // Mv invokes mv operation.
 //
-// Move a file or directory to a different location (like Unix mv command).
+// Move files or directories (like Unix mv). Accepts multiple sources with a single destination.
+// If destination is a directory, all sources are moved into it.
+// If destination is a new path, source is renamed/moved.
 //
-// POST /fs/{systemId}/mv
-func (c *Client) Mv(ctx context.Context, request *MvReq, params MvParams) (MvRes, error) {
+// POST /syscall/{systemId}/mv
+func (c *Client) Mv(ctx context.Context, request *MvRequest, params MvParams) (MvRes, error) {
 	res, err := c.sendMv(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendMv(ctx context.Context, request *MvReq, params MvParams) (res MvRes, err error) {
+func (c *Client) sendMv(ctx context.Context, request *MvRequest, params MvParams) (res MvRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if err := request.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("mv"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/fs/{systemId}/mv"),
+		semconv.URLTemplateKey.String("/syscall/{systemId}/mv"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -3710,7 +3729,7 @@ func (c *Client) sendMv(ctx context.Context, request *MvReq, params MvParams) (r
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/fs/"
+	pathParts[0] = "/syscall/"
 	{
 		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3956,19 +3975,19 @@ func (c *Client) sendRemoveGroupMember(ctx context.Context, params RemoveGroupMe
 
 // Rename invokes rename operation.
 //
-// Rename a file or directory within the same parent directory.
+// Rename a file or directory within the same parent directory (renameat).
 //
-// POST /fs/{systemId}/rename
-func (c *Client) Rename(ctx context.Context, request *RenameReq, params RenameParams) (RenameRes, error) {
+// POST /syscall/{systemId}/rename
+func (c *Client) Rename(ctx context.Context, request *RenameRequest, params RenameParams) (RenameRes, error) {
 	res, err := c.sendRename(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendRename(ctx context.Context, request *RenameReq, params RenameParams) (res RenameRes, err error) {
+func (c *Client) sendRename(ctx context.Context, request *RenameRequest, params RenameParams) (res RenameRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("rename"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/fs/{systemId}/rename"),
+		semconv.URLTemplateKey.String("/syscall/{systemId}/rename"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -4002,7 +4021,7 @@ func (c *Client) sendRename(ctx context.Context, request *RenameReq, params Rena
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/fs/"
+	pathParts[0] = "/syscall/"
 	{
 		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -4076,6 +4095,144 @@ func (c *Client) sendRename(ctx context.Context, request *RenameReq, params Rena
 
 	stage = "DecodeResponse"
 	result, err := decodeRenameResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// Rm invokes rm operation.
+//
+// Remove files or directories (like Unix rm). Accepts multiple paths for bulk deletion.
+//
+// POST /syscall/{systemId}/rm
+func (c *Client) Rm(ctx context.Context, request *RmRequest, params RmParams) (RmRes, error) {
+	res, err := c.sendRm(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendRm(ctx context.Context, request *RmRequest, params RmParams) (res RmRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if err := request.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("rm"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/syscall/{systemId}/rm"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, RmOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/syscall/"
+	{
+		// Encode "systemId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "systemId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SystemId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/rm"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeRmRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:SessionAuth"
+			switch err := c.securitySessionAuth(ctx, RmOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"SessionAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeRmResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4229,9 +4386,9 @@ func (c *Client) sendStatPath(ctx context.Context, params StatPathParams) (res S
 
 // Unlink invokes unlink operation.
 //
-// Delete a file or directory at the specified path.
+// Delete a file or directory at the specified path (unlinkat).
 //
-// DELETE /fs/{systemId}/unlink
+// DELETE /syscall/{systemId}/unlink
 func (c *Client) Unlink(ctx context.Context, params UnlinkParams) (UnlinkRes, error) {
 	res, err := c.sendUnlink(ctx, params)
 	return res, err
@@ -4241,7 +4398,7 @@ func (c *Client) sendUnlink(ctx context.Context, params UnlinkParams) (res Unlin
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("unlink"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.URLTemplateKey.String("/fs/{systemId}/unlink"),
+		semconv.URLTemplateKey.String("/syscall/{systemId}/unlink"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -4275,7 +4432,7 @@ func (c *Client) sendUnlink(ctx context.Context, params UnlinkParams) (res Unlin
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/fs/"
+	pathParts[0] = "/syscall/"
 	{
 		// Encode "systemId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{

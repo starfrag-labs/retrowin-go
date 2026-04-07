@@ -154,9 +154,9 @@ type Handler interface {
 	ListSystems(ctx context.Context) (ListSystemsRes, error)
 	// Ln implements ln operation.
 	//
-	// Create a symbolic link (like Unix ln -s command).
+	// Create a symbolic link (symlinkat).
 	//
-	// POST /fs/{systemId}/ln
+	// POST /syscall/{systemId}/ln
 	Ln(ctx context.Context, req *SymlinkRequest, params LnParams) (LnRes, error)
 	// Logout implements logout operation.
 	//
@@ -166,22 +166,24 @@ type Handler interface {
 	Logout(ctx context.Context) error
 	// Ls implements ls operation.
 	//
-	// List contents of a directory (like Unix ls command).
+	// List contents of a directory (like Unix ls command, getdents64).
 	//
-	// GET /fs/{systemId}/ls
+	// GET /syscall/{systemId}/ls
 	Ls(ctx context.Context, params LsParams) (LsRes, error)
 	// Mkdir implements mkdir operation.
 	//
-	// Create a new directory at the specified path.
+	// Create a new directory at the specified path (mkdirat).
 	//
-	// POST /fs/{systemId}/mkdir
+	// POST /syscall/{systemId}/mkdir
 	Mkdir(ctx context.Context, req *MkdirRequest, params MkdirParams) (MkdirRes, error)
 	// Mv implements mv operation.
 	//
-	// Move a file or directory to a different location (like Unix mv command).
+	// Move files or directories (like Unix mv). Accepts multiple sources with a single destination.
+	// If destination is a directory, all sources are moved into it.
+	// If destination is a new path, source is renamed/moved.
 	//
-	// POST /fs/{systemId}/mv
-	Mv(ctx context.Context, req *MvReq, params MvParams) (MvRes, error)
+	// POST /syscall/{systemId}/mv
+	Mv(ctx context.Context, req *MvRequest, params MvParams) (MvRes, error)
 	// RemoveGroupMember implements removeGroupMember operation.
 	//
 	// Remove a user from a group.
@@ -190,10 +192,16 @@ type Handler interface {
 	RemoveGroupMember(ctx context.Context, params RemoveGroupMemberParams) (RemoveGroupMemberRes, error)
 	// Rename implements rename operation.
 	//
-	// Rename a file or directory within the same parent directory.
+	// Rename a file or directory within the same parent directory (renameat).
 	//
-	// POST /fs/{systemId}/rename
-	Rename(ctx context.Context, req *RenameReq, params RenameParams) (RenameRes, error)
+	// POST /syscall/{systemId}/rename
+	Rename(ctx context.Context, req *RenameRequest, params RenameParams) (RenameRes, error)
+	// Rm implements rm operation.
+	//
+	// Remove files or directories (like Unix rm). Accepts multiple paths for bulk deletion.
+	//
+	// POST /syscall/{systemId}/rm
+	Rm(ctx context.Context, req *RmRequest, params RmParams) (RmRes, error)
 	// StatPath implements statPath operation.
 	//
 	// Get inode metadata for a given path.
@@ -202,9 +210,9 @@ type Handler interface {
 	StatPath(ctx context.Context, params StatPathParams) (StatPathRes, error)
 	// Unlink implements unlink operation.
 	//
-	// Delete a file or directory at the specified path.
+	// Delete a file or directory at the specified path (unlinkat).
 	//
-	// DELETE /fs/{systemId}/unlink
+	// DELETE /syscall/{systemId}/unlink
 	Unlink(ctx context.Context, params UnlinkParams) (UnlinkRes, error)
 }
 

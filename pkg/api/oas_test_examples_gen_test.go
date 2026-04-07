@@ -971,18 +971,6 @@ func TestMvBadRequest_EncodeDecode(t *testing.T) {
 	var typ2 MvBadRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMvConflict_EncodeDecode(t *testing.T) {
-	var typ MvConflict
-	typ.SetFake()
-
-	e := jx.Encoder{}
-	typ.Encode(&e)
-	data := e.Bytes()
-	require.True(t, std.Valid(data), "Encoded: %s", data)
-
-	var typ2 MvConflict
-	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
-}
 func TestMvForbidden_EncodeDecode(t *testing.T) {
 	var typ MvForbidden
 	typ.SetFake()
@@ -995,8 +983,8 @@ func TestMvForbidden_EncodeDecode(t *testing.T) {
 	var typ2 MvForbidden
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMvNotFound_EncodeDecode(t *testing.T) {
-	var typ MvNotFound
+func TestMvRequest_EncodeDecode(t *testing.T) {
+	var typ MvRequest
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1004,11 +992,11 @@ func TestMvNotFound_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 MvNotFound
+	var typ2 MvRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestMvReq_EncodeDecode(t *testing.T) {
-	var typ MvReq
+func TestMvResult_EncodeDecode(t *testing.T) {
+	var typ MvResult
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1016,7 +1004,19 @@ func TestMvReq_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 MvReq
+	var typ2 MvResult
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestMvResultErrorsItem_EncodeDecode(t *testing.T) {
+	var typ MvResultErrorsItem
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 MvResultErrorsItem
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestMvUnauthorized_EncodeDecode(t *testing.T) {
@@ -1115,8 +1115,8 @@ func TestRenameNotFound_EncodeDecode(t *testing.T) {
 	var typ2 RenameNotFound
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
-func TestRenameReq_EncodeDecode(t *testing.T) {
-	var typ RenameReq
+func TestRenameRequest_EncodeDecode(t *testing.T) {
+	var typ RenameRequest
 	typ.SetFake()
 
 	e := jx.Encoder{}
@@ -1124,7 +1124,7 @@ func TestRenameReq_EncodeDecode(t *testing.T) {
 	data := e.Bytes()
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
-	var typ2 RenameReq
+	var typ2 RenameRequest
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestRenameUnauthorized_EncodeDecode(t *testing.T) {
@@ -1137,6 +1137,78 @@ func TestRenameUnauthorized_EncodeDecode(t *testing.T) {
 	require.True(t, std.Valid(data), "Encoded: %s", data)
 
 	var typ2 RenameUnauthorized
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRmBadRequest_EncodeDecode(t *testing.T) {
+	var typ RmBadRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RmBadRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRmForbidden_EncodeDecode(t *testing.T) {
+	var typ RmForbidden
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RmForbidden
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRmRequest_EncodeDecode(t *testing.T) {
+	var typ RmRequest
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RmRequest
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRmResult_EncodeDecode(t *testing.T) {
+	var typ RmResult
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RmResult
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRmResultErrorsItem_EncodeDecode(t *testing.T) {
+	var typ RmResultErrorsItem
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RmResultErrorsItem
+	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
+}
+func TestRmUnauthorized_EncodeDecode(t *testing.T) {
+	var typ RmUnauthorized
+	typ.SetFake()
+
+	e := jx.Encoder{}
+	typ.Encode(&e)
+	data := e.Bytes()
+	require.True(t, std.Valid(data), "Encoded: %s", data)
+
+	var typ2 RmUnauthorized
 	require.NoError(t, typ2.Decode(jx.DecodeBytes(data)))
 }
 func TestStatPathForbidden_EncodeDecode(t *testing.T) {

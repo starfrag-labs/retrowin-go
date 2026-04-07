@@ -117,6 +117,10 @@ type RenameRes interface {
 	renameRes()
 }
 
+type RmRes interface {
+	rmRes()
+}
+
 type StatPathRes interface {
 	statPathRes()
 }

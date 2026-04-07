@@ -123,7 +123,7 @@ func encodeMkdirRequest(
 }
 
 func encodeMvRequest(
-	req *MvReq,
+	req *MvRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -137,7 +137,21 @@ func encodeMvRequest(
 }
 
 func encodeRenameRequest(
-	req *RenameReq,
+	req *RenameRequest,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	e := new(jx.Encoder)
+	{
+		req.Encode(e)
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeRmRequest(
+	req *RmRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"

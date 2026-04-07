@@ -4242,16 +4242,16 @@ func (s *Server) handleListSystemsRequest(args [0]string, argsEscaped bool, w ht
 
 // handleLnRequest handles ln operation.
 //
-// Create a symbolic link (like Unix ln -s command).
+// Create a symbolic link (symlinkat).
 //
-// POST /fs/{systemId}/ln
+// POST /syscall/{systemId}/ln
 func (s *Server) handleLnRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("ln"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fs/{systemId}/ln"),
+		semconv.HTTPRouteKey.String("/syscall/{systemId}/ln"),
 	}
 	// Add attributes from config.
 	otelAttrs = append(otelAttrs, s.cfg.Attributes...)
@@ -4568,16 +4568,16 @@ func (s *Server) handleLogoutRequest(args [0]string, argsEscaped bool, w http.Re
 
 // handleLsRequest handles ls operation.
 //
-// List contents of a directory (like Unix ls command).
+// List contents of a directory (like Unix ls command, getdents64).
 //
-// GET /fs/{systemId}/ls
+// GET /syscall/{systemId}/ls
 func (s *Server) handleLsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("ls"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/fs/{systemId}/ls"),
+		semconv.HTTPRouteKey.String("/syscall/{systemId}/ls"),
 	}
 	// Add attributes from config.
 	otelAttrs = append(otelAttrs, s.cfg.Attributes...)
@@ -4759,16 +4759,16 @@ func (s *Server) handleLsRequest(args [1]string, argsEscaped bool, w http.Respon
 
 // handleMkdirRequest handles mkdir operation.
 //
-// Create a new directory at the specified path.
+// Create a new directory at the specified path (mkdirat).
 //
-// POST /fs/{systemId}/mkdir
+// POST /syscall/{systemId}/mkdir
 func (s *Server) handleMkdirRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("mkdir"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fs/{systemId}/mkdir"),
+		semconv.HTTPRouteKey.String("/syscall/{systemId}/mkdir"),
 	}
 	// Add attributes from config.
 	otelAttrs = append(otelAttrs, s.cfg.Attributes...)
@@ -4961,16 +4961,18 @@ func (s *Server) handleMkdirRequest(args [1]string, argsEscaped bool, w http.Res
 
 // handleMvRequest handles mv operation.
 //
-// Move a file or directory to a different location (like Unix mv command).
+// Move files or directories (like Unix mv). Accepts multiple sources with a single destination.
+// If destination is a directory, all sources are moved into it.
+// If destination is a new path, source is renamed/moved.
 //
-// POST /fs/{systemId}/mv
+// POST /syscall/{systemId}/mv
 func (s *Server) handleMvRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("mv"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fs/{systemId}/mv"),
+		semconv.HTTPRouteKey.String("/syscall/{systemId}/mv"),
 	}
 	// Add attributes from config.
 	otelAttrs = append(otelAttrs, s.cfg.Attributes...)
@@ -5112,7 +5114,7 @@ func (s *Server) handleMvRequest(args [1]string, argsEscaped bool, w http.Respon
 		mreq := middleware.Request{
 			Context:          ctx,
 			OperationName:    MvOperation,
-			OperationSummary: "Move file or directory",
+			OperationSummary: "Move paths",
 			OperationID:      "mv",
 			Body:             request,
 			RawBody:          rawBody,
@@ -5126,7 +5128,7 @@ func (s *Server) handleMvRequest(args [1]string, argsEscaped bool, w http.Respon
 		}
 
 		type (
-			Request  = *MvReq
+			Request  = *MvRequest
 			Params   = MvParams
 			Response = MvRes
 		)
@@ -5358,16 +5360,16 @@ func (s *Server) handleRemoveGroupMemberRequest(args [3]string, argsEscaped bool
 
 // handleRenameRequest handles rename operation.
 //
-// Rename a file or directory within the same parent directory.
+// Rename a file or directory within the same parent directory (renameat).
 //
-// POST /fs/{systemId}/rename
+// POST /syscall/{systemId}/rename
 func (s *Server) handleRenameRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("rename"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fs/{systemId}/rename"),
+		semconv.HTTPRouteKey.String("/syscall/{systemId}/rename"),
 	}
 	// Add attributes from config.
 	otelAttrs = append(otelAttrs, s.cfg.Attributes...)
@@ -5523,7 +5525,7 @@ func (s *Server) handleRenameRequest(args [1]string, argsEscaped bool, w http.Re
 		}
 
 		type (
-			Request  = *RenameReq
+			Request  = *RenameRequest
 			Params   = RenameParams
 			Response = RenameRes
 		)
@@ -5550,6 +5552,208 @@ func (s *Server) handleRenameRequest(args [1]string, argsEscaped bool, w http.Re
 	}
 
 	if err := encodeRenameResponse(response, w, span); err != nil {
+		defer recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
+// handleRmRequest handles rm operation.
+//
+// Remove files or directories (like Unix rm). Accepts multiple paths for bulk deletion.
+//
+// POST /syscall/{systemId}/rm
+func (s *Server) handleRmRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	statusWriter := &codeRecorder{ResponseWriter: w}
+	w = statusWriter
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("rm"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/syscall/{systemId}/rm"),
+	}
+	// Add attributes from config.
+	otelAttrs = append(otelAttrs, s.cfg.Attributes...)
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), RmOperation,
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Add Labeler to context.
+	labeler := &Labeler{attrs: otelAttrs}
+	ctx = contextWithLabeler(ctx, labeler)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+
+		attrSet := labeler.AttributeSet()
+		attrs := attrSet.ToSlice()
+		code := statusWriter.status
+		if code != 0 {
+			codeAttr := semconv.HTTPResponseStatusCode(code)
+			attrs = append(attrs, codeAttr)
+			span.SetAttributes(codeAttr)
+		}
+		attrOpt := metric.WithAttributes(attrs...)
+
+		// Increment request counter.
+		s.requests.Add(ctx, 1, attrOpt)
+
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), attrOpt)
+	}()
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+
+			// https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
+			// Span Status MUST be left unset if HTTP status code was in the 1xx, 2xx or 3xx ranges,
+			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
+			// max redirects exceeded), in which case status MUST be set to Error.
+			code := statusWriter.status
+			if code < 100 || code >= 500 {
+				span.SetStatus(codes.Error, stage)
+			}
+
+			attrSet := labeler.AttributeSet()
+			attrs := attrSet.ToSlice()
+			if code != 0 {
+				attrs = append(attrs, semconv.HTTPResponseStatusCode(code))
+			}
+
+			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
+		}
+		err          error
+		opErrContext = ogenerrors.OperationContext{
+			Name: RmOperation,
+			ID:   "rm",
+		}
+	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securitySessionAuth(ctx, RmOperation, r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "SessionAuth",
+					Err:              err,
+				}
+				defer recordError("Security:SessionAuth", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			defer recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
+	params, err := decodeRmParams(args, argsEscaped, r)
+	if err != nil {
+		err = &ogenerrors.DecodeParamsError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		defer recordError("DecodeParams", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	var rawBody []byte
+	request, rawBody, close, err := s.decodeRmRequest(r)
+	if err != nil {
+		err = &ogenerrors.DecodeRequestError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		defer recordError("DecodeRequest", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+	defer func() {
+		if err := close(); err != nil {
+			recordError("CloseRequest", err)
+		}
+	}()
+
+	var response RmRes
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    RmOperation,
+			OperationSummary: "Remove multiple paths",
+			OperationID:      "rm",
+			Body:             request,
+			RawBody:          rawBody,
+			Params: middleware.Parameters{
+				{
+					Name: "systemId",
+					In:   "path",
+				}: params.SystemId,
+			},
+			Raw: r,
+		}
+
+		type (
+			Request  = *RmRequest
+			Params   = RmParams
+			Response = RmRes
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			unpackRmParams,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				response, err = s.h.Rm(ctx, request, params)
+				return response, err
+			},
+		)
+	} else {
+		response, err = s.h.Rm(ctx, request, params)
+	}
+	if err != nil {
+		defer recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodeRmResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -5751,16 +5955,16 @@ func (s *Server) handleStatPathRequest(args [1]string, argsEscaped bool, w http.
 
 // handleUnlinkRequest handles unlink operation.
 //
-// Delete a file or directory at the specified path.
+// Delete a file or directory at the specified path (unlinkat).
 //
-// DELETE /fs/{systemId}/unlink
+// DELETE /syscall/{systemId}/unlink
 func (s *Server) handleUnlinkRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("unlink"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/fs/{systemId}/unlink"),
+		semconv.HTTPRouteKey.String("/syscall/{systemId}/unlink"),
 	}
 	// Add attributes from config.
 	otelAttrs = append(otelAttrs, s.cfg.Attributes...)

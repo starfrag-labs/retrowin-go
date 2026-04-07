@@ -203,22 +203,47 @@ func (s *Suite) Start(ctx context.Context) error {
 	s.ValkeyAddr = sharedValkeyAddr
 	s.MinioAddr = sharedMinioAddr
 
-	// Create Valkey client for test helpers
-	valkeyClient, err := valkey.NewClient(valkey.ClientOption{
-		InitAddress: []string{s.ValkeyAddr},
-	})
+	// Create Valkey client for test helpers (with retry)
+	var (
+		valkeyClient valkey.Client
+		err          error
+	)
+	for i := 0; i < 10; i++ {
+		valkeyClient, err = valkey.NewClient(valkey.ClientOption{
+			InitAddress: []string{s.ValkeyAddr},
+		})
+		if err == nil {
+			break
+		}
+		slog.Warn("valkey client not ready, retrying", "attempt", i+1, "error", err)
+		time.Sleep(500 * time.Millisecond)
+	}
 	if err != nil {
-		return fmt.Errorf("failed to create valkey client: %w", err)
+		return fmt.Errorf("failed to create valkey client after retries: %w", err)
 	}
 	s.ValkeyClient = valkeyClient
 
-	// Create a per-test database for isolation
+	// Create a per-test database for isolation (with retry)
 	s.dbName = "retrowin_test_" + strings.ReplaceAll(uuid.New().String(), "-", "")[:12]
 	adminDSN := fmt.Sprintf("host=%s port=%d user=test password=test dbname=postgres sslmode=disable",
 		sharedPgHost, sharedPgPort)
-	adminDB, err := sql.Open("postgres", adminDSN)
+
+	var adminDB *sql.DB
+	for i := 0; i < 10; i++ {
+		adminDB, err = sql.Open("postgres", adminDSN)
+		if err != nil {
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+		if err = adminDB.PingContext(ctx); err != nil {
+			_ = adminDB.Close()
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+		break
+	}
 	if err != nil {
-		return fmt.Errorf("failed to connect to admin database: %w", err)
+		return fmt.Errorf("failed to connect to admin database after retries: %w", err)
 	}
 	_, err = adminDB.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE %s", s.dbName))
 	_ = adminDB.Close()
@@ -353,25 +378,20 @@ func (s *Suite) StartServer(ctx context.Context) error {
 	}()
 
 	// Wait for server to be ready
-	for i := 0; i < 30; i++ {
+	var serverReady bool
+	for i := 0; i < 50; i++ {
 		resp, err := http.Get(s.baseURL + "/health")
 		if err == nil {
 			_ = resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {
+				serverReady = true
 				break
 			}
 		}
 		time.Sleep(200 * time.Millisecond)
 	}
-
-	// Verify server is running
-	resp, err := http.Get(s.baseURL + "/health")
-	if err != nil {
-		return fmt.Errorf("server failed to start: %w", err)
-	}
-	_ = resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("server health check failed: %d", resp.StatusCode)
+	if !serverReady {
+		return fmt.Errorf("server failed to start within 10s")
 	}
 
 	return nil
@@ -460,19 +480,26 @@ func (s *Suite) GetConfig() *config.Config {
 	return s.Config
 }
 
-// createMinioBucket creates a per-test bucket in the shared MinIO container.
+// createMinioBucket creates a per-test bucket in the shared MinIO container (with retry).
 func (s *Suite) createMinioBucket(ctx context.Context) error {
-	client, err := minio.New(s.MinioAddr, &minio.Options{
-		Creds:  credentials.NewStaticV4("minioadmin", "minioadmin", ""),
-		Secure: false,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create minio client: %w", err)
-	}
+	var lastErr error
+	for i := 0; i < 10; i++ {
+		client, err := minio.New(s.MinioAddr, &minio.Options{
+			Creds:  credentials.NewStaticV4("minioadmin", "minioadmin", ""),
+			Secure: false,
+		})
+		if err != nil {
+			lastErr = err
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
 
-	if err := client.MakeBucket(ctx, s.bucketName, minio.MakeBucketOptions{}); err != nil {
-		return fmt.Errorf("failed to create bucket: %w", err)
+		if err := client.MakeBucket(ctx, s.bucketName, minio.MakeBucketOptions{}); err != nil {
+			lastErr = err
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+		return nil
 	}
-
-	return nil
+	return fmt.Errorf("failed to create minio bucket after retries: %w", lastErr)
 }

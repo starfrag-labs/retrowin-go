@@ -3,8 +3,8 @@ package fs
 import (
 	"context"
 
+	"github.com/starfrag-lab/retrowin-go/internal/core/dentry"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	"github.com/starfrag-lab/retrowin-go/internal/core/user"
 )
@@ -15,10 +15,6 @@ type FsService interface {
 	CreateDirectory(ctx context.Context, cmd *CreateDirectoryCommand) (*inode.Inode, error)
 	CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) (*inode.Inode, error)
 	Get(ctx context.Context, id string) (*inode.Inode, error)
-	ReadDir(ctx context.Context, id string) ([]content.DirEntry, error)
-	Link(ctx context.Context, dirID string, entry content.DirEntry) error
-	ReplaceLink(ctx context.Context, dirID string, entry content.DirEntry) (string, error)
-	Unlink(ctx context.Context, dirID string, name string) error
 	UpdateContent(ctx context.Context, cmd *UpdateContentCommand) (*inode.Inode, error)
 	UpdateMode(ctx context.Context, cmd *UpdateModeCommand) error
 	Delete(ctx context.Context, id string) error
@@ -30,6 +26,13 @@ type FsService interface {
 	// ResolvePath resolves a Unix-style path to an inode.
 	// Path must be absolute (start with /).
 	ResolvePath(ctx context.Context, systemID string, path string) (*inode.Inode, error)
+
+	// Rm removes multiple paths. Like Unix rm, calls unlinkat + inode delete per path.
+	Rm(ctx context.Context, cmd *RmCommand) (*RmResult, error)
+	// Mv moves multiple paths to a destination. Like Unix mv, uses renameat per source.
+	Mv(ctx context.Context, cmd *MvCommand) (*MvResult, error)
+	// Rename renames a single entry within the same directory. Uses renameat.
+	Rename(ctx context.Context, cmd *RenameCommand) (*inode.Inode, error)
 }
 
 // CreateFileCommand for creating a regular file.
@@ -76,17 +79,63 @@ type ListFilter struct {
 	UID      *int
 }
 
+// RmCommand for bulk removal of paths.
+type RmCommand struct {
+	SystemID string
+	Paths    []string
+}
+
+// RmResult contains the results of a bulk rm operation.
+type RmResult struct {
+	Deleted []string // successfully deleted paths
+	Errors  []RmError
+}
+
+// RmError represents a per-path error during rm.
+type RmError struct {
+	Path  string
+	Error error
+}
+
+// MvCommand for bulk move of paths to a destination.
+type MvCommand struct {
+	SystemID    string
+	Sources     []string
+	Destination string
+}
+
+// MvResult contains the results of a bulk mv operation.
+type MvResult struct {
+	Moved  []string // successfully moved paths
+	Errors []MvError
+}
+
+// MvError represents a per-path error during mv.
+type MvError struct {
+	Path  string
+	Error error
+}
+
+// RenameCommand for renaming an entry within the same directory.
+type RenameCommand struct {
+	SystemID string
+	Path     string
+	NewName  string
+}
+
 type service struct {
 	inodeSvc  inode.InodeService
 	objectSvc object.ObjectService
 	userSvc   user.UserService
+	dentrySvc dentry.DentryService
 }
 
 // NewService creates a new filesystem service.
-func NewService(inodeSvc inode.InodeService, objectSvc object.ObjectService, userSvc user.UserService) FsService {
+func NewService(inodeSvc inode.InodeService, objectSvc object.ObjectService, userSvc user.UserService, dentrySvc dentry.DentryService) FsService {
 	return &service{
 		inodeSvc:  inodeSvc,
 		objectSvc: objectSvc,
 		userSvc:   userSvc,
+		dentrySvc: dentrySvc,
 	}
 }

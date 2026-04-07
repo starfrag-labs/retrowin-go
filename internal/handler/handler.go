@@ -6,9 +6,10 @@ import (
 
 	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
+	corefs "github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/application/storage"
 	"github.com/starfrag-lab/retrowin-go/internal/auth"
-	corefs "github.com/starfrag-lab/retrowin-go/internal/core/fs"
+	"github.com/starfrag-lab/retrowin-go/internal/core/dentry"
 	coreuser "github.com/starfrag-lab/retrowin-go/internal/core/user"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 	"github.com/starfrag-lab/retrowin-go/internal/service/sysinit"
@@ -34,6 +35,7 @@ type Handler struct {
 
 	// Filesystem and storage services
 	fsSvc      corefs.FsService
+	dentrySvc  dentry.DentryService
 	storageSvc storage.StorageService
 
 	// Init service
@@ -48,6 +50,7 @@ func NewHandler(
 	sysGroupSvc coreuser.GroupService,
 	systemSvc system.SystemService,
 	fsSvc corefs.FsService,
+	dentrySvc dentry.DentryService,
 	storageSvc storage.StorageService,
 	initSvc sysinit.InitService,
 ) *Handler {
@@ -58,6 +61,7 @@ func NewHandler(
 		sysGroupSvc: sysGroupSvc,
 		systemSvc:   systemSvc,
 		fsSvc:       fsSvc,
+		dentrySvc:   dentrySvc,
 		storageSvc:  storageSvc,
 		initSvc:     initSvc,
 	}

@@ -2197,6 +2197,72 @@ func decodeRenameParams(args [1]string, argsEscaped bool, r *http.Request) (para
 	return params, nil
 }
 
+// RmParams is parameters of rm operation.
+type RmParams struct {
+	// System ID.
+	SystemId string
+}
+
+func unpackRmParams(packed middleware.Parameters) (params RmParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "systemId",
+			In:   "path",
+		}
+		params.SystemId = packed[key].(string)
+	}
+	return params
+}
+
+func decodeRmParams(args [1]string, argsEscaped bool, r *http.Request) (params RmParams, _ error) {
+	// Decode path: systemId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "systemId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.SystemId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "systemId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // StatPathParams is parameters of statPath operation.
 type StatPathParams struct {
 	// System ID.
