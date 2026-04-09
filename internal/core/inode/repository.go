@@ -26,6 +26,7 @@ type CreateParams struct {
 	Mode     int
 	UID      int
 	GID      int
+	Size     int64
 	Flags    int
 	Content  []byte
 }

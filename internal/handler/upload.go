@@ -15,6 +15,10 @@ import (
 
 // InitiateUpload implements POST /fs/{systemId}/upload/initiate.
 func (h *Handler) InitiateUpload(ctx context.Context, req *api.InitiateUploadRequest, params api.InitiateUploadParams) (api.InitiateUploadRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	if req.Path == "" || req.Path[0] != '/' {
 		return nil, errors.BadRequest("path must be absolute (start with /)")
 	}
@@ -49,6 +53,10 @@ func (h *Handler) InitiateUpload(ctx context.Context, req *api.InitiateUploadReq
 
 // CompleteUpload implements POST /fs/{systemId}/upload/complete.
 func (h *Handler) CompleteUpload(ctx context.Context, req *api.CompleteUploadRequest, params api.CompleteUploadParams) (api.CompleteUploadRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	// Validate and parse path
 	if req.Path == "" || req.Path[0] != '/' {
 		return nil, h.domainError(errors.BadRequest("path must be absolute (start with /)"))
@@ -100,6 +108,10 @@ func (h *Handler) CompleteUpload(ctx context.Context, req *api.CompleteUploadReq
 
 // GetDownloadUrl implements GET /fs/{systemId}/download.
 func (h *Handler) GetDownloadUrl(ctx context.Context, params api.GetDownloadUrlParams) (api.GetDownloadUrlRes, error) {
+	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
+		return nil, h.domainError(err)
+	}
+
 	// First resolve the path to get inode ID
 	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, params.Path)
 	if err != nil {

@@ -115,6 +115,9 @@ type ObjectService interface {
 	// DeleteFromDB removes the object record from DB only (no S3 call).
 	// Used by GC for orphan cleanup where S3 data is already gone.
 	DeleteFromDB(ctx context.Context, id string) error
+
+	// GetObjectSize returns the size of the object in storage.
+	GetObjectSize(ctx context.Context, id string) (int64, error)
 }
 
 // CreateCommand for creating a new object (service layer).
@@ -381,4 +384,21 @@ func (s *service) FindActive(ctx context.Context) ([]*Object, error) {
 // DeleteFromDB removes the object record from DB only (no S3 call).
 func (s *service) DeleteFromDB(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, s.client, id)
+}
+
+// GetObjectSize returns the size of the object in external storage.
+func (s *service) GetObjectSize(ctx context.Context, id string) (int64, error) {
+	obj, err := s.repo.GetByID(ctx, s.client, id)
+	if err != nil {
+		return 0, err
+	}
+	if obj == nil {
+		return 0, errors.NotFound("object not found")
+	}
+
+	size, err := s.storage.GetObjectSize(ctx, obj.Bucket(), obj.StorageKey())
+	if err != nil {
+		return 0, errors.WrapInternal(err, "failed to get object size from storage")
+	}
+	return size, nil
 }

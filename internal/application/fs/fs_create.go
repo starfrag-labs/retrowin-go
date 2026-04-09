@@ -14,7 +14,7 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inod
 		return nil, errors.BadRequest("system_id is required")
 	}
 
-	uid, err := s.userSvc.ResolveUID(ctx, cmd.SystemID)
+	uid, gids, err := s.userSvc.ResolveUIDAndGIDs(ctx, cmd.SystemID)
 	if err != nil {
 		return nil, err
 	}
@@ -24,11 +24,17 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inod
 		mode = inode.ModeRegular | inode.PermOwnerRW | inode.PermGroupRX | inode.PermOtherR
 	}
 
+	gid := cmd.GID
+	if gid == 0 && len(gids) > 0 {
+		gid = gids[0]
+	}
+
 	return s.inodeSvc.Create(ctx, &inode.CreateCommand{
 		SystemID: cmd.SystemID,
 		Mode:     mode,
 		UID:      uid,
-		GID:      cmd.GID,
+		GID:      gid,
+		Size:     cmd.Size,
 		Flags:    cmd.Flags,
 		Content:  cmd.Content,
 	})
@@ -39,7 +45,7 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 		return nil, errors.BadRequest("system_id is required")
 	}
 
-	uid, err := s.userSvc.ResolveUID(ctx, cmd.SystemID)
+	uid, gids, err := s.userSvc.ResolveUIDAndGIDs(ctx, cmd.SystemID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +53,11 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 	mode := cmd.Mode
 	if mode == 0 {
 		mode = inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherR
+	}
+
+	gid := cmd.GID
+	if gid == 0 && len(gids) > 0 {
+		gid = gids[0]
 	}
 
 	dirContent := content.DirContent{Entries: []content.DirEntry{}}
@@ -59,7 +70,7 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 		SystemID: cmd.SystemID,
 		Mode:     mode,
 		UID:      uid,
-		GID:      cmd.GID,
+		GID:      gid,
 		Flags:    cmd.Flags,
 		Content:  raw,
 	})
@@ -73,7 +84,7 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 		return nil, errors.BadRequest("target is required")
 	}
 
-	uid, err := s.userSvc.ResolveUID(ctx, cmd.SystemID)
+	uid, gids, err := s.userSvc.ResolveUIDAndGIDs(ctx, cmd.SystemID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +92,11 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 	mode := cmd.Mode
 	if mode == 0 {
 		mode = inode.ModeSymlink | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherR
+	}
+
+	gid := cmd.GID
+	if gid == 0 && len(gids) > 0 {
+		gid = gids[0]
 	}
 
 	symContent := content.SymlinkContent{Target: cmd.Target}
@@ -93,7 +109,7 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 		SystemID: cmd.SystemID,
 		Mode:     mode,
 		UID:      uid,
-		GID:      cmd.GID,
+		GID:      gid,
 		Flags:    cmd.Flags,
 		Content:  raw,
 	})

@@ -39,8 +39,8 @@ func (_m *SessionServiceMock) EXPECT() *SessionServiceMock_Expecter {
 }
 
 // Create provides a mock function for the type SessionServiceMock
-func (_mock *SessionServiceMock) Create(ctx context.Context, userID string) (*session.Session, error) {
-	ret := _mock.Called(ctx, userID)
+func (_mock *SessionServiceMock) Create(ctx context.Context, userID string, idToken string) (*session.Session, error) {
+	ret := _mock.Called(ctx, userID, idToken)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -48,18 +48,18 @@ func (_mock *SessionServiceMock) Create(ctx context.Context, userID string) (*se
 
 	var r0 *session.Session
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*session.Session, error)); ok {
-		return returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*session.Session, error)); ok {
+		return returnFunc(ctx, userID, idToken)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *session.Session); ok {
-		r0 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *session.Session); ok {
+		r0 = returnFunc(ctx, userID, idToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*session.Session)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, userID, idToken)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -74,11 +74,12 @@ type SessionServiceMock_Create_Call struct {
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
-func (_e *SessionServiceMock_Expecter) Create(ctx interface{}, userID interface{}) *SessionServiceMock_Create_Call {
-	return &SessionServiceMock_Create_Call{Call: _e.mock.On("Create", ctx, userID)}
+//   - idToken string
+func (_e *SessionServiceMock_Expecter) Create(ctx interface{}, userID interface{}, idToken interface{}) *SessionServiceMock_Create_Call {
+	return &SessionServiceMock_Create_Call{Call: _e.mock.On("Create", ctx, userID, idToken)}
 }
 
-func (_c *SessionServiceMock_Create_Call) Run(run func(ctx context.Context, userID string)) *SessionServiceMock_Create_Call {
+func (_c *SessionServiceMock_Create_Call) Run(run func(ctx context.Context, userID string, idToken string)) *SessionServiceMock_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -88,9 +89,14 @@ func (_c *SessionServiceMock_Create_Call) Run(run func(ctx context.Context, user
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -101,7 +107,7 @@ func (_c *SessionServiceMock_Create_Call) Return(session1 *session.Session, err 
 	return _c
 }
 
-func (_c *SessionServiceMock_Create_Call) RunAndReturn(run func(ctx context.Context, userID string) (*session.Session, error)) *SessionServiceMock_Create_Call {
+func (_c *SessionServiceMock_Create_Call) RunAndReturn(run func(ctx context.Context, userID string, idToken string) (*session.Session, error)) *SessionServiceMock_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
