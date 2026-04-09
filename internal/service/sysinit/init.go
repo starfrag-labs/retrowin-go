@@ -122,6 +122,7 @@ func (s *service) createRootUser(ctx context.Context, systemID, rootUserID strin
 func (s *service) createRootDirectory(ctx context.Context, systemID string) (*inode.Inode, error) {
 	rootDir, err := s.fsSvc.CreateDirectory(ctx, &fs.CreateDirectoryCommand{
 		SystemID: systemID,
+		UID:      0, // root
 		GID:      0, // root group
 		Mode:     inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherRX,
 		Flags:    inode.FlagRoot, // Mark as root directory
@@ -135,6 +136,7 @@ func (s *service) createRootDirectory(ctx context.Context, systemID string) (*in
 func (s *service) createHomeDirectory(ctx context.Context, systemID string, rootDirID string) (*inode.Inode, error) {
 	homeDir, err := s.fsSvc.CreateDirectory(ctx, &fs.CreateDirectoryCommand{
 		SystemID: systemID,
+		UID:      0, // root
 		GID:      0, // root group
 		Mode:     inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherRX,
 	})
@@ -157,6 +159,7 @@ func (s *service) createHomeDirectory(ctx context.Context, systemID string, root
 func (s *service) createTrashDirectory(ctx context.Context, systemID string, homeDirID string) (*inode.Inode, error) {
 	trashDir, err := s.fsSvc.CreateDirectory(ctx, &fs.CreateDirectoryCommand{
 		SystemID: systemID,
+		UID:      0, // root
 		GID:      0, // root group
 		Mode:     inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherRX,
 	})

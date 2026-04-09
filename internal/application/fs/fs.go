@@ -38,6 +38,7 @@ type FsService interface {
 // CreateFileCommand for creating a regular file.
 type CreateFileCommand struct {
 	SystemID string
+	UID      int
 	GID      int
 	Mode     int
 	Size     int64
@@ -48,6 +49,7 @@ type CreateFileCommand struct {
 // CreateDirectoryCommand for creating a directory.
 type CreateDirectoryCommand struct {
 	SystemID string
+	UID      int
 	GID      int
 	Mode     int
 	Flags    int
@@ -56,6 +58,7 @@ type CreateDirectoryCommand struct {
 // CreateSymlinkCommand for creating a symbolic link.
 type CreateSymlinkCommand struct {
 	SystemID string
+	UID      int
 	GID      int
 	Mode     int
 	Flags    int
