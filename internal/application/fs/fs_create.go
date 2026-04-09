@@ -14,7 +14,7 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inod
 		return nil, errors.BadRequest("system_id is required")
 	}
 
-	uid, gids, err := s.userSvc.ResolveUIDAndGIDs(ctx, cmd.SystemID)
+	uid, gid, err := s.resolveIDs(ctx, cmd.SystemID, cmd.UID, cmd.GID)
 	if err != nil {
 		return nil, err
 	}
@@ -22,11 +22,6 @@ func (s *service) CreateFile(ctx context.Context, cmd *CreateFileCommand) (*inod
 	mode := cmd.Mode
 	if mode == 0 {
 		mode = inode.ModeRegular | inode.PermOwnerRW | inode.PermGroupRX | inode.PermOtherR
-	}
-
-	gid := cmd.GID
-	if gid == 0 && len(gids) > 0 {
-		gid = gids[0]
 	}
 
 	return s.inodeSvc.Create(ctx, &inode.CreateCommand{
@@ -45,7 +40,7 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 		return nil, errors.BadRequest("system_id is required")
 	}
 
-	uid, gids, err := s.userSvc.ResolveUIDAndGIDs(ctx, cmd.SystemID)
+	uid, gid, err := s.resolveIDs(ctx, cmd.SystemID, cmd.UID, cmd.GID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +48,6 @@ func (s *service) CreateDirectory(ctx context.Context, cmd *CreateDirectoryComma
 	mode := cmd.Mode
 	if mode == 0 {
 		mode = inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherR
-	}
-
-	gid := cmd.GID
-	if gid == 0 && len(gids) > 0 {
-		gid = gids[0]
 	}
 
 	dirContent := content.DirContent{Entries: []content.DirEntry{}}
@@ -84,7 +74,7 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 		return nil, errors.BadRequest("target is required")
 	}
 
-	uid, gids, err := s.userSvc.ResolveUIDAndGIDs(ctx, cmd.SystemID)
+	uid, gid, err := s.resolveIDs(ctx, cmd.SystemID, cmd.UID, cmd.GID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,11 +82,6 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 	mode := cmd.Mode
 	if mode == 0 {
 		mode = inode.ModeSymlink | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherR
-	}
-
-	gid := cmd.GID
-	if gid == 0 && len(gids) > 0 {
-		gid = gids[0]
 	}
 
 	symContent := content.SymlinkContent{Target: cmd.Target}
@@ -113,4 +98,21 @@ func (s *service) CreateSymlink(ctx context.Context, cmd *CreateSymlinkCommand) 
 		Flags:    cmd.Flags,
 		Content:  raw,
 	})
+}
+
+func (s *service) resolveIDs(ctx context.Context, systemID string, uid int, gid int) (int, int, error) {
+	if uid >= 0 {
+		return uid, gid, nil
+	}
+
+	resolvedUID, gids, err := s.userSvc.ResolveUIDAndGIDs(ctx, systemID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if gid == 0 && len(gids) > 0 {
+		gid = gids[0]
+	}
+
+	return resolvedUID, gid, nil
 }

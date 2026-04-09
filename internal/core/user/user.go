@@ -131,7 +131,7 @@ func NewService(repo SystemUserRepository, groupRepo SystemGroupRepository) User
 func (s *service) ResolveUID(ctx context.Context, systemID string) (int, error) {
 	userID, ok := utils.GetUserID(ctx)
 	if !ok || userID == "" {
-		return 0, nil // No user in context, return 0 (skip permission check)
+		return 0, errors.Unauthorized("user not authenticated")
 	}
 
 	su, err := s.repo.FindOne(ctx, &QueryFilter{
@@ -152,7 +152,7 @@ func (s *service) ResolveUID(ctx context.Context, systemID string) (int, error) 
 func (s *service) ResolveUIDAndGIDs(ctx context.Context, systemID string) (int, []int, error) {
 	userID, ok := utils.GetUserID(ctx)
 	if !ok || userID == "" {
-		return 0, nil, nil // No user in context
+		return 0, nil, errors.Unauthorized("user not authenticated")
 	}
 
 	su, err := s.repo.FindOne(ctx, &QueryFilter{
