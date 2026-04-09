@@ -30,7 +30,7 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 		SetMode(params.Mode).
 		SetUID(params.UID).
 		SetGid(params.GID).
-		SetSize(0).
+		SetSize(params.Size).
 		SetLinkCount(1).
 		SetFlags(params.Flags).
 		SetAtime(now).

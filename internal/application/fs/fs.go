@@ -40,6 +40,7 @@ type CreateFileCommand struct {
 	SystemID string
 	GID      int
 	Mode     int
+	Size     int64
 	Flags    int
 	Content  []byte
 }

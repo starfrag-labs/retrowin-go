@@ -901,6 +901,72 @@ func (_c *ObjectServiceMock_GetDownloadURL_Call) RunAndReturn(run func(ctx conte
 	return _c
 }
 
+// GetObjectSize provides a mock function for the type ObjectServiceMock
+func (_mock *ObjectServiceMock) GetObjectSize(ctx context.Context, id string) (int64, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetObjectSize")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// ObjectServiceMock_GetObjectSize_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetObjectSize'
+type ObjectServiceMock_GetObjectSize_Call struct {
+	*mock.Call
+}
+
+// GetObjectSize is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ObjectServiceMock_Expecter) GetObjectSize(ctx interface{}, id interface{}) *ObjectServiceMock_GetObjectSize_Call {
+	return &ObjectServiceMock_GetObjectSize_Call{Call: _e.mock.On("GetObjectSize", ctx, id)}
+}
+
+func (_c *ObjectServiceMock_GetObjectSize_Call) Run(run func(ctx context.Context, id string)) *ObjectServiceMock_GetObjectSize_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *ObjectServiceMock_GetObjectSize_Call) Return(n int64, err error) *ObjectServiceMock_GetObjectSize_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *ObjectServiceMock_GetObjectSize_Call) RunAndReturn(run func(ctx context.Context, id string) (int64, error)) *ObjectServiceMock_GetObjectSize_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // InitiateUpload provides a mock function for the type ObjectServiceMock
 func (_mock *ObjectServiceMock) InitiateUpload(ctx context.Context, cmd *object.InitiateUploadCommand) (*object.UploadSession, error) {
 	ret := _mock.Called(ctx, cmd)

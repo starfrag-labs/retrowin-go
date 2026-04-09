@@ -9,7 +9,6 @@ import (
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -511,69 +510,6 @@ func (_c *FsServiceMock_GetRootDirectory_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
-// Link provides a mock function for the type FsServiceMock
-func (_mock *FsServiceMock) Link(ctx context.Context, dirID string, entry content.DirEntry) error {
-	ret := _mock.Called(ctx, dirID, entry)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Link")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, content.DirEntry) error); ok {
-		r0 = returnFunc(ctx, dirID, entry)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// FsServiceMock_Link_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Link'
-type FsServiceMock_Link_Call struct {
-	*mock.Call
-}
-
-// Link is a helper method to define mock.On call
-//   - ctx context.Context
-//   - dirID string
-//   - entry content.DirEntry
-func (_e *FsServiceMock_Expecter) Link(ctx interface{}, dirID interface{}, entry interface{}) *FsServiceMock_Link_Call {
-	return &FsServiceMock_Link_Call{Call: _e.mock.On("Link", ctx, dirID, entry)}
-}
-
-func (_c *FsServiceMock_Link_Call) Run(run func(ctx context.Context, dirID string, entry content.DirEntry)) *FsServiceMock_Link_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 content.DirEntry
-		if args[2] != nil {
-			arg2 = args[2].(content.DirEntry)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *FsServiceMock_Link_Call) Return(err error) *FsServiceMock_Link_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *FsServiceMock_Link_Call) RunAndReturn(run func(ctx context.Context, dirID string, entry content.DirEntry) error) *FsServiceMock_Link_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // List provides a mock function for the type FsServiceMock
 func (_mock *FsServiceMock) List(ctx context.Context, filter *fs.ListFilter) ([]*inode.Inode, error) {
 	ret := _mock.Called(ctx, filter)
@@ -642,55 +578,55 @@ func (_c *FsServiceMock_List_Call) RunAndReturn(run func(ctx context.Context, fi
 	return _c
 }
 
-// ReadDir provides a mock function for the type FsServiceMock
-func (_mock *FsServiceMock) ReadDir(ctx context.Context, id string) ([]content.DirEntry, error) {
-	ret := _mock.Called(ctx, id)
+// Mv provides a mock function for the type FsServiceMock
+func (_mock *FsServiceMock) Mv(ctx context.Context, cmd *fs.MvCommand) (*fs.MvResult, error) {
+	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ReadDir")
+		panic("no return value specified for Mv")
 	}
 
-	var r0 []content.DirEntry
+	var r0 *fs.MvResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]content.DirEntry, error)); ok {
-		return returnFunc(ctx, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *fs.MvCommand) (*fs.MvResult, error)); ok {
+		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []content.DirEntry); ok {
-		r0 = returnFunc(ctx, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *fs.MvCommand) *fs.MvResult); ok {
+		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]content.DirEntry)
+			r0 = ret.Get(0).(*fs.MvResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, id)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *fs.MvCommand) error); ok {
+		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// FsServiceMock_ReadDir_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadDir'
-type FsServiceMock_ReadDir_Call struct {
+// FsServiceMock_Mv_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Mv'
+type FsServiceMock_Mv_Call struct {
 	*mock.Call
 }
 
-// ReadDir is a helper method to define mock.On call
+// Mv is a helper method to define mock.On call
 //   - ctx context.Context
-//   - id string
-func (_e *FsServiceMock_Expecter) ReadDir(ctx interface{}, id interface{}) *FsServiceMock_ReadDir_Call {
-	return &FsServiceMock_ReadDir_Call{Call: _e.mock.On("ReadDir", ctx, id)}
+//   - cmd *fs.MvCommand
+func (_e *FsServiceMock_Expecter) Mv(ctx interface{}, cmd interface{}) *FsServiceMock_Mv_Call {
+	return &FsServiceMock_Mv_Call{Call: _e.mock.On("Mv", ctx, cmd)}
 }
 
-func (_c *FsServiceMock_ReadDir_Call) Run(run func(ctx context.Context, id string)) *FsServiceMock_ReadDir_Call {
+func (_c *FsServiceMock_Mv_Call) Run(run func(ctx context.Context, cmd *fs.MvCommand)) *FsServiceMock_Mv_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 *fs.MvCommand
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(*fs.MvCommand)
 		}
 		run(
 			arg0,
@@ -700,84 +636,80 @@ func (_c *FsServiceMock_ReadDir_Call) Run(run func(ctx context.Context, id strin
 	return _c
 }
 
-func (_c *FsServiceMock_ReadDir_Call) Return(dirEntrys []content.DirEntry, err error) *FsServiceMock_ReadDir_Call {
-	_c.Call.Return(dirEntrys, err)
+func (_c *FsServiceMock_Mv_Call) Return(mvResult *fs.MvResult, err error) *FsServiceMock_Mv_Call {
+	_c.Call.Return(mvResult, err)
 	return _c
 }
 
-func (_c *FsServiceMock_ReadDir_Call) RunAndReturn(run func(ctx context.Context, id string) ([]content.DirEntry, error)) *FsServiceMock_ReadDir_Call {
+func (_c *FsServiceMock_Mv_Call) RunAndReturn(run func(ctx context.Context, cmd *fs.MvCommand) (*fs.MvResult, error)) *FsServiceMock_Mv_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// ReplaceLink provides a mock function for the type FsServiceMock
-func (_mock *FsServiceMock) ReplaceLink(ctx context.Context, dirID string, entry content.DirEntry) (string, error) {
-	ret := _mock.Called(ctx, dirID, entry)
+// Rename provides a mock function for the type FsServiceMock
+func (_mock *FsServiceMock) Rename(ctx context.Context, cmd *fs.RenameCommand) (*inode.Inode, error) {
+	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ReplaceLink")
+		panic("no return value specified for Rename")
 	}
 
-	var r0 string
+	var r0 *inode.Inode
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, content.DirEntry) (string, error)); ok {
-		return returnFunc(ctx, dirID, entry)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *fs.RenameCommand) (*inode.Inode, error)); ok {
+		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, content.DirEntry) string); ok {
-		r0 = returnFunc(ctx, dirID, entry)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *fs.RenameCommand) *inode.Inode); ok {
+		r0 = returnFunc(ctx, cmd)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inode.Inode)
+		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, content.DirEntry) error); ok {
-		r1 = returnFunc(ctx, dirID, entry)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *fs.RenameCommand) error); ok {
+		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// FsServiceMock_ReplaceLink_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReplaceLink'
-type FsServiceMock_ReplaceLink_Call struct {
+// FsServiceMock_Rename_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Rename'
+type FsServiceMock_Rename_Call struct {
 	*mock.Call
 }
 
-// ReplaceLink is a helper method to define mock.On call
+// Rename is a helper method to define mock.On call
 //   - ctx context.Context
-//   - dirID string
-//   - entry content.DirEntry
-func (_e *FsServiceMock_Expecter) ReplaceLink(ctx interface{}, dirID interface{}, entry interface{}) *FsServiceMock_ReplaceLink_Call {
-	return &FsServiceMock_ReplaceLink_Call{Call: _e.mock.On("ReplaceLink", ctx, dirID, entry)}
+//   - cmd *fs.RenameCommand
+func (_e *FsServiceMock_Expecter) Rename(ctx interface{}, cmd interface{}) *FsServiceMock_Rename_Call {
+	return &FsServiceMock_Rename_Call{Call: _e.mock.On("Rename", ctx, cmd)}
 }
 
-func (_c *FsServiceMock_ReplaceLink_Call) Run(run func(ctx context.Context, dirID string, entry content.DirEntry)) *FsServiceMock_ReplaceLink_Call {
+func (_c *FsServiceMock_Rename_Call) Run(run func(ctx context.Context, cmd *fs.RenameCommand)) *FsServiceMock_Rename_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 *fs.RenameCommand
 		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 content.DirEntry
-		if args[2] != nil {
-			arg2 = args[2].(content.DirEntry)
+			arg1 = args[1].(*fs.RenameCommand)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *FsServiceMock_ReplaceLink_Call) Return(s string, err error) *FsServiceMock_ReplaceLink_Call {
-	_c.Call.Return(s, err)
+func (_c *FsServiceMock_Rename_Call) Return(inode1 *inode.Inode, err error) *FsServiceMock_Rename_Call {
+	_c.Call.Return(inode1, err)
 	return _c
 }
 
-func (_c *FsServiceMock_ReplaceLink_Call) RunAndReturn(run func(ctx context.Context, dirID string, entry content.DirEntry) (string, error)) *FsServiceMock_ReplaceLink_Call {
+func (_c *FsServiceMock_Rename_Call) RunAndReturn(run func(ctx context.Context, cmd *fs.RenameCommand) (*inode.Inode, error)) *FsServiceMock_Rename_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -856,65 +788,70 @@ func (_c *FsServiceMock_ResolvePath_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
-// Unlink provides a mock function for the type FsServiceMock
-func (_mock *FsServiceMock) Unlink(ctx context.Context, dirID string, name string) error {
-	ret := _mock.Called(ctx, dirID, name)
+// Rm provides a mock function for the type FsServiceMock
+func (_mock *FsServiceMock) Rm(ctx context.Context, cmd *fs.RmCommand) (*fs.RmResult, error) {
+	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Unlink")
+		panic("no return value specified for Rm")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, dirID, name)
-	} else {
-		r0 = ret.Error(0)
+	var r0 *fs.RmResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *fs.RmCommand) (*fs.RmResult, error)); ok {
+		return returnFunc(ctx, cmd)
 	}
-	return r0
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *fs.RmCommand) *fs.RmResult); ok {
+		r0 = returnFunc(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*fs.RmResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *fs.RmCommand) error); ok {
+		r1 = returnFunc(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
-// FsServiceMock_Unlink_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Unlink'
-type FsServiceMock_Unlink_Call struct {
+// FsServiceMock_Rm_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Rm'
+type FsServiceMock_Rm_Call struct {
 	*mock.Call
 }
 
-// Unlink is a helper method to define mock.On call
+// Rm is a helper method to define mock.On call
 //   - ctx context.Context
-//   - dirID string
-//   - name string
-func (_e *FsServiceMock_Expecter) Unlink(ctx interface{}, dirID interface{}, name interface{}) *FsServiceMock_Unlink_Call {
-	return &FsServiceMock_Unlink_Call{Call: _e.mock.On("Unlink", ctx, dirID, name)}
+//   - cmd *fs.RmCommand
+func (_e *FsServiceMock_Expecter) Rm(ctx interface{}, cmd interface{}) *FsServiceMock_Rm_Call {
+	return &FsServiceMock_Rm_Call{Call: _e.mock.On("Rm", ctx, cmd)}
 }
 
-func (_c *FsServiceMock_Unlink_Call) Run(run func(ctx context.Context, dirID string, name string)) *FsServiceMock_Unlink_Call {
+func (_c *FsServiceMock_Rm_Call) Run(run func(ctx context.Context, cmd *fs.RmCommand)) *FsServiceMock_Rm_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 *fs.RmCommand
 		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(*fs.RmCommand)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *FsServiceMock_Unlink_Call) Return(err error) *FsServiceMock_Unlink_Call {
-	_c.Call.Return(err)
+func (_c *FsServiceMock_Rm_Call) Return(rmResult *fs.RmResult, err error) *FsServiceMock_Rm_Call {
+	_c.Call.Return(rmResult, err)
 	return _c
 }
 
-func (_c *FsServiceMock_Unlink_Call) RunAndReturn(run func(ctx context.Context, dirID string, name string) error) *FsServiceMock_Unlink_Call {
+func (_c *FsServiceMock_Rm_Call) RunAndReturn(run func(ctx context.Context, cmd *fs.RmCommand) (*fs.RmResult, error)) *FsServiceMock_Rm_Call {
 	_c.Call.Return(run)
 	return _c
 }

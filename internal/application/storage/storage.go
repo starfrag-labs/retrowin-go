@@ -95,12 +95,18 @@ func (s *service) CompleteUpload(ctx context.Context, cmd *CompleteUploadCommand
 		return nil, errors.FromError(err)
 	}
 
+	// Get object size from storage
+	size, err := s.objectSvc.GetObjectSize(ctx, obj.ID())
+	if err != nil {
+		return nil, errors.FromError(err)
+	}
+
 	// Create inode with object reference
-	return s.createInodeWithObject(ctx, cmd.SystemID, cmd.Mode, cmd.Flags, obj.ID())
+	return s.createInodeWithObject(ctx, cmd.SystemID, cmd.Mode, cmd.Flags, obj.ID(), size)
 }
 
 // createInodeWithObject creates an inode referencing the given object.
-func (s *service) createInodeWithObject(ctx context.Context, systemID string, mode int, flags int, objectID string) (*UploadResult, error) {
+func (s *service) createInodeWithObject(ctx context.Context, systemID string, mode int, flags int, objectID string, size int64) (*UploadResult, error) {
 	// Store ObjectContent in inode content
 	c := &content.ObjectContent{ObjectID: objectID}
 	cBytes, err := json.Marshal(c)
@@ -116,6 +122,7 @@ func (s *service) createInodeWithObject(ctx context.Context, systemID string, mo
 	createdInode, err := s.fsSvc.CreateFile(ctx, &fs.CreateFileCommand{
 		SystemID: systemID,
 		Mode:     mode,
+		Size:     size,
 		Flags:    flags,
 		Content:  cBytes,
 	})

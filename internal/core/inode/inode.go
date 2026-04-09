@@ -166,6 +166,7 @@ type CreateCommand struct {
 	Mode     int
 	UID      int
 	GID      int
+	Size     int64
 	Flags    int
 	Content  []byte
 }
@@ -209,6 +210,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Inode, error
 		Mode:     cmd.Mode,
 		UID:      cmd.UID,
 		GID:      cmd.GID,
+		Size:     cmd.Size,
 		Flags:    cmd.Flags,
 		Content:  cmd.Content,
 	}
