@@ -3,7 +3,6 @@ package serve
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
@@ -14,6 +13,10 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
+	"github.com/XSAM/otelsql"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
@@ -40,6 +43,7 @@ import (
 	sessionRepo "github.com/starfrag-lab/retrowin-go/internal/session/repository"
 	"github.com/starfrag-lab/retrowin-go/internal/system"
 	systemrepo "github.com/starfrag-lab/retrowin-go/internal/system/repository"
+	"github.com/starfrag-lab/retrowin-go/internal/telemetry"
 	"github.com/starfrag-lab/retrowin-go/internal/user"
 	userrepo "github.com/starfrag-lab/retrowin-go/internal/user/repository"
 )
@@ -74,8 +78,10 @@ func ProvideLogger() *zap.Logger {
 
 // NewEntClient creates a new Ent client.
 func NewEntClient(lc fx.Lifecycle, cfg *config.Config, logger *zap.Logger) (*ent.Client, error) {
-	// Open database connection
-	db, err := sql.Open("postgres", cfg.Database.DSN())
+	// Open database connection with OTel instrumentation
+	db, err := otelsql.Open("postgres", cfg.Database.DSN(),
+		otelsql.WithAttributes(semconv.DBSystemPostgreSQL),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
@@ -160,6 +166,26 @@ func ProvideStorage(cfg *config.Config) (object.Storage, error) {
 	return s3storage.New(&cfg.Storage)
 }
 
+// ProvideTelemetry provides and registers OTel providers.
+func ProvideTelemetry(lc fx.Lifecycle, cfg *config.Config, logger *zap.Logger) (*telemetry.Providers, error) {
+	providers, err := telemetry.NewProviders(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
+	}
+	if cfg.Telemetry.Enabled {
+		logger.Info("telemetry enabled",
+			zap.String("endpoint", cfg.Telemetry.Endpoint),
+			zap.String("service", cfg.Telemetry.ServiceName),
+		)
+	}
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			return providers.Shutdown(ctx)
+		},
+	})
+	return providers, nil
+}
+
 // ProvideHTTPMux provides the HTTP mux with all routes.
 func ProvideHTTPMux(
 	ogenServer *api.Server,
@@ -202,6 +228,9 @@ func ProvideHTTPHandler(mux *http.ServeMux, callbackCfg *middleware.CallbackConf
 	handler = middleware.CallbackMiddleware(callbackCfg)(handler)
 	handler = middleware.CORSMiddleware(cfg)(handler)
 	handler = middleware.RecoveryMiddleware()(handler)
+	if cfg.Telemetry.Enabled {
+		handler = otelhttp.NewHandler(handler, "http-server")
+	}
 	return handler
 }
 
@@ -283,9 +312,19 @@ func WaitForShutdown(lc fx.Lifecycle) {
 func ProvideOgenServer(
 	h *handler.Handler,
 	sessionSvc session.SessionService,
+	providers *telemetry.Providers,
 ) (*api.Server, error) {
 	securityHandler := handler.NewSecurityHandler(sessionSvc)
-	return api.NewServer(h, securityHandler, api.WithErrorHandler(h.ErrorHandler))
+	opts := []api.ServerOption{
+		api.WithErrorHandler(h.ErrorHandler),
+	}
+	if _, ok := providers.TracerProvider.(*sdktrace.TracerProvider); ok {
+		opts = append(opts, api.WithTracerProvider(providers.TracerProvider))
+	}
+	if providers.MeterProvider != nil {
+		opts = append(opts, api.WithMeterProvider(providers.MeterProvider))
+	}
+	return api.NewServer(h, securityHandler, opts...)
 }
 
 // FxOptions returns the fx options for the application.
@@ -300,6 +339,7 @@ func FxOptions(cfgFile string, port int, openAPIPath string) []fx.Option {
 		fx.Provide(
 			fx.Annotate(ProvideConfig, fx.ParamTags(`name:"cfgFile"`, `name:"port"`)),
 			ProvideLogger,
+			ProvideTelemetry,
 			NewEntClient,
 			ProvideValkeyClient,
 			// Repositories

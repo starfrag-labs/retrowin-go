@@ -9,13 +9,14 @@ import (
 
 // Config holds all configuration for the application.
 type Config struct {
-	App      AppConfig      `mapstructure:"app" yaml:"app"`
-	HTTP     HTTPConfig     `mapstructure:"http" yaml:"http"`
-	Database DatabaseConfig `mapstructure:"database" yaml:"database"`
-	Cache    CacheConfig    `mapstructure:"cache" yaml:"cache"`
-	Storage  StorageConfig  `mapstructure:"storage" yaml:"storage"`
-	Auth     AuthConfig     `mapstructure:"auth" yaml:"auth"`
-	CORS     CORSConfig     `mapstructure:"cors" yaml:"cors"`
+	App       AppConfig       `mapstructure:"app" yaml:"app"`
+	HTTP      HTTPConfig      `mapstructure:"http" yaml:"http"`
+	Database  DatabaseConfig  `mapstructure:"database" yaml:"database"`
+	Cache     CacheConfig     `mapstructure:"cache" yaml:"cache"`
+	Storage   StorageConfig   `mapstructure:"storage" yaml:"storage"`
+	Auth      AuthConfig      `mapstructure:"auth" yaml:"auth"`
+	CORS      CORSConfig      `mapstructure:"cors" yaml:"cors"`
+	Telemetry TelemetryConfig `mapstructure:"telemetry" yaml:"telemetry"`
 }
 
 // AppConfig holds application-level configuration.
@@ -111,6 +112,15 @@ type SessionConfig struct {
 	SameSite    string `mapstructure:"sameSite" yaml:"sameSite"`       // SameSite policy: "lax", "strict", "none"
 }
 
+// TelemetryConfig holds OpenTelemetry configuration.
+type TelemetryConfig struct {
+	Enabled     bool   `mapstructure:"enabled" yaml:"enabled"`
+	Endpoint    string `mapstructure:"endpoint" yaml:"endpoint"`
+	Insecure    bool   `mapstructure:"insecure" yaml:"insecure"`
+	CACert      string `mapstructure:"caCert" yaml:"caCert"`
+	ServiceName string `mapstructure:"serviceName" yaml:"serviceName"`
+}
+
 // CORSConfig holds CORS configuration.
 type CORSConfig struct {
 	Enabled          bool     `mapstructure:"enabled" yaml:"enabled"`
@@ -198,6 +208,10 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("auth.session.domain", "")      // Empty means current host only
 	v.SetDefault("auth.session.sameSite", "lax") // lax, strict, or none
 	v.SetDefault("auth.keycloak.redirectURI", "http://localhost:8080/auth/callback")
+	v.SetDefault("telemetry.enabled", false)
+	v.SetDefault("telemetry.endpoint", "localhost:4317")
+	v.SetDefault("telemetry.insecure", true)
+	v.SetDefault("telemetry.serviceName", "retrowin")
 }
 
 func bindEnvVars(v *viper.Viper) {
@@ -211,4 +225,6 @@ func bindEnvVars(v *viper.Viper) {
 	_ = v.BindEnv("storage.accessKey", "STORAGE_ACCESS_KEY")
 	_ = v.BindEnv("storage.secretKey", "STORAGE_SECRET_KEY")
 	_ = v.BindEnv("auth.keycloak.clientSecret", "AUTH_KEYCLOAK_CLIENT_SECRET")
+	_ = v.BindEnv("telemetry.enabled", "TELEMETRY_ENABLED")
+	_ = v.BindEnv("telemetry.endpoint", "TELEMETRY_ENDPOINT")
 }

@@ -125,6 +125,12 @@ storage:
 	assert.Equal(t, "us-east-1", cfg.Storage.Region)
 	assert.Equal(t, 86400, cfg.Auth.Session.TTL)
 	assert.False(t, cfg.Auth.Session.Secure)
+
+	// Telemetry defaults
+	assert.False(t, cfg.Telemetry.Enabled)
+	assert.Equal(t, "localhost:4317", cfg.Telemetry.Endpoint)
+	assert.True(t, cfg.Telemetry.Insecure)
+	assert.Equal(t, "retrowin", cfg.Telemetry.ServiceName)
 }
 
 func TestLoadFromPath_DatabasePasswordFromEnv(t *testing.T) {
