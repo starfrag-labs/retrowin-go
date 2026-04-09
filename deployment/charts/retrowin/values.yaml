@@ -183,7 +183,7 @@ config:
     enabled: false
     endpoint: "otel-collector:4317"
     insecure: false
-    caCert: "/etc/otel/certificates/ca.crt"
+    caCert: ""                            # Path to CA certificate file (e.g. "/etc/otel/certificates/ca.crt")
     serviceName: "retrowin"
 
 # Secrets (passed as environment variables)
@@ -213,6 +213,18 @@ extraEnv: []
 
 # Additional environment variables from ConfigMap or Secret
 extraEnvFrom: []
+
+# Additional volume mounts (e.g. for CA certificates)
+extraVolumeMounts: []
+#  - name: otel-ca
+#    mountPath: /etc/otel/certificates
+#    readOnly: true
+
+# Additional volumes (e.g. ConfigMap with CA certificate)
+extraVolumes: []
+#  - name: otel-ca
+#    configMap:
+#      name: starship-root-ca
 
 # Migration job settings (ArgoCD PreSync hook)
 migration:
