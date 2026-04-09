@@ -49,4 +49,5 @@ telemetry:
   enabled: false          # Enable OpenTelemetry tracing and metrics
   endpoint: "localhost:4317" # OTLP gRPC endpoint
   insecure: true          # Use insecure gRPC connection (development only)
+  caCert: ""              # Path to CA certificate for TLS (leave empty for system CA)
   serviceName: "retrowin" # Service name for traces and metrics

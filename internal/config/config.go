@@ -117,6 +117,7 @@ type TelemetryConfig struct {
 	Enabled     bool   `mapstructure:"enabled" yaml:"enabled"`
 	Endpoint    string `mapstructure:"endpoint" yaml:"endpoint"`
 	Insecure    bool   `mapstructure:"insecure" yaml:"insecure"`
+	CACert      string `mapstructure:"caCert" yaml:"caCert"`
 	ServiceName string `mapstructure:"serviceName" yaml:"serviceName"`
 }
 

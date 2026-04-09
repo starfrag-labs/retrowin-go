@@ -3,6 +3,7 @@ package telemetry
 import (
 	"context"
 	"net"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -171,4 +172,29 @@ func TestProviders_Shutdown_Idempotent(t *testing.T) {
 	assert.NoError(t, providers.Shutdown(context.Background()))
 	// Second shutdown may return an error from already-shutdown providers, but must not panic
 	_ = providers.Shutdown(context.Background())
+}
+
+func TestBuildTLSConfig_NoCA(t *testing.T) {
+	tlsCfg, err := buildTLSConfig("")
+	assert.NoError(t, err)
+	assert.Nil(t, tlsCfg)
+}
+
+func TestBuildTLSConfig_InvalidPath(t *testing.T) {
+	_, err := buildTLSConfig("/nonexistent/ca.crt")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to read CA cert")
+}
+
+func TestBuildTLSConfig_InvalidPEM(t *testing.T) {
+	tmpFile, err := os.CreateTemp("", "ca-*.crt")
+	require.NoError(t, err)
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
+
+	_, _ = tmpFile.WriteString("not a valid PEM")
+	_ = tmpFile.Close()
+
+	_, err = buildTLSConfig(tmpFile.Name())
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to parse CA cert")
 }
