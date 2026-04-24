@@ -2,17 +2,12 @@ package handler
 
 import (
 	"context"
-	"path"
-
-	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
-	"github.com/starfrag-lab/retrowin-go/internal/core/dentry"
-	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 )
 
-// Ls implements GET /syscall/{systemId}/ls — getdents64
+// Ls implements GET /syscall/{systemId}/ls.
 func (h *Handler) Ls(ctx context.Context, params api.LsParams) (api.LsRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
@@ -42,43 +37,19 @@ func (h *Handler) Ls(ctx context.Context, params api.LsParams) (api.LsRes, error
 	return resp, nil
 }
 
-// Mkdir implements POST /syscall/{systemId}/mkdir — mkdirat
+// Mkdir implements POST /syscall/{systemId}/mkdir.
 func (h *Handler) Mkdir(ctx context.Context, req *api.MkdirRequest, params api.MkdirParams) (api.MkdirRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
 
-	mode := inode.ModeDirectory | inode.PermOwnerRWX | inode.PermGroupRX | inode.PermOtherRX
+	mode := 0
 	if req.Mode.Set {
-		mode = inode.ModeDirectory | int(req.Mode.Value)
+		mode = int(req.Mode.Value)
 	}
 
-	dirPath := path.Dir(req.Path)
-	dirName := path.Base(req.Path)
-
-	if dirPath == "/" && dirName == "/" {
-		return nil, h.domainError(errors.BadRequest("cannot create root directory"))
-	}
-
-	parentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, dirPath)
+	dirInode, err := h.fsSvc.Mkdir(ctx, params.SystemId, req.Path, mode)
 	if err != nil {
-		return nil, h.domainError(err)
-	}
-
-	dirInode, err := h.fsSvc.CreateDirectory(ctx, &fs.CreateDirectoryCommand{
-		SystemID: params.SystemId,
-		Mode:     mode,
-	})
-	if err != nil {
-		return nil, h.domainError(err)
-	}
-
-	entry := dentry.DirEntry{
-		Name:     dirName,
-		InodeID:  dirInode.ID(),
-		FileType: uint8(inode.ModeDirectory >> 12),
-	}
-	if err := h.dentrySvc.Link(ctx, parentDir.ID(), entry); err != nil {
 		return nil, h.domainError(err)
 	}
 
@@ -87,42 +58,14 @@ func (h *Handler) Mkdir(ctx context.Context, req *api.MkdirRequest, params api.M
 	}, nil
 }
 
-// Ln implements POST /syscall/{systemId}/ln — symlinkat
+// Ln implements POST /syscall/{systemId}/ln.
 func (h *Handler) Ln(ctx context.Context, req *api.SymlinkRequest, params api.LnParams) (api.LnRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
 
-	if req.Target == "" {
-		return nil, h.domainError(errors.BadRequest("target path is required"))
-	}
-	if len(req.Target) > 4096 {
-		return nil, h.domainError(errors.BadRequest("target path too long"))
-	}
-
-	linkDir := path.Dir(req.LinkPath)
-	linkName := path.Base(req.LinkPath)
-
-	parentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, linkDir)
+	symlinkInode, err := h.fsSvc.Ln(ctx, params.SystemId, req.LinkPath, req.Target)
 	if err != nil {
-		return nil, h.domainError(err)
-	}
-
-	symlinkInode, err := h.fsSvc.CreateSymlink(ctx, &fs.CreateSymlinkCommand{
-		SystemID: params.SystemId,
-		Target:   req.Target,
-		Mode:     inode.ModeSymlink | 0777,
-	})
-	if err != nil {
-		return nil, h.domainError(err)
-	}
-
-	entry := dentry.DirEntry{
-		Name:     linkName,
-		InodeID:  symlinkInode.ID(),
-		FileType: uint8(inode.ModeSymlink >> 12),
-	}
-	if err := h.dentrySvc.Link(ctx, parentDir.ID(), entry); err != nil {
 		return nil, h.domainError(err)
 	}
 
@@ -131,48 +74,20 @@ func (h *Handler) Ln(ctx context.Context, req *api.SymlinkRequest, params api.Ln
 	}, nil
 }
 
-// Unlink implements DELETE /syscall/{systemId}/unlink — unlinkat
+// Unlink implements DELETE /syscall/{systemId}/unlink.
 func (h *Handler) Unlink(ctx context.Context, params api.UnlinkParams) (api.UnlinkRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
 	}
 
-	dirPath := path.Dir(params.Path)
-	entryName := path.Base(params.Path)
-
-	parentDir, err := h.fsSvc.ResolvePath(ctx, params.SystemId, dirPath)
-	if err != nil {
-		return nil, h.domainError(err)
-	}
-
-	entries, err := h.dentrySvc.ReadDir(ctx, parentDir.ID())
-	if err != nil {
-		return nil, h.domainError(err)
-	}
-
-	var targetEntry *dentry.DirEntry
-	for i := range entries {
-		if entries[i].Name == entryName {
-			targetEntry = &entries[i]
-			break
-		}
-	}
-	if targetEntry == nil {
-		return nil, h.domainError(errors.NotFound("path not found: " + params.Path))
-	}
-
-	if err := h.dentrySvc.Unlink(ctx, parentDir.ID(), entryName); err != nil {
-		return nil, h.domainError(err)
-	}
-
-	if err := h.fsSvc.Delete(ctx, targetEntry.InodeID); err != nil && !errors.IsNotFound(err) {
+	if err := h.fsSvc.UnlinkPath(ctx, params.SystemId, params.Path); err != nil {
 		return nil, h.domainError(err)
 	}
 
 	return &api.UnlinkNoContent{}, nil
 }
 
-// Rename implements POST /syscall/{systemId}/rename — renameat
+// Rename implements POST /syscall/{systemId}/rename.
 func (h *Handler) Rename(ctx context.Context, req *api.RenameRequest, params api.RenameParams) (api.RenameRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
@@ -192,7 +107,7 @@ func (h *Handler) Rename(ctx context.Context, req *api.RenameRequest, params api
 	}, nil
 }
 
-// Mv implements POST /syscall/{systemId}/mv — move multiple paths
+// Mv implements POST /syscall/{systemId}/mv.
 func (h *Handler) Mv(ctx context.Context, req *api.MvRequest, params api.MvParams) (api.MvRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)
@@ -221,7 +136,7 @@ func (h *Handler) Mv(ctx context.Context, req *api.MvRequest, params api.MvParam
 	return resp, nil
 }
 
-// Rm implements POST /syscall/{systemId}/rm — remove multiple paths
+// Rm implements POST /syscall/{systemId}/rm.
 func (h *Handler) Rm(ctx context.Context, req *api.RmRequest, params api.RmParams) (api.RmRes, error) {
 	if err := h.checkSystemAccess(ctx, params.SystemId); err != nil {
 		return nil, h.domainError(err)

@@ -39,6 +39,86 @@ func (_m *FsServiceMock) EXPECT() *FsServiceMock_Expecter {
 	return &FsServiceMock_Expecter{mock: &_m.Mock}
 }
 
+// ChmodPath provides a mock function for the type FsServiceMock
+func (_mock *FsServiceMock) ChmodPath(ctx context.Context, systemID string, path string, mode int) (*inode.Inode, error) {
+	ret := _mock.Called(ctx, systemID, path, mode)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChmodPath")
+	}
+
+	var r0 *inode.Inode
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, int) (*inode.Inode, error)); ok {
+		return returnFunc(ctx, systemID, path, mode)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, int) *inode.Inode); ok {
+		r0 = returnFunc(ctx, systemID, path, mode)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inode.Inode)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, int) error); ok {
+		r1 = returnFunc(ctx, systemID, path, mode)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// FsServiceMock_ChmodPath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ChmodPath'
+type FsServiceMock_ChmodPath_Call struct {
+	*mock.Call
+}
+
+// ChmodPath is a helper method to define mock.On call
+//   - ctx context.Context
+//   - systemID string
+//   - path string
+//   - mode int
+func (_e *FsServiceMock_Expecter) ChmodPath(ctx interface{}, systemID interface{}, path interface{}, mode interface{}) *FsServiceMock_ChmodPath_Call {
+	return &FsServiceMock_ChmodPath_Call{Call: _e.mock.On("ChmodPath", ctx, systemID, path, mode)}
+}
+
+func (_c *FsServiceMock_ChmodPath_Call) Run(run func(ctx context.Context, systemID string, path string, mode int)) *FsServiceMock_ChmodPath_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *FsServiceMock_ChmodPath_Call) Return(inode1 *inode.Inode, err error) *FsServiceMock_ChmodPath_Call {
+	_c.Call.Return(inode1, err)
+	return _c
+}
+
+func (_c *FsServiceMock_ChmodPath_Call) RunAndReturn(run func(ctx context.Context, systemID string, path string, mode int) (*inode.Inode, error)) *FsServiceMock_ChmodPath_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Copy provides a mock function for the type FsServiceMock
 func (_mock *FsServiceMock) Copy(ctx context.Context, id string, systemID string) (*inode.Inode, error) {
 	ret := _mock.Called(ctx, id, systemID)
@@ -578,6 +658,166 @@ func (_c *FsServiceMock_List_Call) RunAndReturn(run func(ctx context.Context, fi
 	return _c
 }
 
+// Ln provides a mock function for the type FsServiceMock
+func (_mock *FsServiceMock) Ln(ctx context.Context, systemID string, linkPath string, target string) (*inode.Inode, error) {
+	ret := _mock.Called(ctx, systemID, linkPath, target)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Ln")
+	}
+
+	var r0 *inode.Inode
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (*inode.Inode, error)); ok {
+		return returnFunc(ctx, systemID, linkPath, target)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) *inode.Inode); ok {
+		r0 = returnFunc(ctx, systemID, linkPath, target)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inode.Inode)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = returnFunc(ctx, systemID, linkPath, target)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// FsServiceMock_Ln_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Ln'
+type FsServiceMock_Ln_Call struct {
+	*mock.Call
+}
+
+// Ln is a helper method to define mock.On call
+//   - ctx context.Context
+//   - systemID string
+//   - linkPath string
+//   - target string
+func (_e *FsServiceMock_Expecter) Ln(ctx interface{}, systemID interface{}, linkPath interface{}, target interface{}) *FsServiceMock_Ln_Call {
+	return &FsServiceMock_Ln_Call{Call: _e.mock.On("Ln", ctx, systemID, linkPath, target)}
+}
+
+func (_c *FsServiceMock_Ln_Call) Run(run func(ctx context.Context, systemID string, linkPath string, target string)) *FsServiceMock_Ln_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *FsServiceMock_Ln_Call) Return(inode1 *inode.Inode, err error) *FsServiceMock_Ln_Call {
+	_c.Call.Return(inode1, err)
+	return _c
+}
+
+func (_c *FsServiceMock_Ln_Call) RunAndReturn(run func(ctx context.Context, systemID string, linkPath string, target string) (*inode.Inode, error)) *FsServiceMock_Ln_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Mkdir provides a mock function for the type FsServiceMock
+func (_mock *FsServiceMock) Mkdir(ctx context.Context, systemID string, path string, mode int) (*inode.Inode, error) {
+	ret := _mock.Called(ctx, systemID, path, mode)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Mkdir")
+	}
+
+	var r0 *inode.Inode
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, int) (*inode.Inode, error)); ok {
+		return returnFunc(ctx, systemID, path, mode)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, int) *inode.Inode); ok {
+		r0 = returnFunc(ctx, systemID, path, mode)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inode.Inode)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, int) error); ok {
+		r1 = returnFunc(ctx, systemID, path, mode)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// FsServiceMock_Mkdir_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Mkdir'
+type FsServiceMock_Mkdir_Call struct {
+	*mock.Call
+}
+
+// Mkdir is a helper method to define mock.On call
+//   - ctx context.Context
+//   - systemID string
+//   - path string
+//   - mode int
+func (_e *FsServiceMock_Expecter) Mkdir(ctx interface{}, systemID interface{}, path interface{}, mode interface{}) *FsServiceMock_Mkdir_Call {
+	return &FsServiceMock_Mkdir_Call{Call: _e.mock.On("Mkdir", ctx, systemID, path, mode)}
+}
+
+func (_c *FsServiceMock_Mkdir_Call) Run(run func(ctx context.Context, systemID string, path string, mode int)) *FsServiceMock_Mkdir_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *FsServiceMock_Mkdir_Call) Return(inode1 *inode.Inode, err error) *FsServiceMock_Mkdir_Call {
+	_c.Call.Return(inode1, err)
+	return _c
+}
+
+func (_c *FsServiceMock_Mkdir_Call) RunAndReturn(run func(ctx context.Context, systemID string, path string, mode int) (*inode.Inode, error)) *FsServiceMock_Mkdir_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Mv provides a mock function for the type FsServiceMock
 func (_mock *FsServiceMock) Mv(ctx context.Context, cmd *fs.MvCommand) (*fs.MvResult, error) {
 	ret := _mock.Called(ctx, cmd)
@@ -852,6 +1092,69 @@ func (_c *FsServiceMock_Rm_Call) Return(rmResult *fs.RmResult, err error) *FsSer
 }
 
 func (_c *FsServiceMock_Rm_Call) RunAndReturn(run func(ctx context.Context, cmd *fs.RmCommand) (*fs.RmResult, error)) *FsServiceMock_Rm_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UnlinkPath provides a mock function for the type FsServiceMock
+func (_mock *FsServiceMock) UnlinkPath(ctx context.Context, systemID string, path string) error {
+	ret := _mock.Called(ctx, systemID, path)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UnlinkPath")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, systemID, path)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// FsServiceMock_UnlinkPath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UnlinkPath'
+type FsServiceMock_UnlinkPath_Call struct {
+	*mock.Call
+}
+
+// UnlinkPath is a helper method to define mock.On call
+//   - ctx context.Context
+//   - systemID string
+//   - path string
+func (_e *FsServiceMock_Expecter) UnlinkPath(ctx interface{}, systemID interface{}, path interface{}) *FsServiceMock_UnlinkPath_Call {
+	return &FsServiceMock_UnlinkPath_Call{Call: _e.mock.On("UnlinkPath", ctx, systemID, path)}
+}
+
+func (_c *FsServiceMock_UnlinkPath_Call) Run(run func(ctx context.Context, systemID string, path string)) *FsServiceMock_UnlinkPath_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *FsServiceMock_UnlinkPath_Call) Return(err error) *FsServiceMock_UnlinkPath_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *FsServiceMock_UnlinkPath_Call) RunAndReturn(run func(ctx context.Context, systemID string, path string) error) *FsServiceMock_UnlinkPath_Call {
 	_c.Call.Return(run)
 	return _c
 }
