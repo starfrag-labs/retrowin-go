@@ -11,15 +11,17 @@ import (
 )
 
 // EntRepository implements domain.ObjectRepository using Ent.
-type EntRepository struct{}
-
-// NewRepository creates a new EntRepository.
-func NewRepository() domain.ObjectRepository {
-	return &EntRepository{}
+type EntRepository struct {
+	client *ent.Client
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.Object, error) {
-	builder := client.Object.Create().
+// NewRepository creates a new EntRepository.
+func NewRepository(client *ent.Client) domain.ObjectRepository {
+	return &EntRepository{client: client}
+}
+
+func (r *EntRepository) Create(ctx context.Context, params *domain.CreateParams) (*domain.Object, error) {
+	builder := r.client.Object.Create().
 		SetID(params.ID).
 		SetProvider(entobject.Provider(string(params.Provider))).
 		SetBucket(params.Bucket).
@@ -38,8 +40,8 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return fromEnt(entObject), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*domain.Object, error) {
-	entObject, err := client.Object.Query().
+func (r *EntRepository) GetByID(ctx context.Context, id string) (*domain.Object, error) {
+	entObject, err := r.client.Object.Query().
 		Where(entobject.ID(id)).
 		Only(ctx)
 	if err != nil {
@@ -51,8 +53,8 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id stri
 	return fromEnt(entObject), nil
 }
 
-func (r *EntRepository) GetByStorageKey(ctx context.Context, client *ent.Client, systemID string, provider string, bucket string, storageKey string) (*domain.Object, error) {
-	entObject, err := client.Object.Query().
+func (r *EntRepository) GetByStorageKey(ctx context.Context, systemID string, provider string, bucket string, storageKey string) (*domain.Object, error) {
+	entObject, err := r.client.Object.Query().
 		Where(
 			entobject.SystemIDEQ(systemID),
 			entobject.ProviderEQ(entobject.Provider(provider)),
@@ -69,23 +71,23 @@ func (r *EntRepository) GetByStorageKey(ctx context.Context, client *ent.Client,
 	return fromEnt(entObject), nil
 }
 
-func (r *EntRepository) UpdateStatus(ctx context.Context, client *ent.Client, id string, status domain.Status) error {
-	return client.Object.UpdateOneID(id).
+func (r *EntRepository) UpdateStatus(ctx context.Context, id string, status domain.Status) error {
+	return r.client.Object.UpdateOneID(id).
 		SetStatus(entobject.Status(string(status))).
 		Exec(ctx)
 }
 
-func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id string) error {
-	return client.Object.DeleteOneID(id).Exec(ctx)
+func (r *EntRepository) Delete(ctx context.Context, id string) error {
+	return r.client.Object.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error {
-	_, err := client.Object.Delete().Where(entobject.SystemIDEQ(systemID)).Exec(ctx)
+func (r *EntRepository) DeleteBySystemID(ctx context.Context, systemID string) error {
+	_, err := r.client.Object.Delete().Where(entobject.SystemIDEQ(systemID)).Exec(ctx)
 	return err
 }
 
-func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) ([]*domain.Object, error) {
-	query := client.Object.Query()
+func (r *EntRepository) Find(ctx context.Context, filter *domain.QueryFilter) ([]*domain.Object, error) {
+	query := r.client.Object.Query()
 	query = applyFilter(query, filter)
 
 	entObjects, err := query.All(ctx)
@@ -95,8 +97,8 @@ func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *do
 	return fromEntSlice(entObjects), nil
 }
 
-func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) (*domain.Object, error) {
-	query := client.Object.Query()
+func (r *EntRepository) FindOne(ctx context.Context, filter *domain.QueryFilter) (*domain.Object, error) {
+	query := r.client.Object.Query()
 	query = applyFilter(query, filter)
 
 	entObject, err := query.Only(ctx)
@@ -109,10 +111,10 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 	return fromEnt(entObject), nil
 }
 
-func (r *EntRepository) FindPendingOlderThan(ctx context.Context, client *ent.Client, olderThan time.Duration) ([]*domain.Object, error) {
+func (r *EntRepository) FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*domain.Object, error) {
 	threshold := time.Now().Add(-olderThan)
 
-	entObjects, err := client.Object.Query().
+	entObjects, err := r.client.Object.Query().
 		Where(
 			entobject.StatusEQ(entobject.StatusPending),
 			entobject.UpdateTimeLT(threshold),
@@ -124,8 +126,8 @@ func (r *EntRepository) FindPendingOlderThan(ctx context.Context, client *ent.Cl
 	return fromEntSlice(entObjects), nil
 }
 
-func (r *EntRepository) FindActive(ctx context.Context, client *ent.Client) ([]*domain.Object, error) {
-	entObjects, err := client.Object.Query().
+func (r *EntRepository) FindActive(ctx context.Context) ([]*domain.Object, error) {
+	entObjects, err := r.client.Object.Query().
 		Where(entobject.StatusEQ(entobject.StatusActive)).
 		All(ctx)
 	if err != nil {

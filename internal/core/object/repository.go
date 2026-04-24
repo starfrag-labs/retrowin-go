@@ -3,22 +3,20 @@ package object
 import (
 	"context"
 	"time"
-
-	"github.com/starfrag-lab/retrowin-go/ent"
 )
 
 // ObjectRepository defines the interface for object data access.
 type ObjectRepository interface {
-	Create(ctx context.Context, client *ent.Client, params *CreateParams) (*Object, error)
-	GetByID(ctx context.Context, client *ent.Client, id string) (*Object, error)
-	GetByStorageKey(ctx context.Context, client *ent.Client, systemID string, provider string, bucket string, storageKey string) (*Object, error)
-	UpdateStatus(ctx context.Context, client *ent.Client, id string, status Status) error
-	Delete(ctx context.Context, client *ent.Client, id string) error
-	DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error
-	Find(ctx context.Context, client *ent.Client, filter *QueryFilter) ([]*Object, error)
-	FindOne(ctx context.Context, client *ent.Client, filter *QueryFilter) (*Object, error)
-	FindPendingOlderThan(ctx context.Context, client *ent.Client, olderThan time.Duration) ([]*Object, error)
-	FindActive(ctx context.Context, client *ent.Client) ([]*Object, error)
+	Create(ctx context.Context, params *CreateParams) (*Object, error)
+	GetByID(ctx context.Context, id string) (*Object, error)
+	GetByStorageKey(ctx context.Context, systemID string, provider string, bucket string, storageKey string) (*Object, error)
+	UpdateStatus(ctx context.Context, id string, status Status) error
+	Delete(ctx context.Context, id string) error
+	DeleteBySystemID(ctx context.Context, systemID string) error
+	Find(ctx context.Context, filter *QueryFilter) ([]*Object, error)
+	FindOne(ctx context.Context, filter *QueryFilter) (*Object, error)
+	FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error)
+	FindActive(ctx context.Context) ([]*Object, error)
 }
 
 // CreateParams for creating a new object (repository layer).
