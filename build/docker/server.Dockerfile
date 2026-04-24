@@ -13,7 +13,7 @@ FROM golang:1.26.1-alpine3.23 AS builder
 RUN apk add --no-cache \
       git=2.52.0-r0 \
       gcc=15.2.0-r2 \
-      musl-dev=1.2.5-r21 \
+      musl-dev=1.2.5-r23 \
       nodejs=24.14.1-r0 \
       npm=11.11.0-r0
 
@@ -60,7 +60,7 @@ LABEL org.opencontainers.image.title="Retrowin Server" \
 
 # Install runtime dependencies
 RUN apk add --no-cache \
-      ca-certificates=20251003-r0 \
+      ca-certificates=20260413-r0 \
       tzdata=2026a-r0 \
       curl=8.17.0-r1
 
