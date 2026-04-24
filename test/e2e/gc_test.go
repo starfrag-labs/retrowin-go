@@ -65,7 +65,7 @@ func TestGC_PendingCleanup(t *testing.T) {
 	objStorage, err := s3storage.New(&cfg.Storage)
 	require.NoError(t, err, "Failed to create S3 storage")
 
-	objectSvc := objectdomain.NewService(objectrepo.NewRepository(), objStorage, suite.GetEntClient())
+	objectSvc := objectdomain.NewService(objectrepo.NewRepository(suite.GetEntClient()), objStorage)
 
 	// Run GC with default expiry (24h) — our backdated object should be cleaned
 	gc := gcapp.NewGarbageCollector(objectSvc, objStorage, 0)
@@ -151,7 +151,7 @@ func TestGC_OrphanCleanup(t *testing.T) {
 	objStorage, err := s3storage.New(&cfg.Storage)
 	require.NoError(t, err, "Failed to create S3 storage")
 
-	objectSvc := objectdomain.NewService(objectrepo.NewRepository(), objStorage, suite.GetEntClient())
+	objectSvc := objectdomain.NewService(objectrepo.NewRepository(suite.GetEntClient()), objStorage)
 
 	// Run GC
 	gc := gcapp.NewGarbageCollector(objectSvc, objStorage, 0)
@@ -221,7 +221,7 @@ func TestGC_NoOrphans(t *testing.T) {
 	objStorage, err := s3storage.New(&cfg.Storage)
 	require.NoError(t, err)
 
-	objectSvc := objectdomain.NewService(objectrepo.NewRepository(), objStorage, suite.GetEntClient())
+	objectSvc := objectdomain.NewService(objectrepo.NewRepository(suite.GetEntClient()), objStorage)
 
 	// Run GC
 	gc := gcapp.NewGarbageCollector(objectSvc, objStorage, 0)

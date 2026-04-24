@@ -14,17 +14,19 @@ import (
 var timeNow = time.Now
 
 // EntRepository implements domain.InodeRepository using Ent.
-type EntRepository struct{}
-
-// NewRepository creates a new EntRepository.
-func NewRepository() domain.InodeRepository {
-	return &EntRepository{}
+type EntRepository struct {
+	client *ent.Client
 }
 
-func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *domain.CreateParams) (*domain.Inode, error) {
+// NewRepository creates a new EntRepository.
+func NewRepository(client *ent.Client) domain.InodeRepository {
+	return &EntRepository{client: client}
+}
+
+func (r *EntRepository) Create(ctx context.Context, params *domain.CreateParams) (*domain.Inode, error) {
 	now := timeNow()
 
-	builder := client.Inode.Create().
+	builder := r.client.Inode.Create().
 		SetID(params.ID).
 		SetSystemID(params.SystemID).
 		SetMode(params.Mode).
@@ -49,8 +51,8 @@ func (r *EntRepository) Create(ctx context.Context, client *ent.Client, params *
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id string) (*domain.Inode, error) {
-	entInode, err := client.Inode.Query().
+func (r *EntRepository) GetByID(ctx context.Context, id string) (*domain.Inode, error) {
+	entInode, err := r.client.Inode.Query().
 		Where(entinode.ID(id)).
 		Only(ctx)
 	if err != nil {
@@ -62,8 +64,8 @@ func (r *EntRepository) GetByID(ctx context.Context, client *ent.Client, id stri
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *domain.UpdateParams) error {
-	builder := client.Inode.UpdateOneID(params.ID)
+func (r *EntRepository) Update(ctx context.Context, params *domain.UpdateParams) error {
+	builder := r.client.Inode.UpdateOneID(params.ID)
 
 	if params.Mode != nil {
 		builder.SetMode(*params.Mode)
@@ -96,17 +98,17 @@ func (r *EntRepository) Update(ctx context.Context, client *ent.Client, params *
 	return builder.Exec(ctx)
 }
 
-func (r *EntRepository) Delete(ctx context.Context, client *ent.Client, id string) error {
-	return client.Inode.DeleteOneID(id).Exec(ctx)
+func (r *EntRepository) Delete(ctx context.Context, id string) error {
+	return r.client.Inode.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *EntRepository) DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error {
-	_, err := client.Inode.Delete().Where(entinode.SystemIDEQ(systemID)).Exec(ctx)
+func (r *EntRepository) DeleteBySystemID(ctx context.Context, systemID string) error {
+	_, err := r.client.Inode.Delete().Where(entinode.SystemIDEQ(systemID)).Exec(ctx)
 	return err
 }
 
-func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) ([]*domain.Inode, error) {
-	query := client.Inode.Query()
+func (r *EntRepository) Find(ctx context.Context, filter *domain.QueryFilter) ([]*domain.Inode, error) {
+	query := r.client.Inode.Query()
 	query = applyFilter(query, filter)
 
 	entInodes, err := query.All(ctx)
@@ -116,8 +118,8 @@ func (r *EntRepository) Find(ctx context.Context, client *ent.Client, filter *do
 	return fromEntSlice(entInodes), nil
 }
 
-func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter *domain.QueryFilter) (*domain.Inode, error) {
-	query := client.Inode.Query()
+func (r *EntRepository) FindOne(ctx context.Context, filter *domain.QueryFilter) (*domain.Inode, error) {
+	query := r.client.Inode.Query()
 	query = applyFilter(query, filter)
 
 	entInode, err := query.Only(ctx)
@@ -130,8 +132,8 @@ func (r *EntRepository) FindOne(ctx context.Context, client *ent.Client, filter 
 	return fromEnt(entInode), nil
 }
 
-func (r *EntRepository) UpdateLinkCount(ctx context.Context, client *ent.Client, id string, delta int) error {
-	return client.Inode.UpdateOneID(id).
+func (r *EntRepository) UpdateLinkCount(ctx context.Context, id string, delta int) error {
+	return r.client.Inode.UpdateOneID(id).
 		AddLinkCount(delta).
 		Exec(ctx)
 }

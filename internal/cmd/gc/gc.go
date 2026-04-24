@@ -33,7 +33,7 @@ func runGC(cfg *config.Config, pendingExpiry time.Duration) error {
 	}
 
 	// Build object service
-	objectSvc := object.NewService(objectrepo.NewRepository(), objStorage, entClient)
+	objectSvc := object.NewService(objectrepo.NewRepository(entClient), objStorage)
 
 	// Run GC
 	collector := gcapp.NewGarbageCollector(objectSvc, objStorage, pendingExpiry)

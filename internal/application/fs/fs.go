@@ -27,6 +27,15 @@ type FsService interface {
 	// Path must be absolute (start with /).
 	ResolvePath(ctx context.Context, systemID string, path string) (*inode.Inode, error)
 
+	// Mkdir creates a directory at the given path.
+	Mkdir(ctx context.Context, systemID string, path string, mode int) (*inode.Inode, error)
+	// Ln creates a symbolic link at linkPath pointing to target.
+	Ln(ctx context.Context, systemID string, linkPath string, target string) (*inode.Inode, error)
+	// UnlinkPath removes a path (file or directory).
+	UnlinkPath(ctx context.Context, systemID string, path string) error
+	// ChmodPath changes permissions of a path.
+	ChmodPath(ctx context.Context, systemID string, path string, mode int) (*inode.Inode, error)
+
 	// Rm removes multiple paths. Like Unix rm, calls unlinkat + inode delete per path.
 	Rm(ctx context.Context, cmd *RmCommand) (*RmResult, error)
 	// Mv moves multiple paths to a destination. Like Unix mv, uses renameat per source.

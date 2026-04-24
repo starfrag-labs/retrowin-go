@@ -8,7 +8,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/core/object"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -41,8 +40,8 @@ func (_m *ObjectRepositoryMock) EXPECT() *ObjectRepositoryMock_Expecter {
 }
 
 // Create provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) Create(ctx context.Context, client *ent.Client, params *object.CreateParams) (*object.Object, error) {
-	ret := _mock.Called(ctx, client, params)
+func (_mock *ObjectRepositoryMock) Create(ctx context.Context, params *object.CreateParams) (*object.Object, error) {
+	ret := _mock.Called(ctx, params)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -50,18 +49,18 @@ func (_mock *ObjectRepositoryMock) Create(ctx context.Context, client *ent.Clien
 
 	var r0 *object.Object
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *object.CreateParams) (*object.Object, error)); ok {
-		return returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *object.CreateParams) (*object.Object, error)); ok {
+		return returnFunc(ctx, params)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *object.CreateParams) *object.Object); ok {
-		r0 = returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *object.CreateParams) *object.Object); ok {
+		r0 = returnFunc(ctx, params)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*object.Object)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *object.CreateParams) error); ok {
-		r1 = returnFunc(ctx, client, params)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *object.CreateParams) error); ok {
+		r1 = returnFunc(ctx, params)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -75,30 +74,24 @@ type ObjectRepositoryMock_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - params *object.CreateParams
-func (_e *ObjectRepositoryMock_Expecter) Create(ctx interface{}, client interface{}, params interface{}) *ObjectRepositoryMock_Create_Call {
-	return &ObjectRepositoryMock_Create_Call{Call: _e.mock.On("Create", ctx, client, params)}
+func (_e *ObjectRepositoryMock_Expecter) Create(ctx interface{}, params interface{}) *ObjectRepositoryMock_Create_Call {
+	return &ObjectRepositoryMock_Create_Call{Call: _e.mock.On("Create", ctx, params)}
 }
 
-func (_c *ObjectRepositoryMock_Create_Call) Run(run func(ctx context.Context, client *ent.Client, params *object.CreateParams)) *ObjectRepositoryMock_Create_Call {
+func (_c *ObjectRepositoryMock_Create_Call) Run(run func(ctx context.Context, params *object.CreateParams)) *ObjectRepositoryMock_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *object.CreateParams
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *object.CreateParams
-		if args[2] != nil {
-			arg2 = args[2].(*object.CreateParams)
+			arg1 = args[1].(*object.CreateParams)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -109,22 +102,22 @@ func (_c *ObjectRepositoryMock_Create_Call) Return(object1 *object.Object, err e
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_Create_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, params *object.CreateParams) (*object.Object, error)) *ObjectRepositoryMock_Create_Call {
+func (_c *ObjectRepositoryMock_Create_Call) RunAndReturn(run func(ctx context.Context, params *object.CreateParams) (*object.Object, error)) *ObjectRepositoryMock_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Delete provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) Delete(ctx context.Context, client *ent.Client, id string) error {
-	ret := _mock.Called(ctx, client, id)
+func (_mock *ObjectRepositoryMock) Delete(ctx context.Context, id string) error {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) error); ok {
-		r0 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -138,30 +131,24 @@ type ObjectRepositoryMock_Delete_Call struct {
 
 // Delete is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - id string
-func (_e *ObjectRepositoryMock_Expecter) Delete(ctx interface{}, client interface{}, id interface{}) *ObjectRepositoryMock_Delete_Call {
-	return &ObjectRepositoryMock_Delete_Call{Call: _e.mock.On("Delete", ctx, client, id)}
+func (_e *ObjectRepositoryMock_Expecter) Delete(ctx interface{}, id interface{}) *ObjectRepositoryMock_Delete_Call {
+	return &ObjectRepositoryMock_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
 }
 
-func (_c *ObjectRepositoryMock_Delete_Call) Run(run func(ctx context.Context, client *ent.Client, id string)) *ObjectRepositoryMock_Delete_Call {
+func (_c *ObjectRepositoryMock_Delete_Call) Run(run func(ctx context.Context, id string)) *ObjectRepositoryMock_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -172,22 +159,22 @@ func (_c *ObjectRepositoryMock_Delete_Call) Return(err error) *ObjectRepositoryM
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_Delete_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, id string) error) *ObjectRepositoryMock_Delete_Call {
+func (_c *ObjectRepositoryMock_Delete_Call) RunAndReturn(run func(ctx context.Context, id string) error) *ObjectRepositoryMock_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeleteBySystemID provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) DeleteBySystemID(ctx context.Context, client *ent.Client, systemID string) error {
-	ret := _mock.Called(ctx, client, systemID)
+func (_mock *ObjectRepositoryMock) DeleteBySystemID(ctx context.Context, systemID string) error {
+	ret := _mock.Called(ctx, systemID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteBySystemID")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) error); ok {
-		r0 = returnFunc(ctx, client, systemID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, systemID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -201,30 +188,24 @@ type ObjectRepositoryMock_DeleteBySystemID_Call struct {
 
 // DeleteBySystemID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - systemID string
-func (_e *ObjectRepositoryMock_Expecter) DeleteBySystemID(ctx interface{}, client interface{}, systemID interface{}) *ObjectRepositoryMock_DeleteBySystemID_Call {
-	return &ObjectRepositoryMock_DeleteBySystemID_Call{Call: _e.mock.On("DeleteBySystemID", ctx, client, systemID)}
+func (_e *ObjectRepositoryMock_Expecter) DeleteBySystemID(ctx interface{}, systemID interface{}) *ObjectRepositoryMock_DeleteBySystemID_Call {
+	return &ObjectRepositoryMock_DeleteBySystemID_Call{Call: _e.mock.On("DeleteBySystemID", ctx, systemID)}
 }
 
-func (_c *ObjectRepositoryMock_DeleteBySystemID_Call) Run(run func(ctx context.Context, client *ent.Client, systemID string)) *ObjectRepositoryMock_DeleteBySystemID_Call {
+func (_c *ObjectRepositoryMock_DeleteBySystemID_Call) Run(run func(ctx context.Context, systemID string)) *ObjectRepositoryMock_DeleteBySystemID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -235,14 +216,14 @@ func (_c *ObjectRepositoryMock_DeleteBySystemID_Call) Return(err error) *ObjectR
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_DeleteBySystemID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, systemID string) error) *ObjectRepositoryMock_DeleteBySystemID_Call {
+func (_c *ObjectRepositoryMock_DeleteBySystemID_Call) RunAndReturn(run func(ctx context.Context, systemID string) error) *ObjectRepositoryMock_DeleteBySystemID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Find provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) Find(ctx context.Context, client *ent.Client, filter *object.QueryFilter) ([]*object.Object, error) {
-	ret := _mock.Called(ctx, client, filter)
+func (_mock *ObjectRepositoryMock) Find(ctx context.Context, filter *object.QueryFilter) ([]*object.Object, error) {
+	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Find")
@@ -250,18 +231,18 @@ func (_mock *ObjectRepositoryMock) Find(ctx context.Context, client *ent.Client,
 
 	var r0 []*object.Object
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *object.QueryFilter) ([]*object.Object, error)); ok {
-		return returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *object.QueryFilter) ([]*object.Object, error)); ok {
+		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *object.QueryFilter) []*object.Object); ok {
-		r0 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *object.QueryFilter) []*object.Object); ok {
+		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*object.Object)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *object.QueryFilter) error); ok {
-		r1 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *object.QueryFilter) error); ok {
+		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -275,30 +256,24 @@ type ObjectRepositoryMock_Find_Call struct {
 
 // Find is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - filter *object.QueryFilter
-func (_e *ObjectRepositoryMock_Expecter) Find(ctx interface{}, client interface{}, filter interface{}) *ObjectRepositoryMock_Find_Call {
-	return &ObjectRepositoryMock_Find_Call{Call: _e.mock.On("Find", ctx, client, filter)}
+func (_e *ObjectRepositoryMock_Expecter) Find(ctx interface{}, filter interface{}) *ObjectRepositoryMock_Find_Call {
+	return &ObjectRepositoryMock_Find_Call{Call: _e.mock.On("Find", ctx, filter)}
 }
 
-func (_c *ObjectRepositoryMock_Find_Call) Run(run func(ctx context.Context, client *ent.Client, filter *object.QueryFilter)) *ObjectRepositoryMock_Find_Call {
+func (_c *ObjectRepositoryMock_Find_Call) Run(run func(ctx context.Context, filter *object.QueryFilter)) *ObjectRepositoryMock_Find_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *object.QueryFilter
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *object.QueryFilter
-		if args[2] != nil {
-			arg2 = args[2].(*object.QueryFilter)
+			arg1 = args[1].(*object.QueryFilter)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -309,14 +284,14 @@ func (_c *ObjectRepositoryMock_Find_Call) Return(objects []*object.Object, err e
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_Find_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, filter *object.QueryFilter) ([]*object.Object, error)) *ObjectRepositoryMock_Find_Call {
+func (_c *ObjectRepositoryMock_Find_Call) RunAndReturn(run func(ctx context.Context, filter *object.QueryFilter) ([]*object.Object, error)) *ObjectRepositoryMock_Find_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindActive provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) FindActive(ctx context.Context, client *ent.Client) ([]*object.Object, error) {
-	ret := _mock.Called(ctx, client)
+func (_mock *ObjectRepositoryMock) FindActive(ctx context.Context) ([]*object.Object, error) {
+	ret := _mock.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindActive")
@@ -324,18 +299,18 @@ func (_mock *ObjectRepositoryMock) FindActive(ctx context.Context, client *ent.C
 
 	var r0 []*object.Object
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client) ([]*object.Object, error)); ok {
-		return returnFunc(ctx, client)
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*object.Object, error)); ok {
+		return returnFunc(ctx)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client) []*object.Object); ok {
-		r0 = returnFunc(ctx, client)
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []*object.Object); ok {
+		r0 = returnFunc(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*object.Object)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client) error); ok {
-		r1 = returnFunc(ctx, client)
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -349,24 +324,18 @@ type ObjectRepositoryMock_FindActive_Call struct {
 
 // FindActive is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
-func (_e *ObjectRepositoryMock_Expecter) FindActive(ctx interface{}, client interface{}) *ObjectRepositoryMock_FindActive_Call {
-	return &ObjectRepositoryMock_FindActive_Call{Call: _e.mock.On("FindActive", ctx, client)}
+func (_e *ObjectRepositoryMock_Expecter) FindActive(ctx interface{}) *ObjectRepositoryMock_FindActive_Call {
+	return &ObjectRepositoryMock_FindActive_Call{Call: _e.mock.On("FindActive", ctx)}
 }
 
-func (_c *ObjectRepositoryMock_FindActive_Call) Run(run func(ctx context.Context, client *ent.Client)) *ObjectRepositoryMock_FindActive_Call {
+func (_c *ObjectRepositoryMock_FindActive_Call) Run(run func(ctx context.Context)) *ObjectRepositoryMock_FindActive_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
-		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
 		run(
 			arg0,
-			arg1,
 		)
 	})
 	return _c
@@ -377,14 +346,14 @@ func (_c *ObjectRepositoryMock_FindActive_Call) Return(objects []*object.Object,
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_FindActive_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client) ([]*object.Object, error)) *ObjectRepositoryMock_FindActive_Call {
+func (_c *ObjectRepositoryMock_FindActive_Call) RunAndReturn(run func(ctx context.Context) ([]*object.Object, error)) *ObjectRepositoryMock_FindActive_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindOne provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) FindOne(ctx context.Context, client *ent.Client, filter *object.QueryFilter) (*object.Object, error) {
-	ret := _mock.Called(ctx, client, filter)
+func (_mock *ObjectRepositoryMock) FindOne(ctx context.Context, filter *object.QueryFilter) (*object.Object, error) {
+	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindOne")
@@ -392,18 +361,18 @@ func (_mock *ObjectRepositoryMock) FindOne(ctx context.Context, client *ent.Clie
 
 	var r0 *object.Object
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *object.QueryFilter) (*object.Object, error)); ok {
-		return returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *object.QueryFilter) (*object.Object, error)); ok {
+		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, *object.QueryFilter) *object.Object); ok {
-		r0 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *object.QueryFilter) *object.Object); ok {
+		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*object.Object)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, *object.QueryFilter) error); ok {
-		r1 = returnFunc(ctx, client, filter)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *object.QueryFilter) error); ok {
+		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -417,30 +386,24 @@ type ObjectRepositoryMock_FindOne_Call struct {
 
 // FindOne is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - filter *object.QueryFilter
-func (_e *ObjectRepositoryMock_Expecter) FindOne(ctx interface{}, client interface{}, filter interface{}) *ObjectRepositoryMock_FindOne_Call {
-	return &ObjectRepositoryMock_FindOne_Call{Call: _e.mock.On("FindOne", ctx, client, filter)}
+func (_e *ObjectRepositoryMock_Expecter) FindOne(ctx interface{}, filter interface{}) *ObjectRepositoryMock_FindOne_Call {
+	return &ObjectRepositoryMock_FindOne_Call{Call: _e.mock.On("FindOne", ctx, filter)}
 }
 
-func (_c *ObjectRepositoryMock_FindOne_Call) Run(run func(ctx context.Context, client *ent.Client, filter *object.QueryFilter)) *ObjectRepositoryMock_FindOne_Call {
+func (_c *ObjectRepositoryMock_FindOne_Call) Run(run func(ctx context.Context, filter *object.QueryFilter)) *ObjectRepositoryMock_FindOne_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 *object.QueryFilter
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 *object.QueryFilter
-		if args[2] != nil {
-			arg2 = args[2].(*object.QueryFilter)
+			arg1 = args[1].(*object.QueryFilter)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -451,14 +414,14 @@ func (_c *ObjectRepositoryMock_FindOne_Call) Return(object1 *object.Object, err 
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_FindOne_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, filter *object.QueryFilter) (*object.Object, error)) *ObjectRepositoryMock_FindOne_Call {
+func (_c *ObjectRepositoryMock_FindOne_Call) RunAndReturn(run func(ctx context.Context, filter *object.QueryFilter) (*object.Object, error)) *ObjectRepositoryMock_FindOne_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindPendingOlderThan provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) FindPendingOlderThan(ctx context.Context, client *ent.Client, olderThan time.Duration) ([]*object.Object, error) {
-	ret := _mock.Called(ctx, client, olderThan)
+func (_mock *ObjectRepositoryMock) FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*object.Object, error) {
+	ret := _mock.Called(ctx, olderThan)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindPendingOlderThan")
@@ -466,18 +429,18 @@ func (_mock *ObjectRepositoryMock) FindPendingOlderThan(ctx context.Context, cli
 
 	var r0 []*object.Object
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, time.Duration) ([]*object.Object, error)); ok {
-		return returnFunc(ctx, client, olderThan)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Duration) ([]*object.Object, error)); ok {
+		return returnFunc(ctx, olderThan)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, time.Duration) []*object.Object); ok {
-		r0 = returnFunc(ctx, client, olderThan)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Duration) []*object.Object); ok {
+		r0 = returnFunc(ctx, olderThan)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*object.Object)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, time.Duration) error); ok {
-		r1 = returnFunc(ctx, client, olderThan)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Duration) error); ok {
+		r1 = returnFunc(ctx, olderThan)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -491,30 +454,24 @@ type ObjectRepositoryMock_FindPendingOlderThan_Call struct {
 
 // FindPendingOlderThan is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - olderThan time.Duration
-func (_e *ObjectRepositoryMock_Expecter) FindPendingOlderThan(ctx interface{}, client interface{}, olderThan interface{}) *ObjectRepositoryMock_FindPendingOlderThan_Call {
-	return &ObjectRepositoryMock_FindPendingOlderThan_Call{Call: _e.mock.On("FindPendingOlderThan", ctx, client, olderThan)}
+func (_e *ObjectRepositoryMock_Expecter) FindPendingOlderThan(ctx interface{}, olderThan interface{}) *ObjectRepositoryMock_FindPendingOlderThan_Call {
+	return &ObjectRepositoryMock_FindPendingOlderThan_Call{Call: _e.mock.On("FindPendingOlderThan", ctx, olderThan)}
 }
 
-func (_c *ObjectRepositoryMock_FindPendingOlderThan_Call) Run(run func(ctx context.Context, client *ent.Client, olderThan time.Duration)) *ObjectRepositoryMock_FindPendingOlderThan_Call {
+func (_c *ObjectRepositoryMock_FindPendingOlderThan_Call) Run(run func(ctx context.Context, olderThan time.Duration)) *ObjectRepositoryMock_FindPendingOlderThan_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 time.Duration
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 time.Duration
-		if args[2] != nil {
-			arg2 = args[2].(time.Duration)
+			arg1 = args[1].(time.Duration)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -525,14 +482,14 @@ func (_c *ObjectRepositoryMock_FindPendingOlderThan_Call) Return(objects []*obje
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_FindPendingOlderThan_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, olderThan time.Duration) ([]*object.Object, error)) *ObjectRepositoryMock_FindPendingOlderThan_Call {
+func (_c *ObjectRepositoryMock_FindPendingOlderThan_Call) RunAndReturn(run func(ctx context.Context, olderThan time.Duration) ([]*object.Object, error)) *ObjectRepositoryMock_FindPendingOlderThan_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetByID provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) GetByID(ctx context.Context, client *ent.Client, id string) (*object.Object, error) {
-	ret := _mock.Called(ctx, client, id)
+func (_mock *ObjectRepositoryMock) GetByID(ctx context.Context, id string) (*object.Object, error) {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByID")
@@ -540,18 +497,18 @@ func (_mock *ObjectRepositoryMock) GetByID(ctx context.Context, client *ent.Clie
 
 	var r0 *object.Object
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) (*object.Object, error)); ok {
-		return returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*object.Object, error)); ok {
+		return returnFunc(ctx, id)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string) *object.Object); ok {
-		r0 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *object.Object); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*object.Object)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, string) error); ok {
-		r1 = returnFunc(ctx, client, id)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -565,30 +522,24 @@ type ObjectRepositoryMock_GetByID_Call struct {
 
 // GetByID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - id string
-func (_e *ObjectRepositoryMock_Expecter) GetByID(ctx interface{}, client interface{}, id interface{}) *ObjectRepositoryMock_GetByID_Call {
-	return &ObjectRepositoryMock_GetByID_Call{Call: _e.mock.On("GetByID", ctx, client, id)}
+func (_e *ObjectRepositoryMock_Expecter) GetByID(ctx interface{}, id interface{}) *ObjectRepositoryMock_GetByID_Call {
+	return &ObjectRepositoryMock_GetByID_Call{Call: _e.mock.On("GetByID", ctx, id)}
 }
 
-func (_c *ObjectRepositoryMock_GetByID_Call) Run(run func(ctx context.Context, client *ent.Client, id string)) *ObjectRepositoryMock_GetByID_Call {
+func (_c *ObjectRepositoryMock_GetByID_Call) Run(run func(ctx context.Context, id string)) *ObjectRepositoryMock_GetByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -599,14 +550,14 @@ func (_c *ObjectRepositoryMock_GetByID_Call) Return(object1 *object.Object, err 
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_GetByID_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, id string) (*object.Object, error)) *ObjectRepositoryMock_GetByID_Call {
+func (_c *ObjectRepositoryMock_GetByID_Call) RunAndReturn(run func(ctx context.Context, id string) (*object.Object, error)) *ObjectRepositoryMock_GetByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetByStorageKey provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) GetByStorageKey(ctx context.Context, client *ent.Client, systemID string, provider string, bucket string, storageKey string) (*object.Object, error) {
-	ret := _mock.Called(ctx, client, systemID, provider, bucket, storageKey)
+func (_mock *ObjectRepositoryMock) GetByStorageKey(ctx context.Context, systemID string, provider string, bucket string, storageKey string) (*object.Object, error) {
+	ret := _mock.Called(ctx, systemID, provider, bucket, storageKey)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByStorageKey")
@@ -614,18 +565,18 @@ func (_mock *ObjectRepositoryMock) GetByStorageKey(ctx context.Context, client *
 
 	var r0 *object.Object
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string, string, string, string) (*object.Object, error)); ok {
-		return returnFunc(ctx, client, systemID, provider, bucket, storageKey)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (*object.Object, error)); ok {
+		return returnFunc(ctx, systemID, provider, bucket, storageKey)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string, string, string, string) *object.Object); ok {
-		r0 = returnFunc(ctx, client, systemID, provider, bucket, storageKey)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) *object.Object); ok {
+		r0 = returnFunc(ctx, systemID, provider, bucket, storageKey)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*object.Object)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *ent.Client, string, string, string, string) error); ok {
-		r1 = returnFunc(ctx, client, systemID, provider, bucket, storageKey)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
+		r1 = returnFunc(ctx, systemID, provider, bucket, storageKey)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -639,24 +590,23 @@ type ObjectRepositoryMock_GetByStorageKey_Call struct {
 
 // GetByStorageKey is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - systemID string
 //   - provider string
 //   - bucket string
 //   - storageKey string
-func (_e *ObjectRepositoryMock_Expecter) GetByStorageKey(ctx interface{}, client interface{}, systemID interface{}, provider interface{}, bucket interface{}, storageKey interface{}) *ObjectRepositoryMock_GetByStorageKey_Call {
-	return &ObjectRepositoryMock_GetByStorageKey_Call{Call: _e.mock.On("GetByStorageKey", ctx, client, systemID, provider, bucket, storageKey)}
+func (_e *ObjectRepositoryMock_Expecter) GetByStorageKey(ctx interface{}, systemID interface{}, provider interface{}, bucket interface{}, storageKey interface{}) *ObjectRepositoryMock_GetByStorageKey_Call {
+	return &ObjectRepositoryMock_GetByStorageKey_Call{Call: _e.mock.On("GetByStorageKey", ctx, systemID, provider, bucket, storageKey)}
 }
 
-func (_c *ObjectRepositoryMock_GetByStorageKey_Call) Run(run func(ctx context.Context, client *ent.Client, systemID string, provider string, bucket string, storageKey string)) *ObjectRepositoryMock_GetByStorageKey_Call {
+func (_c *ObjectRepositoryMock_GetByStorageKey_Call) Run(run func(ctx context.Context, systemID string, provider string, bucket string, storageKey string)) *ObjectRepositoryMock_GetByStorageKey_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
+			arg1 = args[1].(string)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -670,17 +620,12 @@ func (_c *ObjectRepositoryMock_GetByStorageKey_Call) Run(run func(ctx context.Co
 		if args[4] != nil {
 			arg4 = args[4].(string)
 		}
-		var arg5 string
-		if args[5] != nil {
-			arg5 = args[5].(string)
-		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
 			arg4,
-			arg5,
 		)
 	})
 	return _c
@@ -691,22 +636,22 @@ func (_c *ObjectRepositoryMock_GetByStorageKey_Call) Return(object1 *object.Obje
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_GetByStorageKey_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, systemID string, provider string, bucket string, storageKey string) (*object.Object, error)) *ObjectRepositoryMock_GetByStorageKey_Call {
+func (_c *ObjectRepositoryMock_GetByStorageKey_Call) RunAndReturn(run func(ctx context.Context, systemID string, provider string, bucket string, storageKey string) (*object.Object, error)) *ObjectRepositoryMock_GetByStorageKey_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateStatus provides a mock function for the type ObjectRepositoryMock
-func (_mock *ObjectRepositoryMock) UpdateStatus(ctx context.Context, client *ent.Client, id string, status object.Status) error {
-	ret := _mock.Called(ctx, client, id, status)
+func (_mock *ObjectRepositoryMock) UpdateStatus(ctx context.Context, id string, status object.Status) error {
+	ret := _mock.Called(ctx, id, status)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateStatus")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *ent.Client, string, object.Status) error); ok {
-		r0 = returnFunc(ctx, client, id, status)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, object.Status) error); ok {
+		r0 = returnFunc(ctx, id, status)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -720,36 +665,30 @@ type ObjectRepositoryMock_UpdateStatus_Call struct {
 
 // UpdateStatus is a helper method to define mock.On call
 //   - ctx context.Context
-//   - client *ent.Client
 //   - id string
 //   - status object.Status
-func (_e *ObjectRepositoryMock_Expecter) UpdateStatus(ctx interface{}, client interface{}, id interface{}, status interface{}) *ObjectRepositoryMock_UpdateStatus_Call {
-	return &ObjectRepositoryMock_UpdateStatus_Call{Call: _e.mock.On("UpdateStatus", ctx, client, id, status)}
+func (_e *ObjectRepositoryMock_Expecter) UpdateStatus(ctx interface{}, id interface{}, status interface{}) *ObjectRepositoryMock_UpdateStatus_Call {
+	return &ObjectRepositoryMock_UpdateStatus_Call{Call: _e.mock.On("UpdateStatus", ctx, id, status)}
 }
 
-func (_c *ObjectRepositoryMock_UpdateStatus_Call) Run(run func(ctx context.Context, client *ent.Client, id string, status object.Status)) *ObjectRepositoryMock_UpdateStatus_Call {
+func (_c *ObjectRepositoryMock_UpdateStatus_Call) Run(run func(ctx context.Context, id string, status object.Status)) *ObjectRepositoryMock_UpdateStatus_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *ent.Client
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*ent.Client)
+			arg1 = args[1].(string)
 		}
-		var arg2 string
+		var arg2 object.Status
 		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		var arg3 object.Status
-		if args[3] != nil {
-			arg3 = args[3].(object.Status)
+			arg2 = args[2].(object.Status)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3,
 		)
 	})
 	return _c
@@ -760,7 +699,7 @@ func (_c *ObjectRepositoryMock_UpdateStatus_Call) Return(err error) *ObjectRepos
 	return _c
 }
 
-func (_c *ObjectRepositoryMock_UpdateStatus_Call) RunAndReturn(run func(ctx context.Context, client *ent.Client, id string, status object.Status) error) *ObjectRepositoryMock_UpdateStatus_Call {
+func (_c *ObjectRepositoryMock_UpdateStatus_Call) RunAndReturn(run func(ctx context.Context, id string, status object.Status) error) *ObjectRepositoryMock_UpdateStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }

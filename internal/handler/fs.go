@@ -3,11 +3,8 @@ package handler
 import (
 	"context"
 
-	api "github.com/starfrag-lab/retrowin-go/pkg/api"
-
-	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/errors"
+	api "github.com/starfrag-lab/retrowin-go/pkg/api"
 )
 
 // GetRootDirectory implements GET /fs/{systemId}/root.
@@ -48,27 +45,7 @@ func (h *Handler) Chmod(ctx context.Context, req *api.ChmodRequest, params api.C
 		return nil, h.domainError(err)
 	}
 
-	if req.Mode < 0 || req.Mode > 0o777 {
-		return nil, h.domainError(errors.BadRequest("mode must be between 0 and 0o777"))
-	}
-
-	// Resolve path to get inode
-	in, err := h.fsSvc.ResolvePath(ctx, params.SystemId, req.Path)
-	if err != nil {
-		return nil, h.domainError(err)
-	}
-
-	// Update mode (preserve file type bits, update permission bits)
-	newMode := (in.Mode() & inode.ModeTypeMask) | int(req.Mode)
-	if err := h.fsSvc.UpdateMode(ctx, &fs.UpdateModeCommand{
-		ID:   in.ID(),
-		Mode: newMode,
-	}); err != nil {
-		return nil, h.domainError(err)
-	}
-
-	// Get updated inode
-	updatedInode, err := h.fsSvc.Get(ctx, in.ID())
+	updatedInode, err := h.fsSvc.ChmodPath(ctx, params.SystemId, req.Path, int(req.Mode))
 	if err != nil {
 		return nil, h.domainError(err)
 	}
