@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -162,12 +161,11 @@ func BySystemIDAndStatus(systemID string, status Status) Filter {
 type service struct {
 	repo    ObjectRepository
 	storage Storage
-	client  *ent.Client
 }
 
 // NewService creates a new ObjectService.
-func NewService(repo ObjectRepository, storage Storage, client *ent.Client) ObjectService {
-	return &service{repo: repo, storage: storage, client: client}
+func NewService(repo ObjectRepository, storage Storage) ObjectService {
+	return &service{repo: repo, storage: storage}
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Object, error) {
@@ -199,7 +197,7 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Object, erro
 		SystemID:   cmd.SystemID,
 		StorageKey: cmd.StorageKey,
 	}
-	obj, err := s.repo.Create(ctx, s.client, params)
+	obj, err := s.repo.Create(ctx, params)
 	if err != nil {
 		// Attempt cleanup on DB failure
 		_ = s.storage.DeleteObject(ctx, cmd.Bucket, cmd.StorageKey)
@@ -231,7 +229,7 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 		StorageKey: storageKey,
 		Status:     StatusPending,
 	}
-	if _, err := s.repo.Create(ctx, s.client, params); err != nil {
+	if _, err := s.repo.Create(ctx, params); err != nil {
 		return nil, errors.WrapInternal(err, "failed to create pending object")
 	}
 
@@ -240,7 +238,7 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 	uploadURL, err := s.storage.GetPresignedUploadURL(ctx, bucket, storageKey, cmd.ContentType, cmd.Size, expiry)
 	if err != nil {
 		// Cleanup on failure
-		_ = s.repo.Delete(ctx, s.client, objectID)
+		_ = s.repo.Delete(ctx, objectID)
 		return nil, errors.WrapInternal(err, "failed to generate upload URL")
 	}
 
@@ -253,7 +251,7 @@ func (s *service) InitiateUpload(ctx context.Context, cmd *InitiateUploadCommand
 
 // CompleteUpload marks object as active after client confirms upload.
 func (s *service) CompleteUpload(ctx context.Context, objectID string) (*Object, error) {
-	obj, err := s.repo.GetByID(ctx, s.client, objectID)
+	obj, err := s.repo.GetByID(ctx, objectID)
 	if err != nil {
 		return nil, err
 	}
@@ -274,15 +272,15 @@ func (s *service) CompleteUpload(ctx context.Context, objectID string) (*Object,
 	}
 
 	// Update status to active
-	if err := s.repo.UpdateStatus(ctx, s.client, objectID, StatusActive); err != nil {
+	if err := s.repo.UpdateStatus(ctx, objectID, StatusActive); err != nil {
 		return nil, errors.WrapInternal(err, "failed to update object status")
 	}
 
-	return s.repo.GetByID(ctx, s.client, objectID)
+	return s.repo.GetByID(ctx, objectID)
 }
 
 func (s *service) GetByID(ctx context.Context, id string) (*Object, error) {
-	obj, err := s.repo.GetByID(ctx, s.client, id)
+	obj, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +291,7 @@ func (s *service) GetByID(ctx context.Context, id string) (*Object, error) {
 }
 
 func (s *service) GetByStorageKey(ctx context.Context, systemID string, provider Provider, bucket string, storageKey string) (*Object, error) {
-	obj, err := s.repo.GetByStorageKey(ctx, s.client, systemID, string(provider), bucket, storageKey)
+	obj, err := s.repo.GetByStorageKey(ctx, systemID, string(provider), bucket, storageKey)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +302,7 @@ func (s *service) GetByStorageKey(ctx context.Context, systemID string, provider
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
-	obj, err := s.repo.GetByID(ctx, s.client, id)
+	obj, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -316,15 +314,15 @@ func (s *service) Delete(ctx context.Context, id string) error {
 		return errors.WrapInternal(err, "failed to delete from storage")
 	}
 
-	return s.repo.Delete(ctx, s.client, id)
+	return s.repo.Delete(ctx, id)
 }
 
 func (s *service) DeleteBySystemID(ctx context.Context, systemID string) error {
-	return s.repo.DeleteBySystemID(ctx, s.client, systemID)
+	return s.repo.DeleteBySystemID(ctx, systemID)
 }
 
 func (s *service) CleanupStorageBySystemID(ctx context.Context, systemID string) error {
-	objects, err := s.repo.Find(ctx, s.client, &QueryFilter{SystemID: &systemID})
+	objects, err := s.repo.Find(ctx, &QueryFilter{SystemID: &systemID})
 	if err != nil {
 		return err
 	}
@@ -340,11 +338,11 @@ func (s *service) CleanupStorageBySystemID(ctx context.Context, systemID string)
 }
 
 func (s *service) Find(ctx context.Context, filter Filter) ([]*Object, error) {
-	return s.repo.Find(ctx, s.client, &filter)
+	return s.repo.Find(ctx, &filter)
 }
 
 func (s *service) FindOne(ctx context.Context, filter Filter) (*Object, error) {
-	obj, err := s.repo.FindOne(ctx, s.client, &filter)
+	obj, err := s.repo.FindOne(ctx, &filter)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +353,7 @@ func (s *service) FindOne(ctx context.Context, filter Filter) (*Object, error) {
 }
 
 func (s *service) GetDownloadURL(ctx context.Context, id string, size int64) (string, time.Time, error) {
-	obj, err := s.repo.GetByID(ctx, s.client, id)
+	obj, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return "", time.Time{}, err
 	}
@@ -373,22 +371,22 @@ func (s *service) GetDownloadURL(ctx context.Context, id string, size int64) (st
 
 // FindPendingOlderThan finds pending objects older than threshold for GC.
 func (s *service) FindPendingOlderThan(ctx context.Context, olderThan time.Duration) ([]*Object, error) {
-	return s.repo.FindPendingOlderThan(ctx, s.client, olderThan)
+	return s.repo.FindPendingOlderThan(ctx, olderThan)
 }
 
 // FindActive finds all active objects for GC orphan detection.
 func (s *service) FindActive(ctx context.Context) ([]*Object, error) {
-	return s.repo.FindActive(ctx, s.client)
+	return s.repo.FindActive(ctx)
 }
 
 // DeleteFromDB removes the object record from DB only (no S3 call).
 func (s *service) DeleteFromDB(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, s.client, id)
+	return s.repo.Delete(ctx, id)
 }
 
 // GetObjectSize returns the size of the object in external storage.
 func (s *service) GetObjectSize(ctx context.Context, id string) (int64, error) {
-	obj, err := s.repo.GetByID(ctx, s.client, id)
+	obj, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return 0, err
 	}

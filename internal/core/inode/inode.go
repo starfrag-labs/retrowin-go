@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/starfrag-lab/retrowin-go/ent"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -191,13 +190,12 @@ func ByUID(uid int) Filter {
 }
 
 type service struct {
-	repo   InodeRepository
-	client *ent.Client
+	repo InodeRepository
 }
 
 // NewService creates a new InodeService.
-func NewService(repo InodeRepository, client *ent.Client) InodeService {
-	return &service{repo: repo, client: client}
+func NewService(repo InodeRepository) InodeService {
+	return &service{repo: repo}
 }
 
 func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Inode, error) {
@@ -214,11 +212,11 @@ func (s *service) Create(ctx context.Context, cmd *CreateCommand) (*Inode, error
 		Flags:    cmd.Flags,
 		Content:  cmd.Content,
 	}
-	return s.repo.Create(ctx, s.client, params)
+	return s.repo.Create(ctx, params)
 }
 
 func (s *service) GetByID(ctx context.Context, id string) (*Inode, error) {
-	inode, err := s.repo.GetByID(ctx, s.client, id)
+	inode, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -229,23 +227,23 @@ func (s *service) GetByID(ctx context.Context, id string) (*Inode, error) {
 }
 
 func (s *service) Update(ctx context.Context, cmd *UpdateCommand) error {
-	return s.repo.Update(ctx, s.client, cmd)
+	return s.repo.Update(ctx, cmd)
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, s.client, id)
+	return s.repo.Delete(ctx, id)
 }
 
 func (s *service) DeleteBySystemID(ctx context.Context, systemID string) error {
-	return s.repo.DeleteBySystemID(ctx, s.client, systemID)
+	return s.repo.DeleteBySystemID(ctx, systemID)
 }
 
 func (s *service) Find(ctx context.Context, filter Filter) ([]*Inode, error) {
-	return s.repo.Find(ctx, s.client, &filter)
+	return s.repo.Find(ctx, &filter)
 }
 
 func (s *service) FindOne(ctx context.Context, filter Filter) (*Inode, error) {
-	inode, err := s.repo.FindOne(ctx, s.client, &filter)
+	inode, err := s.repo.FindOne(ctx, &filter)
 	if err != nil {
 		return nil, err
 	}
@@ -256,5 +254,5 @@ func (s *service) FindOne(ctx context.Context, filter Filter) (*Inode, error) {
 }
 
 func (s *service) UpdateLinkCount(ctx context.Context, id string, delta int) error {
-	return s.repo.UpdateLinkCount(ctx, s.client, id, delta)
+	return s.repo.UpdateLinkCount(ctx, id, delta)
 }
