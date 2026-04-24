@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 	fsMocks "github.com/starfrag-lab/retrowin-go/internal/application/fs/mocks"
