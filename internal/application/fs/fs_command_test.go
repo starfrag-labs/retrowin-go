@@ -8,15 +8,10 @@ import (
 	"github.com/starfrag-lab/retrowin-go/internal/application/fs"
 )
 
-func TestAccessType_Constants(t *testing.T) {
-	assert.Equal(t, fs.AccessRead, fs.AccessType(0))
-	assert.Equal(t, fs.AccessWrite, fs.AccessType(1))
-	assert.Equal(t, fs.AccessExecute, fs.AccessType(2))
-}
-
 func TestCreateFileCommand(t *testing.T) {
 	cmd := &fs.CreateFileCommand{
 		SystemID: "system-123",
+		UID:      1000,
 		GID:      1000,
 		Mode:     0644,
 		Flags:    0,
@@ -24,6 +19,7 @@ func TestCreateFileCommand(t *testing.T) {
 	}
 
 	assert.Equal(t, "system-123", cmd.SystemID)
+	assert.Equal(t, 1000, cmd.UID)
 	assert.Equal(t, 1000, cmd.GID)
 	assert.Equal(t, 0644, cmd.Mode)
 	assert.Equal(t, 0, cmd.Flags)
@@ -33,12 +29,14 @@ func TestCreateFileCommand(t *testing.T) {
 func TestCreateDirectoryCommand(t *testing.T) {
 	cmd := &fs.CreateDirectoryCommand{
 		SystemID: "system-123",
+		UID:      1000,
 		GID:      1000,
 		Mode:     0755,
 		Flags:    0,
 	}
 
 	assert.Equal(t, "system-123", cmd.SystemID)
+	assert.Equal(t, 1000, cmd.UID)
 	assert.Equal(t, 1000, cmd.GID)
 	assert.Equal(t, 0755, cmd.Mode)
 	assert.Equal(t, 0, cmd.Flags)
@@ -47,6 +45,7 @@ func TestCreateDirectoryCommand(t *testing.T) {
 func TestCreateSymlinkCommand(t *testing.T) {
 	cmd := &fs.CreateSymlinkCommand{
 		SystemID: "system-123",
+		UID:      1000,
 		GID:      1000,
 		Mode:     0777,
 		Flags:    0,
@@ -54,6 +53,7 @@ func TestCreateSymlinkCommand(t *testing.T) {
 	}
 
 	assert.Equal(t, "system-123", cmd.SystemID)
+	assert.Equal(t, 1000, cmd.UID)
 	assert.Equal(t, 1000, cmd.GID)
 	assert.Equal(t, 0777, cmd.Mode)
 	assert.Equal(t, 0, cmd.Flags)
@@ -93,33 +93,36 @@ func TestListFilter(t *testing.T) {
 	assert.Equal(t, 1000, *filter.UID)
 }
 
-func TestPermissionCheck(t *testing.T) {
-	t.Run("owner has read permission", func(t *testing.T) {
-		mode := 0600 // owner rw
-		perm := mode & 0700
-		assert.Equal(t, 0600, perm)
-	})
+func TestRmCommand(t *testing.T) {
+	cmd := &fs.RmCommand{
+		SystemID: "system-123",
+		Paths:    []string{"/file1", "/file2"},
+	}
 
-	t.Run("group has read permission", func(t *testing.T) {
-		mode := 0060 // group rw
-		perm := mode & 0070
-		assert.Equal(t, 0060, perm)
-	})
+	assert.Equal(t, "system-123", cmd.SystemID)
+	assert.Equal(t, []string{"/file1", "/file2"}, cmd.Paths)
+}
 
-	t.Run("other has read permission", func(t *testing.T) {
-		mode := 0006 // other rw
-		perm := mode & 0007
-		assert.Equal(t, 0006, perm)
-	})
+func TestMvCommand(t *testing.T) {
+	cmd := &fs.MvCommand{
+		SystemID:    "system-123",
+		Sources:     []string{"/file1"},
+		Destination: "/dest",
+	}
 
-	t.Run("owner can execute", func(t *testing.T) {
-		mode := 0100 // owner x
-		perm := mode & 0100
-		assert.Equal(t, 0100, perm)
-	})
+	assert.Equal(t, "system-123", cmd.SystemID)
+	assert.Equal(t, []string{"/file1"}, cmd.Sources)
+	assert.Equal(t, "/dest", cmd.Destination)
+}
 
-	t.Run("all permissions", func(t *testing.T) {
-		mode := 0777
-		assert.Equal(t, 0777, mode&0777)
-	})
+func TestRenameCommand(t *testing.T) {
+	cmd := &fs.RenameCommand{
+		SystemID: "system-123",
+		Path:     "/old",
+		NewName:  "new",
+	}
+
+	assert.Equal(t, "system-123", cmd.SystemID)
+	assert.Equal(t, "/old", cmd.Path)
+	assert.Equal(t, "new", cmd.NewName)
 }

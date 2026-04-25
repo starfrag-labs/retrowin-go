@@ -99,6 +99,14 @@ func IsUnauthorized(err error) bool {
 	return false
 }
 
+// IsForbidden checks if the error is a forbidden error.
+func IsForbidden(err error) bool {
+	if e, ok := err.(*Error); ok {
+		return e.StatusCode == http.StatusForbidden
+	}
+	return false
+}
+
 // FromError converts a standard error to an Error.
 func FromError(err error) *Error {
 	if e, ok := err.(*Error); ok {
