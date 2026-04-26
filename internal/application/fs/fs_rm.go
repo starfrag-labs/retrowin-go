@@ -59,8 +59,8 @@ func (s *service) rmOne(ctx context.Context, systemID string, filePath string) e
 		if err != nil {
 			return err
 		}
-		if err := s.ensureDirEmpty(targetInode.Content()); err != nil {
-			return err
+		if !targetInode.IsEmptyDir() {
+			return errors.BadRequest("directory not empty")
 		}
 	}
 
