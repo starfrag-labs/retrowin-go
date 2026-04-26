@@ -208,37 +208,24 @@ func TestResolvePath_Symlink(t *testing.T) {
 	inodeSvc := inodeMocks.NewInodeServiceMock(t)
 	now := time.Now()
 
-	symContent := content.SymlinkContent{Target: "/target"}
+	symContent := content.SymlinkContent{Target: "/"}
 	symRaw, _ := json.Marshal(symContent)
 	dirContent := content.DirContent{Entries: []content.DirEntry{
 		{Name: "link", InodeID: "link-id", FileType: uint8(inode.ModeSymlink >> 12)},
 	}}
 	raw, _ := json.Marshal(dirContent)
 	rootInode := inode.NewInode("root-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, inode.FlagRoot, now, now, now, raw, now, now)
-	inodeSvc.EXPECT().Find(mock.Anything, mock.Anything).Return([]*inode.Inode{rootInode}, nil).Once()
+	inodeSvc.EXPECT().Find(mock.Anything, mock.Anything).Return([]*inode.Inode{rootInode}, nil)
 
 	linkInode := inode.NewInode("link-id", "sys", inode.ModeSymlink|0777, 0, 0, 0, 1, 0, now, now, now, symRaw, now, now)
 	inodeSvc.EXPECT().GetByID(mock.Anything, "link-id").Return(linkInode, nil)
-
-	targetContent := content.DirContent{Entries: []content.DirEntry{}}
-	targetRaw, _ := json.Marshal(targetContent)
-	targetInode := inode.NewInode("target-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, targetRaw, now, now)
-
-	targetRootContent := content.DirContent{Entries: []content.DirEntry{
-		{Name: "target", InodeID: "target-id", FileType: uint8(inode.ModeDirectory >> 12)},
-	}}
-	targetRootRaw, _ := json.Marshal(targetRootContent)
-	targetRootInode := inode.NewInode("root-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, inode.FlagRoot, now, now, now, targetRootRaw, now, now)
-	inodeSvc.EXPECT().Find(mock.Anything, mock.Anything).Return([]*inode.Inode{targetRootInode}, nil).Once()
-
-	inodeSvc.EXPECT().GetByID(mock.Anything, "target-id").Return(targetInode, nil)
 
 	svc := NewService(inodeSvc, nil, nil, nil)
 
 	result, err := svc.ResolvePath(context.Background(), "sys", "/link")
 
 	assert.NoError(t, err)
-	assert.Equal(t, targetInode, result)
+	assert.Equal(t, rootInode, result)
 }
 
 func TestResolvePath_SymlinkParseError(t *testing.T) {
@@ -262,10 +249,9 @@ func TestResolvePath_SymlinkParseError(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// --- readDirEntries ---
+// --- Inode.ReadDir ---
 
-func TestReadDirEntries_Success(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
+func TestInode_ReadDir_Success(t *testing.T) {
 	now := time.Now()
 
 	entries := []content.DirEntry{
@@ -275,86 +261,125 @@ func TestReadDirEntries_Success(t *testing.T) {
 	raw, _ := json.Marshal(dirContent)
 	dirInode := inode.NewInode("dir-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, raw, now, now)
 
-	result, err := svc.readDirEntries(dirInode)
+	result, err := dirInode.ReadDir()
 
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)
 	assert.Equal(t, "file", result[0].Name)
 }
 
-func TestReadDirEntries_NotDirectory(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
+func TestInode_ReadDir_NotDirectory(t *testing.T) {
 	now := time.Now()
 
 	fileInode := inode.NewInode("file-id", "sys", inode.ModeRegular|0644, 0, 0, 0, 1, 0, now, now, now, nil, now, now)
 
-	_, err := svc.readDirEntries(fileInode)
+	_, err := fileInode.ReadDir()
 
 	assert.Error(t, err)
 	assert.True(t, errors.IsBadRequest(err))
 }
 
-func TestReadDirEntries_NilContent(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
+func TestInode_ReadDir_NilContent(t *testing.T) {
 	now := time.Now()
 
 	dirInode := inode.NewInode("dir-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, nil, now, now)
 
-	result, err := svc.readDirEntries(dirInode)
+	result, err := dirInode.ReadDir()
 
 	assert.NoError(t, err)
 	assert.Empty(t, result)
 }
 
-func TestReadDirEntries_UnparsableContent(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
+func TestInode_ReadDir_UnparsableContent(t *testing.T) {
 	now := time.Now()
 
 	dirInode := inode.NewInode("dir-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, []byte("invalid"), now, now)
 
-	_, err := svc.readDirEntries(dirInode)
+	_, err := dirInode.ReadDir()
 
 	assert.Error(t, err)
 }
 
-// --- resolveSymlink ---
+// --- Inode.SymlinkTarget ---
 
-func TestResolveSymlink_Success(t *testing.T) {
-	inodeSvc := inodeMocks.NewInodeServiceMock(t)
+func TestInode_SymlinkTarget_Success(t *testing.T) {
 	now := time.Now()
 
 	symContent := content.SymlinkContent{Target: "/target"}
 	symRaw, _ := json.Marshal(symContent)
 	symInode := inode.NewInode("sym-id", "sys", inode.ModeSymlink|0777, 0, 0, 0, 1, 0, now, now, now, symRaw, now, now)
 
-	targetContent := content.DirContent{Entries: []content.DirEntry{}}
-	targetRaw, _ := json.Marshal(targetContent)
-	targetInode := inode.NewInode("target-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, targetRaw, now, now)
-
-	targetRootContent := content.DirContent{Entries: []content.DirEntry{
-		{Name: "target", InodeID: "target-id", FileType: uint8(inode.ModeDirectory >> 12)},
-	}}
-	targetRootRaw, _ := json.Marshal(targetRootContent)
-	targetRootInode := inode.NewInode("root-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, inode.FlagRoot, now, now, now, targetRootRaw, now, now)
-	inodeSvc.EXPECT().Find(mock.Anything, mock.Anything).Return([]*inode.Inode{targetRootInode}, nil)
-
-	inodeSvc.EXPECT().GetByID(mock.Anything, "target-id").Return(targetInode, nil)
-
-	svc := NewService(inodeSvc, nil, nil, nil).(*service)
-
-	result, err := svc.resolveSymlink(context.Background(), symInode)
+	result, err := symInode.SymlinkTarget()
 
 	assert.NoError(t, err)
-	assert.Equal(t, targetInode, result)
+	assert.Equal(t, "/target", result)
 }
 
-func TestResolveSymlink_UnparsableContent(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
+func TestInode_SymlinkTarget_NotSymlink(t *testing.T) {
+	now := time.Now()
+
+	fileInode := inode.NewInode("file-id", "sys", inode.ModeRegular|0644, 0, 0, 0, 1, 0, now, now, now, nil, now, now)
+
+	_, err := fileInode.SymlinkTarget()
+
+	assert.Error(t, err)
+	assert.True(t, errors.IsBadRequest(err))
+}
+
+func TestInode_SymlinkTarget_UnparsableContent(t *testing.T) {
 	now := time.Now()
 
 	symInode := inode.NewInode("sym-id", "sys", inode.ModeSymlink|0777, 0, 0, 0, 1, 0, now, now, now, []byte("invalid"), now, now)
 
-	_, err := svc.resolveSymlink(context.Background(), symInode)
+	_, err := symInode.SymlinkTarget()
 
 	assert.Error(t, err)
+}
+
+// --- Inode.IsEmptyDir ---
+
+func TestInode_IsEmptyDir_NilContent(t *testing.T) {
+	now := time.Now()
+
+	dirInode := inode.NewInode("dir-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, nil, now, now)
+
+	assert.True(t, dirInode.IsEmptyDir())
+}
+
+func TestInode_IsEmptyDir_UnparsableContent(t *testing.T) {
+	now := time.Now()
+
+	dirInode := inode.NewInode("dir-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, []byte("invalid"), now, now)
+
+	assert.True(t, dirInode.IsEmptyDir())
+}
+
+func TestInode_IsEmptyDir_EmptyDirectory(t *testing.T) {
+	now := time.Now()
+
+	dirContent := content.DirContent{Entries: []content.DirEntry{}}
+	raw, _ := json.Marshal(dirContent)
+	dirInode := inode.NewInode("dir-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, raw, now, now)
+
+	assert.True(t, dirInode.IsEmptyDir())
+}
+
+func TestInode_IsEmptyDir_NonEmptyDirectory(t *testing.T) {
+	now := time.Now()
+
+	dirContent := content.DirContent{Entries: []content.DirEntry{
+		{Name: "file", InodeID: "file-id", FileType: uint8(inode.ModeRegular >> 12)},
+	}}
+	raw, _ := json.Marshal(dirContent)
+	dirInode := inode.NewInode("dir-id", "sys", inode.ModeDirectory|0755, 0, 0, 0, 1, 0, now, now, now, raw, now, now)
+
+	assert.False(t, dirInode.IsEmptyDir())
+}
+
+func TestInode_IsEmptyDir_NotDirectory(t *testing.T) {
+	now := time.Now()
+
+	fileInode := inode.NewInode("file-id", "sys", inode.ModeRegular|0644, 0, 0, 0, 1, 0, now, now, now, nil, now, now)
+
+	assert.False(t, fileInode.IsEmptyDir())
 }

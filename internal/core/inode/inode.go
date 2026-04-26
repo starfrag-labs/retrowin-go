@@ -2,10 +2,13 @@ package inode
 
 import (
 	"context"
+	"encoding/json"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
 
+	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -145,6 +148,147 @@ func (i *Inode) IsSymlink() bool {
 // IsObject returns true if the inode represents an external storage object.
 func (i *Inode) IsObject() bool {
 	return i.FileType() == ModeObject
+}
+
+// AccessType represents the type of access being requested.
+type AccessType int
+
+const (
+	AccessRead AccessType = iota
+	AccessWrite
+	AccessExecute
+)
+
+// CheckPerm checks if the given user has the specified access permission.
+func (i *Inode) CheckPerm(uid int, gids []int, access AccessType) error {
+	if uid == 0 {
+		return nil // root bypass
+	}
+
+	mode := i.Permissions()
+
+	var perm int
+	switch {
+	case i.UID() == uid:
+		perm = ownerPerm(mode, access)
+	case slices.Contains(gids, i.GID()):
+		perm = groupPerm(mode, access)
+	default:
+		perm = otherPerm(mode, access)
+	}
+
+	if perm == 0 {
+		return errors.Forbidden("permission denied")
+	}
+	return nil
+}
+
+// CheckRead is a convenience method for checking read permission.
+func (i *Inode) CheckRead(uid int, gids []int) error {
+	return i.CheckPerm(uid, gids, AccessRead)
+}
+
+// CheckWrite is a convenience method for checking write permission.
+func (i *Inode) CheckWrite(uid int, gids []int) error {
+	return i.CheckPerm(uid, gids, AccessWrite)
+}
+
+// CheckExecute is a convenience method for checking execute permission.
+func (i *Inode) CheckExecute(uid int, gids []int) error {
+	return i.CheckPerm(uid, gids, AccessExecute)
+}
+
+func ownerPerm(mode int, access AccessType) int {
+	switch access {
+	case AccessRead:
+		return mode & PermOwnerRead
+	case AccessWrite:
+		return mode & PermOwnerWrite
+	case AccessExecute:
+		return mode & PermOwnerExec
+	}
+	return 0
+}
+
+func groupPerm(mode int, access AccessType) int {
+	switch access {
+	case AccessRead:
+		return mode & PermGroupRead
+	case AccessWrite:
+		return mode & PermGroupWrite
+	case AccessExecute:
+		return mode & PermGroupExec
+	}
+	return 0
+}
+
+func otherPerm(mode int, access AccessType) int {
+	switch access {
+	case AccessRead:
+		return mode & PermOtherRead
+	case AccessWrite:
+		return mode & PermOtherWrite
+	case AccessExecute:
+		return mode & PermOtherExec
+	}
+	return 0
+}
+
+// ReadDir reads directory entries from an inode.
+// Returns error if the inode is not a directory.
+func (i *Inode) ReadDir() ([]content.DirEntry, error) {
+	if !i.IsDir() {
+		return nil, errors.BadRequest("not a directory")
+	}
+
+	var dirContent content.DirContent
+	if i.content != nil {
+		if err := json.Unmarshal(i.content, &dirContent); err != nil {
+			return nil, errors.WrapInternal(err, "failed to parse directory content")
+		}
+	}
+
+	return dirContent.Entries, nil
+}
+
+// IsEmptyDir checks if a directory inode has no entries.
+// Returns true for nil or unparsable content.
+func (i *Inode) IsEmptyDir() bool {
+	if !i.IsDir() {
+		return false
+	}
+	if i.content == nil {
+		return true
+	}
+	var dirContent content.DirContent
+	if err := json.Unmarshal(i.content, &dirContent); err != nil {
+		return true
+	}
+	return len(dirContent.Entries) == 0
+}
+
+// SymlinkTarget returns the target path of a symlink inode.
+func (i *Inode) SymlinkTarget() (string, error) {
+	if !i.IsSymlink() {
+		return "", errors.BadRequest("not a symlink")
+	}
+	var symContent content.SymlinkContent
+	if err := json.Unmarshal(i.content, &symContent); err != nil {
+		return "", errors.WrapInternal(err, "failed to parse symlink content")
+	}
+	return symContent.Target, nil
+}
+
+// ObjectID returns the referenced object ID for object inodes.
+func (i *Inode) ObjectID() (string, error) {
+	if !i.IsObject() {
+		return "", errors.BadRequest("not an object inode")
+	}
+	var objContent content.ObjectContent
+	if err := json.Unmarshal(i.content, &objContent); err != nil {
+		return "", errors.WrapInternal(err, "failed to parse object content")
+	}
+	return objContent.ObjectID, nil
 }
 
 // InodeService defines the interface for inode operations.

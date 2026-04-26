@@ -2,12 +2,10 @@ package fs
 
 import (
 	"context"
-	"encoding/json"
 	"path"
 	"strings"
 
 	"github.com/starfrag-lab/retrowin-go/internal/core/inode"
-	"github.com/starfrag-lab/retrowin-go/internal/core/inode/content"
 	"github.com/starfrag-lab/retrowin-go/internal/errors"
 )
 
@@ -64,7 +62,7 @@ func (s *service) ResolvePath(ctx context.Context, systemID string, pathStr stri
 		}
 
 		// Read directory entries
-		entries, err := s.readDirEntries(current)
+		entries, err := current.ReadDir()
 		if err != nil {
 			return nil, err
 		}
@@ -103,29 +101,13 @@ func (s *service) ResolvePath(ctx context.Context, systemID string, pathStr stri
 	return current, nil
 }
 
-// readDirEntries reads directory entries from an inode.
-func (s *service) readDirEntries(dir *inode.Inode) ([]content.DirEntry, error) {
-	if !dir.IsDir() {
-		return nil, errors.BadRequest("not a directory")
-	}
-
-	var dirContent content.DirContent
-	if dir.Content() != nil {
-		if err := json.Unmarshal(dir.Content(), &dirContent); err != nil {
-			return nil, errors.WrapInternal(err, "failed to parse directory content")
-		}
-	}
-
-	return dirContent.Entries, nil
-}
-
 // resolveSymlink resolves a symlink to its target inode.
 func (s *service) resolveSymlink(ctx context.Context, sym *inode.Inode) (*inode.Inode, error) {
-	var symContent content.SymlinkContent
-	if err := json.Unmarshal(sym.Content(), &symContent); err != nil {
-		return nil, errors.WrapInternal(err, "failed to parse symlink content")
+	targetPath, err := sym.SymlinkTarget()
+	if err != nil {
+		return nil, err
 	}
 
 	// Resolve the target path
-	return s.ResolvePath(ctx, sym.SystemID(), symContent.Target)
+	return s.ResolvePath(ctx, sym.SystemID(), targetPath)
 }

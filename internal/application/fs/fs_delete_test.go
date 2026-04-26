@@ -222,25 +222,6 @@ func TestDelete_PermissionDenied(t *testing.T) {
 
 // --- deleteObjectRef ---
 
-func TestDeleteObjectRef_NilContent(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
-
-	err := svc.deleteObjectRef(context.Background(), nil)
-
-	assert.NoError(t, err)
-}
-
-func TestDeleteObjectRef_EmptyObjectID(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
-
-	objContent := content.ObjectContent{ObjectID: ""}
-	raw, _ := json.Marshal(objContent)
-
-	err := svc.deleteObjectRef(context.Background(), raw)
-
-	assert.NoError(t, err)
-}
-
 func TestDeleteObjectRef_Success(t *testing.T) {
 	objectSvc := objectMocks.NewObjectServiceMock(t)
 
@@ -248,10 +229,12 @@ func TestDeleteObjectRef_Success(t *testing.T) {
 
 	svc := NewService(nil, objectSvc, nil, nil).(*service)
 
+	now := time.Now()
 	objContent := content.ObjectContent{ObjectID: "obj-1"}
 	raw, _ := json.Marshal(objContent)
+	in := inode.NewInode("test-id", "sys", inode.ModeObject|0644, 0, 0, 0, 1, 0, now, now, now, raw, now, now)
 
-	err := svc.deleteObjectRef(context.Background(), raw)
+	err := svc.deleteObjectRef(context.Background(), in)
 
 	assert.NoError(t, err)
 }
@@ -263,10 +246,12 @@ func TestDeleteObjectRef_NotFound(t *testing.T) {
 
 	svc := NewService(nil, objectSvc, nil, nil).(*service)
 
+	now := time.Now()
 	objContent := content.ObjectContent{ObjectID: "obj-1"}
 	raw, _ := json.Marshal(objContent)
+	in := inode.NewInode("test-id", "sys", inode.ModeObject|0644, 0, 0, 0, 1, 0, now, now, now, raw, now, now)
 
-	err := svc.deleteObjectRef(context.Background(), raw)
+	err := svc.deleteObjectRef(context.Background(), in)
 
 	assert.NoError(t, err)
 }
@@ -278,53 +263,12 @@ func TestDeleteObjectRef_OtherError(t *testing.T) {
 
 	svc := NewService(nil, objectSvc, nil, nil).(*service)
 
+	now := time.Now()
 	objContent := content.ObjectContent{ObjectID: "obj-1"}
 	raw, _ := json.Marshal(objContent)
+	in := inode.NewInode("test-id", "sys", inode.ModeObject|0644, 0, 0, 0, 1, 0, now, now, now, raw, now, now)
 
-	err := svc.deleteObjectRef(context.Background(), raw)
-
-	assert.NoError(t, err)
-}
-
-// --- ensureDirEmpty ---
-
-func TestEnsureDirEmpty_NilContent(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
-
-	err := svc.ensureDirEmpty(nil)
+	err := svc.deleteObjectRef(context.Background(), in)
 
 	assert.NoError(t, err)
-}
-
-func TestEnsureDirEmpty_UnparsableContent(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
-
-	err := svc.ensureDirEmpty([]byte("invalid json"))
-
-	assert.NoError(t, err)
-}
-
-func TestEnsureDirEmpty_EmptyDirectory(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
-
-	dirContent := content.DirContent{Entries: []content.DirEntry{}}
-	raw, _ := json.Marshal(dirContent)
-
-	err := svc.ensureDirEmpty(raw)
-
-	assert.NoError(t, err)
-}
-
-func TestEnsureDirEmpty_NonEmptyDirectory(t *testing.T) {
-	svc := NewService(nil, nil, nil, nil).(*service)
-
-	dirContent := content.DirContent{Entries: []content.DirEntry{
-		{Name: "file", InodeID: "file-id", FileType: uint8(inode.ModeRegular >> 12)},
-	}}
-	raw, _ := json.Marshal(dirContent)
-
-	err := svc.ensureDirEmpty(raw)
-
-	assert.Error(t, err)
-	assert.True(t, errors.IsBadRequest(err))
 }
