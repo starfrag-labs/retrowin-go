@@ -65,7 +65,7 @@ func TestInode_CheckPerm(t *testing.T) {
 	})
 
 	t.Run("no permissions", func(t *testing.T) {
-		in := inode.NewInode("id", "sys", inode.ModeRegular|0000, 1000, 1000, 0, 1, 0, now, now, now, nil, now, now)
+		in := inode.NewInode("id", "sys", inode.ModeRegular, 1000, 1000, 0, 1, 0, now, now, now, nil, now, now)
 		err := in.CheckPerm(2000, []int{2000}, inode.AccessRead)
 		assert.Error(t, err)
 		assert.True(t, errors.IsForbidden(err))
